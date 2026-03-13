@@ -1,15 +1,19 @@
-import { ApiError } from "../utils/ApiError";
+import { ApiError } from "../utils/ApiError.js";
+import { UserRepository } from "../repositories/user.repository.js";
+import { comparePassword } from "../utils/hash.js";
+import { generateToken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
-import { UserRepository } from "../repositories/user.repository";
-import { hashPassword  , comparePassword } from "../utils/hash";
-import { generateToken } from "../utils/jwt";
 
 export class AuthService {
-     constructor(userRepo) {
+     constructor(userRepo = new UserRepository()) {
        this.userRepo = userRepo;
      }
 
      async register(name , email , password, university) {
+
+        if (!name || !email || !password || !university) {
+            throw new ApiError(400, "All fields are required");
+        }
 
         const existing = await this.userRepo.findByEmail(email);
 
@@ -17,15 +21,15 @@ export class AuthService {
             throw new ApiError(400, "Email already exists");
         }
 
-        const hashPassword = await hashPassword(password);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         const user = await this.userRepo.create ({
             name,
             email,
-            password: hashPassword,
+            password: hashedPassword,
             university,
         });
-        const token = generateToken(user , id);
+        const token = generateToken(user._id);
 
         return { user , token};
      }
@@ -45,4 +49,15 @@ export class AuthService {
         return { user , token };
 
      };
+
+     async getProfile(user) {
+        return user;
+     };
+
+     async logout() {
+        // For JWT-based auth, logout is typically handled client-side
+        // by removing the token from local storage/cookies
+        // Server-side logout can be implemented with token blacklisting if needed
+        return { message: "Logout successful" };
+    };
 }

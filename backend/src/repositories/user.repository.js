@@ -2,11 +2,11 @@ import User from "../models/user.model.js";
 
 export class UserRepository {
 
-    async FindByEmail(email) {
-       return User.findById(id);
+    async findByEmail(email) {
+       return User.findOne({ email });
     }
 
-    async FindById(id) {
+    async findById(id) {
         return User.findById(id);
     }
 

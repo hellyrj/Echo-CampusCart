@@ -1,25 +1,29 @@
-import { asyncHandler } from "../utils/asyncHandler";
-import { AuthService } from "../services/auth.service";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { AuthService } from "../services/auth.service.js";
+import { sendResponse } from "../utils/apiResponse.js";
 
 export class AuthController {
-    constructor(authService) {
-        this.authService = authService;
+    constructor() {
+        this.authService = new AuthService();
     }
-     register = asyncHandler(async(req , res) => {
+    
+    getProfile = asyncHandler(async(req , res) => {
+        const result = await this.authService.getProfile(req.user);
+        sendResponse(res, 200, "Profile fetched successfully", result);
+    });
+
+    register = asyncHandler(async(req , res) => {
 
         const { name , email , password , university } = req.body;
 
-        const result = await registerUser ({
+        const result = await this.authService.register(
             name, 
             email,
             password,
             university
-        });
+        );
 
-        res.status(201).json({
-            success: true,
-            data: result
-        });
+        sendResponse(res, 201, "user registered successfully", result);
 
     });
 
@@ -28,9 +32,11 @@ export class AuthController {
 
         const result = await this.authService.login(email, password);
 
-        res.status({
-            success: true,
-            data: result
-        });
+        sendResponse(res, 200, "Login successful", result);
+    });
+
+    logout = asyncHandler(async(req , res) => {
+        const result = await this.authService.logout();
+        sendResponse(res, 200, "Logout successful", result);
     });
 }

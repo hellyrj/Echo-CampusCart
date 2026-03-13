@@ -1,9 +1,9 @@
-import bcrpt from "bcrypt";
+import bcrypt from "bcrypt";
 
-export const hashPassword = async (password) => {
-    return bcrypt.hash(password, 10);
+// Fix: Rename second parameter to avoid confusion
+export const comparePassword = async (password, hashedPassword) => {  
+    if (!password || !hashedPassword) {
+        throw new Error("Both password and hash are required");
+    }
+    return bcrypt.compare(password, hashedPassword);
 };
-
-export const comparePassword = async (paswword , hashPassword) => {
-    return bcrypt.compare(password, hashPassword);
-}
