@@ -1,17 +1,14 @@
 import User from "../models/user.model.js";
+import BaseRepository from "./base.repository.js";
 
-export class UserRepository {
+export class UserRepository extends BaseRepository {
+
+    constructor() {
+        super(User);
+    }
 
     async findByEmail(email) {
-       return User.findOne({ email });
-    }
-
-    async findById(id) {
-        return User.findById(id);
-    }
-
-    async create(data) {
-        return User.create(data);
+       return this.findOne({ email });
     }
     
 }
