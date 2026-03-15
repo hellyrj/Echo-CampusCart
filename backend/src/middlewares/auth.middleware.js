@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { UserRepository } from "../repositories/user.repository.js";
+import  UserRepository  from "../repositories/user.repository.js";
 
-const userRepo = new UserRepository();
+const userRepo =  UserRepository;
 
 export const authenticate = asyncHandler( async(req , res , next) => {
     const authHeader = req.headers.authorization;

@@ -40,7 +40,7 @@ const vendorSchema = new mongoose.Schema ({
     location: {
       type: {
         type: String,
-        enum: ["point"],
+        enum: ["Point"],
         required: true
       },
 

@@ -1,11 +1,12 @@
 import { ApiError } from "../utils/ApiError.js";
-import { UserRepository } from "../repositories/user.repository.js";
+import  UserRepository  from "../repositories/user.repository.js";
 import { comparePassword } from "../utils/hash.js";
 import { generateToken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
 
 export class AuthService {
-     constructor(userRepo = new UserRepository()) {
+    //using imported instance as a default 
+     constructor(userRepo = UserRepository) {
        this.userRepo = userRepo;
      }
 
