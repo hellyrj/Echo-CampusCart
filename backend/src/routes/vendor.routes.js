@@ -7,9 +7,10 @@ const vendorController = new VendorController();
 
 router.post("/vendors", authenticate, vendorController.createVendor);
 
+router.get("/vendors/nearby", vendorController.getNearbyVendors);
+
 router.get("/vendors/:id",  vendorController.getVendor);
 
-router.get("/vendors/nearby", vendorController.getNearbyVendors);
 
 router.put("/vendors/:id", authenticate, vendorController.updateVendor);
 
