@@ -12,7 +12,7 @@ export class AuthService {
 
      async register(name , email , password, university) {
 
-        if (!name || !email || !password || !university) {
+        if (!name || !email || !password ) {
             throw new ApiError(400, "All fields are required");
         }
 

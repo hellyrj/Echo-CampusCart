@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
 
     university: {
         type: String,
-        required: true,
+        //required: true,
     },
     profilePicture: {
         type: String,
