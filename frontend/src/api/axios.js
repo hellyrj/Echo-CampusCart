@@ -7,7 +7,7 @@ const axiosInstance = axios.create({
     },
 });
 
-//Reuest interceptor to add token 
+//Request interceptor to add token 
 
 axiosInstance.interceptors.request.use(
     (config) => {
