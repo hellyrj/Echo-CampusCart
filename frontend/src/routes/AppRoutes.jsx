@@ -13,6 +13,10 @@ import Cart from '../pages/Cart';
 import Checkout from '../pages/Checkout';
 import Dashboard from '../pages/Dashboard';
 
+// Vendor Pages
+import VendorDashboard from '../pages/vendor/Dashboard';
+import CreateStore from '../pages/vendor/CreateStore';
+
 export const AppRoutes = () => {
   return (
     <Routes>
@@ -29,8 +33,14 @@ export const AppRoutes = () => {
         <Route path="/checkout" element={<Checkout />} />
       </Route>
       
-      {/* Role-based routes */}
-      <Route element={<RoleBasedRoute allowedRoles={['vendor', 'admin']} />}>
+      {/* Vendor routes */}
+      <Route element={<RoleBasedRoute allowedRoles={['vendor']} />}>
+        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+        <Route path="/vendor/create" element={<CreateStore />} />
+      </Route>
+      
+      {/* Admin routes */}
+      <Route element={<RoleBasedRoute allowedRoles={['admin']} />}>
         <Route path="/dashboard/*" element={<Dashboard />} />
       </Route>
     </Routes>

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useAuthApi } from '../../hooks/useAuthApi';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
+import { useAuth } from '@context';
+import { useAuthApi } from '@hooks';
+import { Button, Input } from '@components';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,9 +10,10 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    university: '',
   });
   
-  const { register: authRegister } = useAuth();
+  const { login: authLogin } = useAuth();
   const { register, loading, error, resetError } = useAuthApi();
   const navigate = useNavigate();
 
@@ -29,17 +29,18 @@ const Register = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      return; // Let component handle validation error display
+      return;
     }
-
+    
     const result = await register({
       name: formData.name,
       email: formData.email,
       password: formData.password,
+      university: formData.university,
     });
     
     if (result.success) {
-      await authRegister(result.user);
+      await authLogin(result.user);
       navigate('/');
     }
   };
@@ -58,7 +59,6 @@ const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
             label="Name"
-            type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -92,6 +92,14 @@ const Register = () => {
             required
           />
           
+          <Input
+            label="University"
+            name="university"
+            value={formData.university}
+            onChange={handleChange}
+            required
+          />
+          
           <Button
             type="submit"
             disabled={loading}
@@ -104,7 +112,7 @@ const Register = () => {
         <p className="text-center">
           Already have an account?{' '}
           <Link to="/login" className="text-blue-600 hover:underline">
-            Login
+            Sign In
           </Link>
         </p>
       </div>
