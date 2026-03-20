@@ -1,68 +1,74 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authApi } from '../api/auth.api';
+// context/AuthContext.jsx
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { tokenService } from '../services/token.service';
+import { authApi } from '../api/auth.api';
 
-const AuthContext = createContext(null);
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  const checkUser = async () => {
-    try {
-      if (tokenService.getToken()) {
-        const response = await authApi.getProfile();
-        setUser(response.data.data);
-      }
-    } catch (error) {
-      tokenService.removeToken();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const login = async (credentials) => {
-    const response = await authApi.login(credentials);
-    const { user, token } = response.data.data;
-    tokenService.setToken(token);
-    setUser(user);
-    return user;
-  };
-
-  const register = async (userData) => {
-    const response = await authApi.register(userData);
-    const { user, token } = response.data.data;
-    tokenService.setToken(token);
-    setUser(user);
-    return user;
-  };
-
-  const logout = () => {
-    tokenService.removeToken();
-    setUser(null);
-  };
-
-  const value = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user,
-    role: user?.role,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    const checkAuth = useCallback(async () => {
+        const token = tokenService.getToken();
+        
+        if (!token) {
+            setUser(null);
+            setIsAuthenticated(false);
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await authApi.getProfile();
+            setUser(response.data.data);
+            setIsAuthenticated(true);
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            tokenService.removeToken();
+            setUser(null);
+            setIsAuthenticated(false);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        checkAuth();
+    }, [checkAuth]);
+
+    const login = useCallback((userData) => {
+        setUser(userData);
+        setIsAuthenticated(true);
+    }, []);
+
+    const logout = useCallback(() => {
+        tokenService.removeToken();
+        setUser(null);
+        setIsAuthenticated(false);
+    }, []);
+
+    const value = {
+        user,
+        loading,
+        isAuthenticated,
+        login,
+        logout,
+        checkAuth
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 };

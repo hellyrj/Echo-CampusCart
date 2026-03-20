@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@context';
 import { useAuthApi } from '@hooks';
 import { Button, Input } from '@components';
 
@@ -10,7 +9,6 @@ const Login = () => {
     password: '',
   });
   
-  const { login: authLogin } = useAuth();
   const { login, loading, error, resetError } = useAuthApi();
   const navigate = useNavigate();
 
@@ -26,8 +24,8 @@ const Login = () => {
     e.preventDefault();
     
     const result = await login(formData);
+    
     if (result.success) {
-      await authLogin(result.user);
       navigate('/');
     }
   };
