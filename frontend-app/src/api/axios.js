@@ -1,3 +1,4 @@
+// axios.js
 import axios from 'axios';
 
 const axiosInstance = axios.create({
@@ -21,7 +22,7 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-// Response interceptor for error handling
+// Add response interceptor for better error handling
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
