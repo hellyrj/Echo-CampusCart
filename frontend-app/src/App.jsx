@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 
 // Pages
@@ -23,7 +24,11 @@ function App() {
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
-                            <Route path="/products" element={<Products />} />
+                            <Route path="/products" element={
+                                <ErrorBoundary>
+                                    <Products />
+                                </ErrorBoundary>
+                            } />
                             <Route path="/register" element={<Register />} />
                             
                             {/* Protected Routes */}

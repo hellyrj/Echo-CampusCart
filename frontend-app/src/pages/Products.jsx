@@ -6,6 +6,7 @@ const Products = () => {
     const [products, setProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     
     const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
     const { isAuthenticated } = useAuth();
@@ -25,6 +26,8 @@ const Products = () => {
 
     const loadProducts = async () => {
         try {
+            setError(null);
+            console.log('Attempting to fetch products...'); // Debug log
             const result = await getProducts();
             console.log('API Response:', result); // Debug log
             if (result.success) {
@@ -34,10 +37,28 @@ const Products = () => {
                 setProducts(Array.isArray(productsData) ? productsData : []);
             } else {
                 console.error('Failed to load products:', result.message);
+                setError(result.message || 'Failed to load products');
                 setProducts([]);
             }
         } catch (error) {
             console.error('Error loading products:', error);
+            // More detailed error logging
+            if (error.response) {
+                console.error('Error response:', error.response.status, error.response.data);
+                if (error.response.status === 401) {
+                    setError('Authentication required. The backend may require authentication for this endpoint.');
+                } else if (error.response.status === 404) {
+                    setError('Products endpoint not found. Is the backend running?');
+                } else {
+                    setError(error.response.data?.message || `Server error: ${error.response.status}`);
+                }
+            } else if (error.request) {
+                console.error('Error request:', error.request);
+                setError('Network error. Cannot connect to backend server. Is it running on http://localhost:3000?');
+            } else {
+                console.error('General error:', error.message);
+                setError(error.message || 'Failed to load products');
+            }
             setProducts([]);
         } finally {
             setLoading(false);
@@ -81,6 +102,22 @@ const Products = () => {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Loading products...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-600 text-lg mb-4">Error: {error}</div>
+                    <button 
+                        onClick={loadProducts}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                    >
+                        Try Again
+                    </button>
                 </div>
             </div>
         );
