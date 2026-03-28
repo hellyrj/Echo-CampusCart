@@ -12,19 +12,18 @@ export class AuthController {
         sendResponse(res, 200, "Profile fetched successfully", result);
     });
 
-    register = asyncHandler(async(req , res) => {
-
-        const { name , email , password , university } = req.body;
+    register = asyncHandler(async(req, res) => {
+        const { name, email, password, university, role } = req.body;
 
         const result = await this.authService.register(
             name, 
             email,
             password,
-            university
+            university,
+            role
         );
 
         sendResponse(res, 201, "user registered successfully", result);
-
     });
 
     login = asyncHandler(async(req , res) => {

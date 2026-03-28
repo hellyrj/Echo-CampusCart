@@ -5,7 +5,7 @@ const vendorSchema = new mongoose.Schema ({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,  
-        unique: true // Each vendor is associated with one user (owner) only to avoid spam stores
+       // unique: true // Each vendor is associated with one user (owner) only to avoid spam stores
       },
 
     storeName: {
@@ -35,6 +35,51 @@ const vendorSchema = new mongoose.Schema ({
     logo: {
         type: String,
         default: null
+    },
+
+    // Legal documents
+    legalDocuments: [{
+        documentType: {
+            type: String,
+            enum: ['business_license', 'tax_certificate', 'health_permit', 'other'],
+            required: true
+        },
+        documentUrl: {
+            type: String,
+            required: true
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+
+    // Admin approval fields
+    isApproved: {
+        type: Boolean,
+        default: false
+    },
+
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+
+    approvedAt: {
+        type: Date,
+        default: null
+    },
+
+    rejectionReason: {
+        type: String,
+        default: null
+    },
+
+    // University proximity
+    universityNear: {
+        type: String,
+        required: true
     },
 
     location: {

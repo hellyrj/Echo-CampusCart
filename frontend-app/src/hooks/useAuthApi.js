@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export const useAuthApi = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { login: authLogin } = useAuth();
+    const { login: authLogin, user } = useAuth();
 
     const login = useCallback(async (credentials) => {
         setLoading(true);
@@ -47,9 +47,24 @@ export const useAuthApi = () => {
         }
     }, [authLogin]);
 
+    const getProfile = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await authApi.getProfile();
+            return response.data;
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to fetch profile';
+            setError(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const resetError = useCallback(() => {
         setError(null);
     }, []);
 
-    return { login, register, loading, error, resetError };
+    return { login, register, getProfile, loading, error, resetError };
 };

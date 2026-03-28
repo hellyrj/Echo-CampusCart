@@ -9,7 +9,18 @@ import { sendResponse } from "../utils/apiResponse.js";
     }
      
     createProduct = asyncHandler(async (req, res) => {
-        const product = await this.productService.createProduct(req.body);
+        // Get vendor ID from authenticated user
+        const vendorId = req.user._id;
+        
+        // Prepare product data with vendorId and correct field names
+        const productData = {
+            ...req.body,
+            vendorId: vendorId,
+            // Convert price to basePrice if needed
+            basePrice: req.body.basePrice || req.body.price
+        };
+        
+        const product = await this.productService.createProduct(productData);
         sendResponse(res, 201, "Product created successfully", product);
     });
 

@@ -37,6 +37,8 @@ const MyProducts = () => {
             }
         } catch (error) {
             console.error('Error fetching user products:', error);
+             console.log("Type of result.data:", typeof result.data); // Add this line
+    console.log("Value of result.data:", result.data);  
         } finally {
             setLoading(false);
         }

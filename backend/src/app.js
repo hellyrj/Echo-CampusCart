@@ -3,9 +3,10 @@ import cors from "cors";
 
 import authRoutes from "./routes/auth.routes.js";
 import vendorRouters from "./routes/vendor.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import productRoutes from "./routes/product.routes.js";
-import reviewRoutes from "./routes/review.routes.js"
+import reviewRoutes from "./routes/review.routes.js";
 const app = express();
 
 /**
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api", vendorRouters);
+app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
 

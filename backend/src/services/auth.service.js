@@ -10,30 +10,39 @@ export class AuthService {
        this.userRepo = userRepo;
      }
 
-     async register(name , email , password, university) {
-
-        if (!name || !email || !password ) {
+     async register(name, email, password, university, role) {
+        if (!name || !email || !password) {
             throw new ApiError(400, "All fields are required");
         }
 
         const existing = await this.userRepo.findByEmail(email);
 
-        if(existing) {
+        if (existing) {
             throw new ApiError(400, "Email already exists");
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await this.userRepo.create ({
+        // Handle university field - if it's a string, try to find existing university
+        let universityId = university;
+        if (typeof university === 'string' && university) {
+            const University = require('../models/university.model.js').default;
+            const existingUniversity = await University.findOne({ name: university });
+            if (existingUniversity) {
+                universityId = existingUniversity._id;
+            }
+        }
+
+        const user = await this.userRepo.create({
             name,
             email,
             password: hashedPassword,
-            university,
+            university: universityId,
+            role: role || 'student' // Use provided role or default to student
         });
         const token = generateToken(user._id);
-
-        return { user , token};
-     }
+        return { user, token };
+    }
 
      async login (email , password) {
         const user = await this.userRepo.findByEmail(email);
