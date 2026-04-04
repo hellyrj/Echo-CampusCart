@@ -26,10 +26,11 @@ const VendorDashboard = () => {
 
     const fetchUserProducts = async () => {
         try {
-            const result = await getProducts();
-            if (result.success) {
+            const result = await vendorApi.getMyProducts();
+            console.log('Vendor products response:', result);
+            if (result.data.success) {
                 // Handle different possible response structures
-                const productsData = result.data?.data || result.data || [];
+                const productsData = result.data.data || result.data || [];
                 console.log('Products data:', productsData);
                 
                 // Filter products by current user
@@ -48,7 +49,7 @@ const VendorDashboard = () => {
             if (user?.role === 'vendor') {
                 // User is already a vendor, try to get vendor profile
                 try {
-                    const result = await vendorApi.getVendor(user._id);
+                    const result = await vendorApi.getMyVendorProfile();
                     console.log('Vendor profile response:', result);
                     if (result.data.success) {
                         const vendorData = result.data.data || result.data;
@@ -63,9 +64,11 @@ const VendorDashboard = () => {
                     console.error('Error fetching vendor profile:', error);
                     if (error.response?.status === 404) {
                         // Vendor profile doesn't exist, show create form
+                        console.log('404 error - showing create form');
                         setShowCreateForm(true);
                     } else {
                         // Other error, still show create form
+                        console.log('Other error - showing create form');
                         setShowCreateForm(true);
                     }
                 }
@@ -107,13 +110,13 @@ const VendorDashboard = () => {
 
     const handleCreateProduct = async (productData) => {
         try {
-            const result = await createProduct(productData);
-            if (result.success) {
+            const result = await vendorApi.createMyProduct(productData);
+            if (result.data.success) {
                 setShowProductForm(false);
                 fetchUserProducts();
                 alert('Product created successfully!');
             } else {
-                alert(`Failed to create product: ${result.message}`);
+                alert(`Failed to create product: ${result.data.message}`);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -123,12 +126,12 @@ const VendorDashboard = () => {
 
     const handleUpdateProduct = async (productId, productData) => {
         try {
-            const result = await updateProduct(productId, productData);
-            if (result.success) {
+            const result = await vendorApi.updateMyProduct(productId, productData);
+            if (result.data.success) {
                 fetchUserProducts();
                 alert('Product updated successfully!');
             } else {
-                alert(`Failed to update product: ${result.message}`);
+                alert(`Failed to update product: ${result.data.message}`);
             }
         } catch (error) {
             console.error('Error updating product:', error);
@@ -139,12 +142,12 @@ const VendorDashboard = () => {
     const handleDeleteProduct = async (productId) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                const result = await deleteProduct(productId);
-                if (result.success) {
+                const result = await vendorApi.deleteMyProduct(productId);
+                if (result.data.success) {
                     fetchUserProducts();
                     alert('Product deleted successfully!');
                 } else {
-                    alert(`Failed to delete product: ${result.message}`);
+                    alert(`Failed to delete product: ${result.data.message}`);
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);

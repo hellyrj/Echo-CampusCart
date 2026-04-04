@@ -19,6 +19,14 @@ export const vendorApi = {
     // Get nearby vendors (public)
     getNearbyVendors: (params) => axiosInstance.get('/vendors/nearby', { params }),
     
+    // Vendor-specific endpoints (for authenticated vendors)
+    getMyVendorProfile: () => axiosInstance.get('/vendors/profile/me'),
+    getAllMyVendorProfiles: () => axiosInstance.get('/vendors/profiles/me'),
+    getMyProducts: () => axiosInstance.get('/vendors/products/me'),
+    createMyProduct: (productData) => axiosInstance.post('/vendors/products', productData),
+    updateMyProduct: (id, productData) => axiosInstance.put(`/vendors/products/${id}`, productData),
+    deleteMyProduct: (id) => axiosInstance.delete(`/vendors/products/${id}`),
+    
     // Update vendor (vendor owner only)
     updateVendor: (id, vendorData) => axiosInstance.put(`/vendors/${id}`, vendorData),
     

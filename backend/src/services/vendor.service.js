@@ -1,4 +1,5 @@
 import vendorRepository from "../repositories/vendor.repository.js";
+import productRepository from "../repositories/product.repository.js";
 import {ApiError}  from "../utils/ApiError.js"
 
 export class VendorService {
@@ -90,6 +91,101 @@ export class VendorService {
         });
 
         return updatedVendor;
+    }
+
+    // Get vendor by user ID (for current vendor to see their own profile)
+    async getVendorByUserId(userId) {
+        const vendor = await this.vendorRepo.findByOwner(userId);
+        
+        if(!vendor) {
+            throw new ApiError(404, "Vendor profile not found");
+        }
+
+        return vendor;
+    }
+
+    // Get all vendor profiles for a user (for users with multiple stores)
+    async getAllVendorsByUserId(userId) {
+        const vendors = await this.vendorRepo.findAllByOwner(userId);
+        return vendors;
+    }
+
+    // Create vendor profile for users with vendor role but no vendor record
+    async createVendorForVendorRole(userId, vendorData) {
+        const existing = await this.vendorRepo.findByOwner(userId);
+        
+        if(existing) {
+            throw new ApiError(400, "Vendor profile already exists");
+        }
+
+        const vendor = await this.vendorRepo.create(vendorData);
+        return vendor;
+    }
+
+    // Get vendor's products (for current vendor to see their own products)
+    async getVendorProducts(userId) {
+        const products = await productRepository.findByVendorId(userId);
+        return products;
+    }
+
+    // Create product for current vendor
+    async createVendorProduct(userId, productData) {
+        const vendor = await this.vendorRepo.findByOwner(userId);
+        
+        if(!vendor || !vendor.isApproved) {
+            throw new ApiError(403, "Vendor not approved or not found");
+        }
+
+        const product = await productRepository.create({
+            ...productData,
+            vendorId: userId
+        });
+
+        return product;
+    }
+
+    // Update vendor's product
+    async updateVendorProduct(userId, productId, productData) {
+        const vendor = await this.vendorRepo.findByOwner(userId);
+        
+        if(!vendor || !vendor.isApproved) {
+            throw new ApiError(403, "Vendor not approved or not found");
+        }
+
+        const product = await productRepository.findById(productId);
+        
+        if(!product) {
+            throw new ApiError(404, "Product not found");
+        }
+
+        if(product.vendorId.toString() !== userId) {
+            throw new ApiError(403, "Unauthorized to update this product");
+        }
+
+        const updatedProduct = await productRepository.update(productId, productData);
+        return updatedProduct;
+    }
+
+    // Delete vendor's product
+    async deleteVendorProduct(userId, productId) {
+        const vendor = await this.vendorRepo.findByOwner(userId);
+        
+        if(!vendor || !vendor.isApproved) {
+            throw new ApiError(403, "Vendor not approved or not found");
+        }
+
+        const product = await productRepository.findById(productId);
+        
+        if(!product) {
+            throw new ApiError(404, "Product not found");
+        }
+
+        if(product.vendorId.toString() !== userId) {
+            throw new ApiError(403, "Unauthorized to delete this product");
+        }
+
+        await productRepository.delete(productId);
+        return { message: "Product deleted successfully" };
     }
 
     // Get vendor by ID (public)

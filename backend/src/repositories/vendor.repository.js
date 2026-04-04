@@ -12,6 +12,10 @@ class VendorRepository extends BaseRepository {
     return this.findOne({ ownerId });
   }
 
+  async findAllByOwner(ownerId) {
+    return this.find({ ownerId });
+  }
+
   async findNearby({ longitude, latitude, radius, filter = {} }) {
     const locationFilter = {
       location: {
@@ -35,7 +39,6 @@ class VendorRepository extends BaseRepository {
   async updateUserRole(userId, newRole) {
     await User.findByIdAndUpdate(userId, { role: newRole });
   }
-
 }
 
 export default new VendorRepository();

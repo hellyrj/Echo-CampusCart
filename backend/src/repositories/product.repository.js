@@ -19,6 +19,10 @@ class ProductRepository extends BaseRepository {
       .limit(limit);
   }
 
+  async findByVendorId(vendorId) {
+    return this.model.find({ vendorId });
+  }
+
   async incrementViews(productId) {
     return this.model.findByIdAndUpdate(
       productId,
