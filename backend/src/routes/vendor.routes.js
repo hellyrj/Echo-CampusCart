@@ -36,8 +36,14 @@ router.post("/vendors/apply", authenticate, vendorController.submitVendorApplica
 
 // Vendor-specific routes (for authenticated vendors to see their own data)
 router.get("/vendors/profile/me", authenticate, vendorController.getMyVendorProfile);
-router.get("/vendors/profiles/me", authenticate, vendorController.getAllMyVendorProfiles);
+
+// the api endpoint is not working, the need is to get all stores in owner id
+//router.get("/vendors/profiles/me", authenticate, vendorController.getAllMyVendorProfiles);
+
+// Vendor-specific routes (for authenticated vendors to manage their products)
 router.get("/vendors/products/me", authenticate, vendorController.getMyProducts);
+
+//all products available
 router.post("/vendors/products", authenticate, vendorController.createMyProduct);
 router.put("/vendors/products/:id", authenticate, vendorController.updateMyProduct);
 router.delete("/vendors/products/:id", authenticate, vendorController.deleteMyProduct);

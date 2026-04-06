@@ -13,7 +13,18 @@ const app = express();
  * global middlewares
  */
 app.use(cors());
-app.use(express.json());
+
+// Custom middleware to handle requests without Content-Type
+app.use((req, res, next) => {
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+        if (!req.headers['content-type'] && req.headers['content-length'] > '0') {
+            req.headers['content-type'] = 'application/json';
+        }
+    }
+    next();
+});
+
+app.use(express.json({ type: ['application/json', 'text/plain'] }));
 app.use(express.urlencoded({ extended: true }));
 
 /**

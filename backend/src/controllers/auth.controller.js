@@ -13,7 +13,17 @@ export class AuthController {
     });
 
     register = asyncHandler(async(req, res) => {
+        console.log('Register request body:', req.body);
+        console.log('Register request headers:', req.headers);
+        
         const { name, email, password, university, role } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields: name, email, password"
+            });
+        }
 
         const result = await this.authService.register(
             name, 

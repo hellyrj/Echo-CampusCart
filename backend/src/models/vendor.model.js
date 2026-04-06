@@ -5,7 +5,7 @@ const vendorSchema = new mongoose.Schema ({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,  
-       // unique: true // Each vendor is associated with one user (owner) only to avoid spam stores
+        unique: true // Each vendor is associated with one user (owner) only to avoid spam stores
       },
 
     storeName: {

@@ -5,6 +5,8 @@ import { ProductController} from '../controllers/product.controller.js';
 const router = Router();
 const productController = new ProductController();
 // In your routes file
+
+//creating product
 router.post('/',authenticate, productController.createProduct);
 router.get('/', productController.getProducts);
 router.get('/search', productController.searchProducts);
