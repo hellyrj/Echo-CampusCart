@@ -1,129 +1,83 @@
+import vendorRepository from "../repositories/vendor.repository.js";
 import { ApiError } from "../utils/ApiError.js";
-import University from "../models/university.model.js";
-import Vendor from "../models/vendor.model.js";
 
-export class AdminService {
-    constructor() {
-        // Initialize repositories if needed
-    }
+export class AdminVendorService {
+  constructor(vendorRepo = vendorRepository) {
+    this.vendorRepo = vendorRepo;
+  }
 
-    // Get all vendor applications with optional status filter
-    async getVendorApplications(status = null) {
-        try {
-            const query = {};
-            if (status) {
-                query.isApproved = status === 'approved' ? true : status === 'rejected' ? false : null;
-            }
-            
-            const applications = await Vendor.find(query)
-                .populate('userId', 'name email')
-                .sort({ createdAt: -1 });
-            
-            return applications;
-        } catch (error) {
-            throw new ApiError(500, "Failed to fetch vendor applications", error);
-        }
+  async getVendorApplications(status) {
+    if (status === "pending") {
+      return this.vendorRepo.findPending();
     }
+    
+    if (status === "approved") {
+      return this.vendorRepo.findApproved();
+    }
+    
+    // Return all applications if no status filter
+    return this.vendorRepo.findAll();
+  }
 
-    // Approve vendor application
-    async approveVendorApplication(adminUserId, vendorId) {
-        try {
-            const vendor = await Vendor.findByIdAndUpdate(
-                vendorId,
-                {
-                    isApproved: true,
-                    approvedBy: adminUserId,
-                    approvedAt: new Date(),
-                    rejectionReason: null
-                },
-                { new: true }
-            );
-            
-            if (!vendor) {
-                throw new ApiError(404, "Vendor application not found");
-            }
-            
-            return vendor;
-        } catch (error) {
-            throw new ApiError(500, "Failed to approve vendor application", error);
-        }
+  async approveVendorApplication(adminUserId, vendorId) {
+    const vendor = await this.vendorRepo.findById(vendorId);
+    
+    if (!vendor) {
+      throw new ApiError(404, "Vendor application not found");
     }
+    
+    if (vendor.isApproved) {
+      throw new ApiError(400, "Vendor is already approved");
+    }
+    
+    return this.vendorRepo.approveVendor(vendorId, adminUserId);
+  }
 
-    // Reject vendor application
-    async rejectVendorApplication(adminUserId, vendorId, rejectionReason) {
-        try {
-            const vendor = await Vendor.findByIdAndUpdate(
-                vendorId,
-                {
-                    isApproved: false,
-                    approvedBy: adminUserId,
-                    approvedAt: new Date(),
-                    rejectionReason: rejectionReason
-                },
-                { new: true }
-            );
-            
-            if (!vendor) {
-                throw new ApiError(404, "Vendor application not found");
-            }
-            
-            return vendor;
-        } catch (error) {
-            throw new ApiError(500, "Failed to reject vendor application", error);
-        }
+  async rejectVendorApplication(adminUserId, vendorId, rejectionReason) {
+    const vendor = await this.vendorRepo.findById(vendorId);
+    
+    if (!vendor) {
+      throw new ApiError(404, "Vendor application not found");
     }
+    
+    if (!rejectionReason || rejectionReason.trim() === "") {
+      throw new ApiError(400, "Rejection reason is required");
+    }
+    
+    return this.vendorRepo.rejectVendor(vendorId, rejectionReason);
+  }
 
-    // Get all universities for admin
-    async getUniversities() {
-        try {
-            const universities = await University.find({}).sort({ name: 1 });
-            return universities;
-        } catch (error) {
-            throw new ApiError(500, "Failed to fetch universities", error);
-        }
+  async getVendorDetails(vendorId) {
+    const vendor = await this.vendorRepo.findById(vendorId);
+    
+    if (!vendor) {
+      throw new ApiError(404, "Vendor not found");
     }
+    
+    return vendor;
+  }
 
-    // Create new university
-    async createUniversity(universityData) {
-        try {
-            const university = await University.create(universityData);
-            return university;
-        } catch (error) {
-            throw new ApiError(500, "Failed to create university", error);
-        }
+  async getAllVendors(filters = {}) {
+    const query = {};
+    
+    if (filters.isApproved !== undefined) {
+      query.isApproved = filters.isApproved;
     }
+    
+    if (filters.isActive !== undefined) {
+      query.isActive = filters.isActive;
+    }
+    
+    return this.vendorRepo.findAll(query);
+  }
 
-    // Update university
-    async updateUniversity(universityId, universityData) {
-        try {
-            const university = await University.findByIdAndUpdate(
-                universityId,
-                universityData,
-                { new: true }
-            );
-            
-            if (!university) {
-                throw new ApiError(404, "University not found");
-            }
-            
-            return university;
-        } catch (error) {
-            throw new ApiError(500, "Failed to update university", error);
-        }
+  async toggleVendorStatus(vendorId, isActive) {
+    const vendor = await this.vendorRepo.findById(vendorId);
+    
+    if (!vendor) {
+      throw new ApiError(404, "Vendor not found");
     }
-
-    // Delete university
-    async deleteUniversity(universityId) {
-        try {
-            const result = await University.findByIdAndDelete(universityId);
-            
-            if (!result) {
-                throw new ApiError(404, "University not found");
-            }
-            
-            return { message: "University deleted successfully" };
-        } catch (error) {
-            throw new ApiError(500, "Failed to delete university", error);
-        }
-    }
+    
+    return this.vendorRepo.update(vendorId, { isActive });
+  }
 }

@@ -95,7 +95,7 @@ const vendorSchema = new mongoose.Schema ({
       }
     },
 
-    delivaryAvailable: {
+    deliveryAvailable: {
         type: Boolean,
         default: true
     },

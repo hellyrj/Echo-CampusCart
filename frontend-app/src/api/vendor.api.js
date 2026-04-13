@@ -19,6 +19,10 @@ export const vendorApi = {
     // Get nearby vendors (public)
     getNearbyVendors: (params) => axiosInstance.get('/vendors/nearby', { params }),
     
+    // Public endpoints
+    getUniversities: () => axiosInstance.get('/universities'),
+    getCategories: () => axiosInstance.get('/categories'),
+    
     // Vendor-specific endpoints (for authenticated vendors)
     getMyVendorProfile: () => axiosInstance.get('/vendors/profile/me'),
     getAllMyVendorProfiles: () => axiosInstance.get('/vendors/profiles/me'),

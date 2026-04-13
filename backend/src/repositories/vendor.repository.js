@@ -1,23 +1,55 @@
-import Vendor from "../models/vendor.model.js";
 import BaseRepository from "./base.repository.js";
-import User from "../models/user.model.js";
+import Vendor from "../models/vendor.model.js";
 
 class VendorRepository extends BaseRepository {
-
   constructor() {
     super(Vendor);
   }
 
   async findByOwner(ownerId) {
-    return this.findOne({ ownerId });
+    return this.model.findOne({ ownerId });
   }
 
-  async findAllByOwner(ownerId) {
-    return this.find({ ownerId });
+  async findAll() {
+    return this.model.findAll();
   }
 
-  async findNearby({ longitude, latitude, radius, filter = {} }) {
-    const locationFilter = {
+  async findApproved() {
+    return this.model.find({ isApproved: true, isActive: true });
+  }
+
+  async findPending() {
+    return this.model.find({ isApproved: false });
+  }
+
+  async approveVendor(vendorId, adminId) {
+    return this.model.findByIdAndUpdate(
+      vendorId,
+      {
+        isApproved: true,
+        approvedBy: adminId,
+        approvedAt: new Date(),
+        rejectionReason: null
+      },
+      { new: true }
+    );
+  }
+
+  async rejectVendor(vendorId, reason) {
+    return this.model.findByIdAndUpdate(
+      vendorId,
+      {
+        isApproved: false,
+        rejectionReason: reason
+      },
+      { new: true }
+    );
+  }
+
+  async findNearbyApproved({ longitude, latitude, radius }) {
+    return this.model.find({
+      isApproved: true,
+      isActive: true,
       location: {
         $near: {
           $geometry: {
@@ -27,18 +59,36 @@ class VendorRepository extends BaseRepository {
           $maxDistance: radius
         }
       }
-    };
-
-    // Merge with additional filter if provided
-    const finalFilter = { ...locationFilter, ...filter };
-
-    return this.find(finalFilter);
+    });
   }
 
-  // Update user role when vendor is approved
-  async updateUserRole(userId, newRole) {
-    await User.findByIdAndUpdate(userId, { role: newRole });
-  }
+  async findPending() {
+  return this.model.find({ isApproved: false });
+}
+
+async approveVendor(vendorId, adminId) {
+  return this.model.findByIdAndUpdate(
+    vendorId,
+    {
+      isApproved: true,
+      approvedBy: adminId,
+      approvedAt: new Date(),
+      rejectionReason: null
+    },
+    { new: true }
+  );
+}
+
+async rejectVendor(vendorId, reason) {
+  return this.model.findByIdAndUpdate(
+    vendorId,
+    {
+      isApproved: false,
+      rejectionReason: reason
+    },
+    { new: true }
+  );
+}
 }
 
 export default new VendorRepository();
