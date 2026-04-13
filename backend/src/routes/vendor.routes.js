@@ -20,13 +20,16 @@ router.get(
   "/me",
   authenticate,
   controller.getMyVendorProfile
-); 
+);  //done
 
-router.get(
+
+/**
+ router.get(
   "/me/all",
   authenticate,
   controller.getAllMyVendorProfiles
 );
+ */
 
 // =========================
 // VENDOR PRODUCTS
@@ -66,29 +69,6 @@ router.get("/nearby", controller.getNearbyVendors);
 
 router.get("/:id", controller.getVendor);
 
-// =========================
-// ADMIN
-// =========================
 
-router.get(
-  "/admin/applications",
-  authenticate,
-  authorize("admin"),
-  controller.getVendorApplications
-);
-
-router.patch(
-  "/admin/:id/approve",
-  authenticate,
-  authorize("admin"),
-  controller.approveVendorApplication
-);
-
-router.patch(
-  "/admin/:id/reject",
-  authenticate,
-  authorize("admin"),
-  controller.rejectVendorApplication
-);
 
 export default router;

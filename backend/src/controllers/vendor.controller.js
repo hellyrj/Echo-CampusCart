@@ -115,40 +115,5 @@ export class VendorController {
     sendResponse(res, 200, "Vendor fetched", vendor);
   });
 
-  // =========================
-  // ADMIN
-  // =========================
-
-  getVendorApplications = asyncHandler(async (req, res) => {
-    const { status } = req.query;
-
-    const applications =
-      await this.vendorSer.getVendorApplications(status);
-
-    sendResponse(res, 200, "Vendor applications fetched", applications);
-  });
-
-  approveVendorApplication = asyncHandler(async (req, res) => {
-    const adminUserId = req.user._id;
-
-    const vendor = await this.vendorSer.approveVendorApplication(
-      adminUserId,
-      req.params.id
-    );
-
-    sendResponse(res, 200, "Vendor approved", vendor);
-  });
-
-  rejectVendorApplication = asyncHandler(async (req, res) => {
-    const adminUserId = req.user._id;
-    const { rejectionReason } = req.body;
-
-    const vendor = await this.vendorSer.rejectVendorApplication(
-      adminUserId,
-      req.params.id,
-      rejectionReason
-    );
-
-    sendResponse(res, 200, "Vendor rejected", vendor);
-  });
+  
 }
