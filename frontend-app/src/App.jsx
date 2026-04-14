@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
+import AuthDebug from './components/AuthDebug';
 
 // Pages
 import Home from './pages/Home';
@@ -11,6 +12,7 @@ import Register from './pages/Register';
 import Products from './pages/Products';
 import MyProducts from './pages/MyProducts';
 import VendorDashboard from './pages/VendorDashboard';
+import VendorApplication from './pages/VendorApplication';
 import Profile from './pages/Profile';
 
 function App() {
@@ -30,6 +32,11 @@ function App() {
                                 </ErrorBoundary>
                             } />
                             <Route path="/register" element={<Register />} />
+                            <Route path="/vendor/apply" element={
+                                <ErrorBoundary>
+                                    <VendorApplication />
+                                </ErrorBoundary>
+                            } />
                             
                             {/* Protected Routes */}
                             <Route element={<PrivateRoute />}>
@@ -42,6 +49,7 @@ function App() {
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>
+                    <AuthDebug />
                 </div>
             </Router>
         </AuthProvider>

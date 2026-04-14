@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axios';
@@ -14,7 +15,12 @@ const Products = () => {
     const [error, setError] = useState(null);
     
     const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
+
+    const handleVendorApplication = () => {
+        navigate('/vendor/apply');
+    };
 
     useEffect(() => {
         loadProducts();
@@ -288,6 +294,22 @@ const Products = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Vendor Application Section for Logged-in Non-Vendor Users */}
+                {isAuthenticated && user?.role !== 'vendor' && (
+                    <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg shadow-md p-6 mb-8">
+                        <div className="text-center">
+                            <h3 className="text-2xl font-bold mb-3">Want to Sell Your Products?</h3>
+                            <p className="text-orange-100 mb-6">Join our marketplace and start selling to thousands of campus students</p>
+                            <button
+                                onClick={handleVendorApplication}
+                                className="bg-white text-orange-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                            >
+                                Apply to Become a Vendor
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Products Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

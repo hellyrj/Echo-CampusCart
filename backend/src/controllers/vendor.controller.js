@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/apiResponse.js";
 import { VendorService } from "../services/vendor.service.js";
+import { saveFilesToGridFS } from "../middlewares/upload.js";
 
 export class VendorController {
   constructor(vendSer = new VendorService()) {
@@ -13,16 +14,39 @@ export class VendorController {
 
   submitVendorApplication = asyncHandler(async (req, res) => {
     const userId = req.user._id;
-
-    const vendorApplication =
-      await this.vendorSer.submitVendorApplication(userId, req.body);
-
-    sendResponse(
-      res,
-      201,
-      "Vendor application submitted. Awaiting admin approval.",
-      vendorApplication
-    );
+    
+    // If files were uploaded, save them to GridFS
+    let legalDocuments = [];
+    if (req.files && req.files.length > 0) {
+      try {
+        const uploadedFiles = await saveFilesToGridFS(req.files);
+        legalDocuments = uploadedFiles.map((file, index) => ({
+          documentType: `document_${index + 1}`, // You might want to add document type selection in frontend
+          documentUrl: file.url,
+          uploadedAt: new Date(),
+          fileId: file.fileId,
+          originalName: file.originalName,
+          mimeType: file.mimeType,
+          size: file.size
+        }));
+      } catch (error) {
+        console.error('Error uploading files:', error);
+        return sendResponse(res, 400, "File upload failed", { error: error.message });
+      }
+    } else if (req.body.legalDocuments && Array.isArray(req.body.legalDocuments)) {
+      // Fallback to URL-based documents if no files uploaded
+      legalDocuments = req.body.legalDocuments;
+    }
+    
+    const vendorData = {
+      ...req.body,
+      legalDocuments,
+      ownerId: userId
+    };
+    
+    const vendorApplication = await this.vendorSer.submitVendorApplication(userId, vendorData);
+    
+    sendResponse(res, 201, "Vendor application submitted. Awaiting admin approval.", vendorApplication);
   });
 
   getMyVendorProfile = asyncHandler(async (req, res) => {

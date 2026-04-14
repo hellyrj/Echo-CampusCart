@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../api/axios';
+import { useVendorApi } from '../hooks/useVendorApi';
 
 const VendorApplicationForm = ({ onSubmit, loading }) => {
     const { user } = useAuth();
+    const { getUniversities } = useVendorApi();
     const [formData, setFormData] = useState({
         storeName: '',
         description: '',
@@ -21,13 +22,14 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
 
     const loadUniversities = async () => {
         try {
-            const response = await axiosInstance.get('/universities');
-            console.log('VendorApplicationForm - Universities API response:', response.data); // Debug log
-            if (response.data.success) {
-                console.log('VendorApplicationForm - Universities data:', response.data.data); // Debug log
-                setUniversities(response.data.data);
+            const result = await getUniversities();
+            console.log('VendorApplicationForm - Universities result:', result); // Debug log
+            if (result.success) {
+                const universitiesData = result.data.data || result.data || [];
+                console.log('VendorApplicationForm - Universities data:', universitiesData); // Debug log
+                setUniversities(Array.isArray(universitiesData) ? universitiesData : []);
             } else {
-                console.error('Failed to load universities:', response.data.message);
+                console.error('Failed to load universities:', result.message);
             }
         } catch (error) {
             console.error('Error loading universities:', error);
@@ -69,10 +71,33 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         }));
     };
 
+    const handleFileChange = (index, file) => {
+        const updatedDocuments = [...formData.legalDocuments];
+        updatedDocuments[index] = {
+            ...updatedDocuments[index],
+            file: file,
+            documentUrl: file.name, // Temporary display name
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type
+        };
+        setFormData(prev => ({
+            ...prev,
+            legalDocuments: updatedDocuments
+        }));
+    };
+
     const addDocument = () => {
         setFormData(prev => ({
             ...prev,
-            legalDocuments: [...prev.legalDocuments, { documentType: 'business_license', documentUrl: '' }]
+            legalDocuments: [...prev.legalDocuments, { 
+                documentType: 'business_license', 
+                documentUrl: '', 
+                file: null,
+                fileName: '',
+                fileSize: 0,
+                fileType: ''
+            }]
         }));
     };
 
@@ -106,8 +131,8 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             newErrors.legalDocuments = 'At least one legal document is required';
         } else {
             formData.legalDocuments.forEach((doc, index) => {
-                if (!doc.documentUrl.trim()) {
-                    newErrors[`document_${index}`] = 'Document URL is required';
+                if (!doc.file && !doc.documentUrl.trim()) {
+                    newErrors[`document_${index}`] = 'Please upload a document file';
                 }
             });
         }
@@ -123,16 +148,31 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             return;
         }
 
-        // Add location coordinates (for demo, using Lagos coordinates)
-        const applicationData = {
-            ...formData,
-            location: {
-                type: "Point",
-                coordinates: [3.3792, 6.9722] // Lagos coordinates
+        // Create FormData for file upload
+        const formDataToSend = new FormData();
+        
+        // Add form fields
+        formDataToSend.append('storeName', formData.storeName);
+        formDataToSend.append('description', formData.description);
+        formDataToSend.append('address', formData.address);
+        formDataToSend.append('phone', formData.phone);
+        formDataToSend.append('universityNear', formData.universityNear);
+        
+        // Add location coordinates
+        formDataToSend.append('location', JSON.stringify({
+            type: "Point",
+            coordinates: [3.3792, 6.9722] // Lagos coordinates
+        }));
+        
+        // Add document files
+        formData.legalDocuments.forEach((doc, index) => {
+            if (doc.file) {
+                formDataToSend.append('documents', doc.file);
+                formDataToSend.append(`documentType_${index}`, doc.documentType);
             }
-        };
+        });
 
-        onSubmit(applicationData);
+        onSubmit(formDataToSend);
     };
 
     return (
@@ -246,53 +286,61 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                         Legal Documents *
                     </label>
                     <p className="text-sm text-gray-600 mb-3">
-                        Please upload URLs to your legal documents (business license, tax certificate, etc.)
+                        Please upload your legal documents (business license, tax certificate, etc.)
                     </p>
                     
                     {formData.legalDocuments.map((doc, index) => (
-                        <div key={index} className="flex gap-2 mb-2">
-                            <select
-                                value={doc.documentType}
-                                onChange={(e) => handleDocumentChange(index, 'documentType', e.target.value)}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                {documentTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </select>
-                            
-                            <input
-                                type="url"
-                                value={doc.documentUrl}
-                                onChange={(e) => handleDocumentChange(index, 'documentUrl', e.target.value)}
-                                placeholder="Document URL"
-                                className={`flex-2 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    errors[`document_${index}`] ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                            />
-                            
-                            {formData.legalDocuments.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeDocument(index)}
-                                    className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                        <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
+                            <div className="flex gap-3 items-start">
+                                <select
+                                    value={doc.documentType}
+                                    onChange={(e) => handleDocumentChange(index, 'documentType', e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
-                                    Remove
-                                </button>
+                                    {documentTypes.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                
+                                <div className="flex-2">
+                                    <input
+                                        type="file"
+                                        onChange={(e) => handleFileChange(index, e.target.files[0])}
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                            errors[`document_${index}`] ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    />
+                                    {doc.fileName && (
+                                        <p className="mt-1 text-sm text-gray-600">
+                                            Selected: {doc.fileName} ({(doc.fileSize / 1024).toFixed(1)} KB)
+                                        </p>
+                                    )}
+                                </div>
+                                
+                                {formData.legalDocuments.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeDocument(index)}
+                                        className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {errors[`document_${index}`] && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    {errors[`document_${index}`]}
+                                </p>
                             )}
                         </div>
                     ))}
                     
                     {errors.legalDocuments && (
                         <p className="mt-1 text-sm text-red-600">{errors.legalDocuments}</p>
-                    )}
-                    
-                    {errors[`document_${formData.legalDocuments.length - 1}`] && (
-                        <p className="mt-1 text-sm text-red-600">
-                            {errors[`document_${formData.legalDocuments.length - 1}`]}
-                        </p>
                     )}
                     
                     <button

@@ -55,6 +55,15 @@ const Navbar = () => {
                             </Link>
                         )}
                         
+                        {isAuthenticated && user?.role !== 'vendor' && (
+                            <Link
+                                to="/vendor/apply"
+                                className="text-orange-600 hover:text-orange-700 px-3 py-2 rounded-md text-sm font-medium font-semibold"
+                            >
+                                Become a Vendor
+                            </Link>
+                        )}
+                        
                         {isAuthenticated && (
                             <Link
                                 to="/profile"

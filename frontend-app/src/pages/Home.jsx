@@ -1,9 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
     const { user, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
+    const handleVendorApplication = () => {
+        navigate('/vendor/apply');
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -23,9 +28,9 @@ const Home = () => {
                                     to="/products"
                                     className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block mr-4"
                                 >
-                                    Browse Product
+                                    Browse Products
                                 </Link>
-                                {user?.role === 'vendor' && (
+                                {user?.role === 'vendor' ? (
                                     <>
                                         <Link 
                                             to="/my-products"
@@ -40,6 +45,13 @@ const Home = () => {
                                             Vendor Dashboard
                                         </Link>
                                     </>
+                                ) : (
+                                    <button
+                                        onClick={handleVendorApplication}
+                                        className="bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors inline-block"
+                                    >
+                                        Become a Vendor
+                                    </button>
                                 )}
                             </div>
                         ) : (
@@ -55,6 +67,36 @@ const Home = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Vendor Application Section for Logged-in Users */}
+            {isAuthenticated && user?.role !== 'vendor' && (
+                <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                        <div className="text-center">
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                                Want to Sell on CampusCart?
+                            </h2>
+                            <p className="text-xl mb-8 text-orange-100">
+                                Join our marketplace and reach thousands of campus students
+                            </p>
+                            <div className="flex justify-center space-x-4">
+                                <button
+                                    onClick={handleVendorApplication}
+                                    className="bg-white text-orange-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-lg"
+                                >
+                                    Apply to Become a Vendor
+                                </button>
+                                <Link 
+                                    to="/vendors"
+                                    className="bg-orange-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-700 transition-colors text-lg border-2 border-white"
+                                >
+                                    Browse Vendors
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Features Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

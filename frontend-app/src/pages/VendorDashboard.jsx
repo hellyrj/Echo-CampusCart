@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { vendorApi } from '../api/vendor.api';
+import { useVendorApi } from '../hooks/useVendorApi';
 import { useProductApi } from '../hooks/useProductApi';
 import VendorApplicationForm from '../components/VendorApplicationForm';
 
 const VendorDashboard = () => {
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
+    console.log('VendorDashboard - User:', user);
+    console.log('VendorDashboard - IsAuthenticated:', isAuthenticated);
+    
     const { getProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { 
+        getMyVendorProfile, 
+        getMyProducts, 
+        createMyProduct, 
+        updateMyProduct, 
+        deleteMyProduct,
+        submitVendorApplication,
+        loading: vendorLoading,
+        error: vendorError,
+        resetError: resetVendorError
+    } = useVendorApi();
     const navigate = useNavigate();
     const [vendor, setVendor] = useState(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -26,9 +40,9 @@ const VendorDashboard = () => {
 
     const fetchUserProducts = async () => {
         try {
-            const result = await vendorApi.getMyProducts();
+            const result = await getMyProducts();
             console.log('Vendor products response:', result);
-            if (result.data.success) {
+            if (result.success) {
                 // Handle different possible response structures
                 const productsData = result.data.data || result.data || [];
                 console.log('Products data:', productsData);
@@ -45,16 +59,21 @@ const VendorDashboard = () => {
     };
 
     const checkVendorStatus = async () => {
+        console.log('checkVendorStatus - User role:', user?.role);
+        console.log('checkVendorStatus - User:', user);
+        
         try {
             if (user?.role === 'vendor') {
+                console.log('User is vendor, checking vendor profile...');
                 // User is already a vendor, try to get vendor profile
                 try {
-                    const result = await vendorApi.getMyVendorProfile();
+                    const result = await getMyVendorProfile();
                     console.log('Vendor profile response:', result);
-                    if (result.data.success) {
+                    if (result.success) {
                         const vendorData = result.data.data || result.data;
                         setVendor(vendorData);
                         setApplicationStatus('approved');
+                        console.log('Vendor profile found and approved');
                     } else {
                         // User has vendor role but no vendor profile, show create form
                         console.log('No vendor profile found, showing create form');
@@ -73,10 +92,12 @@ const VendorDashboard = () => {
                     }
                 }
             } else if (user?.role === 'student') {
+                console.log('User is student, setting application status to none');
                 // User is a student, check if they have a pending application
                 // For now, we'll assume they need to apply
                 setApplicationStatus('none');
             } else {
+                console.log('User role not recognized, navigating to home');
                 navigate('/');
             }
         } catch (error) {
@@ -90,15 +111,17 @@ const VendorDashboard = () => {
     const handleVendorApplicationSubmit = async (applicationData) => {
         try {
             setLoading(true);
-            const response = await vendorApi.submitVendorApplication(applicationData);
             
-            if (response.data.success) {
-                setApplicationData(response.data.data);
+            // Handle FormData (file uploads) vs JSON data
+            const result = await submitVendorApplication(applicationData);
+            
+            if (result.success) {
+                setApplicationData(result.data);
                 setApplicationStatus('pending');
                 setShowCreateForm(false);
                 alert('Vendor application submitted successfully! Please wait for admin approval.');
             } else {
-                alert(`Failed to submit application: ${response.data.message}`);
+                alert(`Failed to submit application: ${result.message}`);
             }
         } catch (error) {
             console.error('Error submitting vendor application:', error);
@@ -110,13 +133,13 @@ const VendorDashboard = () => {
 
     const handleCreateProduct = async (productData) => {
         try {
-            const result = await vendorApi.createMyProduct(productData);
-            if (result.data.success) {
+            const result = await createMyProduct(productData);
+            if (result.success) {
                 setShowProductForm(false);
                 fetchUserProducts();
                 alert('Product created successfully!');
             } else {
-                alert(`Failed to create product: ${result.data.message}`);
+                alert(`Failed to create product: ${result.message}`);
             }
         } catch (error) {
             console.error('Error creating product:', error);
@@ -126,12 +149,12 @@ const VendorDashboard = () => {
 
     const handleUpdateProduct = async (productId, productData) => {
         try {
-            const result = await vendorApi.updateMyProduct(productId, productData);
-            if (result.data.success) {
+            const result = await updateMyProduct(productId, productData);
+            if (result.success) {
                 fetchUserProducts();
                 alert('Product updated successfully!');
             } else {
-                alert(`Failed to update product: ${result.data.message}`);
+                alert(`Failed to update product: ${result.message}`);
             }
         } catch (error) {
             console.error('Error updating product:', error);
@@ -142,12 +165,12 @@ const VendorDashboard = () => {
     const handleDeleteProduct = async (productId) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                const result = await vendorApi.deleteMyProduct(productId);
-                if (result.data.success) {
+                const result = await deleteMyProduct(productId);
+                if (result.success) {
                     fetchUserProducts();
                     alert('Product deleted successfully!');
                 } else {
-                    alert(`Failed to delete product: ${result.data.message}`);
+                    alert(`Failed to delete product: ${result.message}`);
                 }
             } catch (error) {
                 console.error('Error deleting product:', error);
