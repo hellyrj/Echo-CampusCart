@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import { useProductApi } from '../hooks/useProductApi';
 import VendorApplicationForm from '../components/VendorApplicationForm';
+import ProductForm from '../components/ProductForm';
+import VendorProfile from '../components/VendorProfile';
 
 const VendorDashboard = () => {
     const { user, isAuthenticated } = useAuth();
-    console.log('VendorDashboard - User:', user);
-    console.log('VendorDashboard - IsAuthenticated:', isAuthenticated);
     
     const { getProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
     const { 
@@ -18,6 +18,8 @@ const VendorDashboard = () => {
         updateMyProduct, 
         deleteMyProduct,
         submitVendorApplication,
+        getCategories,
+        updateVendor,
         loading: vendorLoading,
         error: vendorError,
         resetError: resetVendorError
@@ -26,7 +28,9 @@ const VendorDashboard = () => {
     const [vendor, setVendor] = useState(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [showProductForm, setShowProductForm] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
     const [applicationStatus, setApplicationStatus] = useState('none'); // 'none', 'pending', 'approved', 'rejected'
     const [applicationData, setApplicationData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -35,17 +39,28 @@ const VendorDashboard = () => {
         checkVendorStatus();
         if (user?.role === 'vendor') {
             fetchUserProducts();
+            loadCategories();
         }
     }, [user]);
+
+    const loadCategories = async () => {
+        try {
+            const result = await getCategories();
+            if (result.success) {
+                const categoriesData = result.data.data || result.data || [];
+                setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+            }
+        } catch (error) {
+            console.error('Error loading categories:', error);
+        }
+    };
 
     const fetchUserProducts = async () => {
         try {
             const result = await getMyProducts();
-            console.log('Vendor products response:', result);
             if (result.success) {
                 // Handle different possible response structures
                 const productsData = result.data.data || result.data || [];
-                console.log('Products data:', productsData);
                 
                 // Filter products by current user
                 const userProducts = Array.isArray(productsData) 
@@ -59,45 +74,34 @@ const VendorDashboard = () => {
     };
 
     const checkVendorStatus = async () => {
-        console.log('checkVendorStatus - User role:', user?.role);
-        console.log('checkVendorStatus - User:', user);
-        
         try {
             if (user?.role === 'vendor') {
-                console.log('User is vendor, checking vendor profile...');
                 // User is already a vendor, try to get vendor profile
                 try {
                     const result = await getMyVendorProfile();
-                    console.log('Vendor profile response:', result);
                     if (result.success) {
                         const vendorData = result.data.data || result.data;
                         setVendor(vendorData);
                         setApplicationStatus('approved');
-                        console.log('Vendor profile found and approved');
                     } else {
                         // User has vendor role but no vendor profile, show create form
-                        console.log('No vendor profile found, showing create form');
                         setShowCreateForm(true);
                     }
                 } catch (error) {
                     console.error('Error fetching vendor profile:', error);
                     if (error.response?.status === 404) {
                         // Vendor profile doesn't exist, show create form
-                        console.log('404 error - showing create form');
                         setShowCreateForm(true);
                     } else {
                         // Other error, still show create form
-                        console.log('Other error - showing create form');
                         setShowCreateForm(true);
                     }
                 }
             } else if (user?.role === 'student') {
-                console.log('User is student, setting application status to none');
                 // User is a student, check if they have a pending application
                 // For now, we'll assume they need to apply
                 setApplicationStatus('none');
             } else {
-                console.log('User role not recognized, navigating to home');
                 navigate('/');
             }
         } catch (error) {
@@ -177,6 +181,60 @@ const VendorDashboard = () => {
                 alert('Failed to delete product. Please try again.');
             }
         }
+    };
+
+    const handleUpdateVendorProfile = async (profileData) => {
+        try {
+            const result = await updateVendor(vendor._id, profileData);
+            if (result.success) {
+                const updatedVendor = result.data.data || result.data;
+                setVendor(updatedVendor);
+                alert('Profile updated successfully!');
+            } else {
+                alert(`Failed to update profile: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error updating vendor profile:', error);
+            alert('Failed to update profile. Please try again.');
+        }
+    };
+
+    const handleEditProduct = (product) => {
+        setEditingProduct(product);
+        setShowProductForm(true);
+    };
+
+    const handleProductSubmit = async (productData) => {
+        try {
+            if (editingProduct) {
+                const result = await updateMyProduct(editingProduct._id, productData);
+                if (result.success) {
+                    setShowProductForm(false);
+                    setEditingProduct(null);
+                    fetchUserProducts();
+                    alert('Product updated successfully!');
+                } else {
+                    alert(`Failed to update product: ${result.message}`);
+                }
+            } else {
+                const result = await createMyProduct(productData);
+                if (result.success) {
+                    setShowProductForm(false);
+                    fetchUserProducts();
+                    alert('Product created successfully!');
+                } else {
+                    alert(`Failed to create product: ${result.message}`);
+                }
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('Failed to save product. Please try again.');
+        }
+    };
+
+    const handleCancelProductForm = () => {
+        setShowProductForm(false);
+        setEditingProduct(null);
     };
 
     const renderApplicationStatus = () => {
@@ -285,68 +343,84 @@ const VendorDashboard = () => {
                 
                 {applicationStatus === 'approved' && renderApplicationStatus()}
                 
-                {vendor && (
-                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Store</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-gray-600">Store Name</p>
-                                <p className="font-medium">{vendor.storeName}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-600">Status</p>
-                                <p className="font-medium text-green-600">Active</p>
-                            </div>
-                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Profile */}
+                    <div className="lg:col-span-1">
+                        <VendorProfile 
+                            vendor={vendor} 
+                            onUpdate={handleUpdateVendorProfile}
+                            loading={vendorLoading}
+                        />
                     </div>
-                )}
+                    
+                    {/* Right Column - Products */}
+                    <div className="lg:col-span-2">
+                        {showProductForm ? (
+                            <ProductForm
+                                product={editingProduct}
+                                onSubmit={handleProductSubmit}
+                                onCancel={handleCancelProductForm}
+                                loading={vendorLoading}
+                                categories={categories}
+                            />
+                        ) : (
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
+                                    <button
+                                        onClick={() => setShowProductForm(true)}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                    >
+                                        Add New Product
+                                    </button>
+                                </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
-                        <button
-                            onClick={() => setShowProductForm(true)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                        >
-                            Add New Product
-                        </button>
-                    </div>
-
-                    {products.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-gray-600">You haven't added any products yet.</p>
-                            <button
-                                onClick={() => setShowProductForm(true)}
-                                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                            >
-                                Add Your First Product
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {products.map((product) => (
-                                <div key={product._id} className="bg-gray-50 rounded-lg p-4">
-                                    <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
-                                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                                    <p className="text-lg font-bold text-blue-600 mb-4">${product.basePrice || product.price}</p>
-                                    <div className="flex gap-2">
+                                {products.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <p className="text-gray-600">You haven't added any products yet.</p>
                                         <button
-                                            onClick={() => handleUpdateProduct(product._id, product)}
-                                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                            onClick={() => setShowProductForm(true)}
+                                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                                         >
-                                            Edit
-                                        </button>
-                                        <button
-                                            onClick={() => handleDeleteProduct(product._id)}
-                                            className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                                        >
-                                            Delete
+                                            Add Your First Product
                                         </button>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {products.map((product) => (
+                                            <div key={product._id} className="bg-gray-50 rounded-lg p-4">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                        {product.category || 'Uncategorized'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <p className="text-lg font-bold text-blue-600">${product.basePrice || product.price}</p>
+                                                    <p className="text-sm text-gray-500">Stock: {product.stock || 0}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => handleEditProduct(product)}
+                                                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteProduct(product._id)}
+                                                        className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

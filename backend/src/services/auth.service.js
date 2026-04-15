@@ -10,7 +10,7 @@ export class AuthService {
        this.userRepo = userRepo;
      }
 
-     async register(name, email, password, university, role) {
+     async register(name, email, password, role) {
         if (!name || !email || !password) {
             throw new ApiError(400, "All fields are required");
         }
@@ -23,21 +23,10 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Handle university field - if it's a string, try to find existing university
-        let universityId = university;
-        if (typeof university === 'string' && university) {
-            const University = require('../models/university.model.js').default;
-            const existingUniversity = await University.findOne({ name: university });
-            if (existingUniversity) {
-                universityId = existingUniversity._id;
-            }
-        }
-
         const user = await this.userRepo.create({
             name,
             email,
             password: hashedPassword,
-            university: universityId,
             role: role || 'student' // Use provided role or default to student
         });
         const token = generateToken(user._id);

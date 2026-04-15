@@ -8,7 +8,6 @@ const Register = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        university: '',
     });
     
     const { register, loading, error, resetError } = useAuthApi();
@@ -34,7 +33,6 @@ const Register = () => {
             name: formData.name,
             email: formData.email,
             password: formData.password,
-            university: formData.university,
         });
         
         if (result.success) {
@@ -78,21 +76,6 @@ const Register = () => {
                             name="email"
                             id="email"
                             value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                    
-                    <div>
-                        <label htmlFor="university" className="block text-sm font-medium text-gray-700">
-                            University
-                        </label>
-                        <input
-                            type="text"
-                            name="university"
-                            id="university"
-                            value={formData.university}
                             onChange={handleChange}
                             required
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"

@@ -16,7 +16,7 @@ export class AuthController {
         console.log('Register request body:', req.body);
         console.log('Register request headers:', req.headers);
         
-        const { name, email, password, university, role } = req.body;
+        const { name, email, password, role } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({
@@ -29,7 +29,6 @@ export class AuthController {
             name, 
             email,
             password,
-            university,
             role
         );
 

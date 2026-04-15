@@ -14,19 +14,14 @@ axiosInstance.interceptors.request.use(
         const token = localStorage.getItem('token');
         
         // Public endpoints that don't need authentication
-        const publicEndpoints = ['/products', '/auth/login', '/auth/register', '/universities', '/categories', '/vendors'];
+        const publicEndpoints = ['/products', '/auth/login', '/auth/register', '/vendors/universities', '/vendors/categories'];
         const isPublicEndpoint = publicEndpoints.some(endpoint => 
-            config.url?.includes(endpoint)
+            config.url === endpoint || config.url?.startsWith(endpoint)
         );
         
         // Add token for authenticated endpoints
         if (token && !isPublicEndpoint) {
             config.headers.Authorization = `Bearer ${token}`;
-            console.log(`Adding token to ${config.method?.toUpperCase()} ${config.url}`);
-        } else if (isPublicEndpoint) {
-            console.log(`Skipping token for public endpoint: ${config.url}`);
-        } else if (!token) {
-            console.log(`No token available for ${config.url}`);
         }
         
         return config;
@@ -50,13 +45,8 @@ axiosInstance.interceptors.response.use(
             
             // Don't logout if it's a failed login/register attempt
             if (!isAuthEndpoint) {
-                console.log('401 Unauthorized - would normally logout user, but keeping for debugging');
-                console.log('Request URL:', requestUrl);
-                console.log('Error:', error.response?.data);
-                
-                // Temporarily comment out auto-logout for debugging
-                // localStorage.removeItem('token');
-                // window.location.href = '/login';
+                localStorage.removeItem('token');
+                window.location.href = '/login';
             }
         }
         return Promise.reject(error);

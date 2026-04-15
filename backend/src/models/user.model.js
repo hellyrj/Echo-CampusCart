@@ -23,12 +23,6 @@ const userSchema = new mongoose.Schema({
         default: "student",
     },
 
-    university: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "University",
-        required: false // Make optional for existing users
-    },
-
     profilePicture: {
         type: String,
     },

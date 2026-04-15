@@ -15,10 +15,10 @@ export const vendorApi = {
     getVendor: (id) => axiosInstance.get(`/vendors/${id}`),
     
     // Get universities (public)
-    getUniversities: () => axiosInstance.get('/universities'),
+    getUniversities: () => axiosInstance.get('/vendors/universities'),
     
     // Get categories (public)
-    getCategories: () => axiosInstance.get('/categories'),
+    getCategories: () => axiosInstance.get('/vendors/categories'),
     
     // Get vendor files (public - for document viewing)
     getFile: (fileId) => `${axiosInstance.defaults.baseURL}/vendors/files/${fileId}`,

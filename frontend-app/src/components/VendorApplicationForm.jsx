@@ -27,6 +27,8 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             if (result.success) {
                 const universitiesData = result.data.data || result.data || [];
                 console.log('VendorApplicationForm - Universities data:', universitiesData); // Debug log
+                console.log('VendorApplicationForm - Universities type:', typeof universitiesData);
+                console.log('VendorApplicationForm - Is array:', Array.isArray(universitiesData));
                 setUniversities(Array.isArray(universitiesData) ? universitiesData : []);
             } else {
                 console.error('Failed to load universities:', result.message);
@@ -269,6 +271,7 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                         }`}
                     >
                         <option value="">Select a university</option>
+                        {console.log('Rendering universities:', universities)}
                         {universities.map((university) => (
                             <option key={university._id || university.name} value={university.name || university}>
                                 {university.name || university}

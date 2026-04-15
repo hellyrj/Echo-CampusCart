@@ -51,11 +51,11 @@ export const useAdminApi = () => {
         }
     }, []);
 
-    const approveVendorApplication = useCallback(async (vendorId, approvalData) => {
+    const approveVendorApplication = useCallback(async (vendorId) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await adminApi.approveVendorApplication(vendorId, approvalData);
+            const response = await adminApi.approveVendorApplication(vendorId);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to approve vendor application';
@@ -81,11 +81,11 @@ export const useAdminApi = () => {
         }
     }, []);
 
-    const toggleVendorStatus = useCallback(async (vendorId) => {
+    const toggleVendorStatus = useCallback(async (vendorId, isActive) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await adminApi.toggleVendorStatus(vendorId);
+            const response = await adminApi.toggleVendorStatus(vendorId, isActive);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to toggle vendor status';

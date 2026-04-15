@@ -1,6 +1,7 @@
 // middleware/upload.js
 import multer from 'multer';
 import { GridFSBucket } from 'mongodb';
+import mongoose from 'mongoose';
 
 // GridFS storage for file uploads
 const storage = multer.memoryStorage();
@@ -11,7 +12,6 @@ let gridFSBucket;
 const getGridFSBucket = () => {
     if (!gridFSBucket) {
         // Use the existing mongoose connection instead of creating a new one
-        const mongoose = require('mongoose');
         const db = mongoose.connection.db;
         gridFSBucket = new GridFSBucket(db, {
             bucketName: 'vendorDocuments'

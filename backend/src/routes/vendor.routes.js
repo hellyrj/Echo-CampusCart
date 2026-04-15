@@ -5,6 +5,8 @@ import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorize } from "../middlewares/authorize.middleware.js";
 import { uploadDocuments } from "../middlewares/upload.js";
 import { MongoClient, GridFSBucket } from "mongodb";
+import { DEFAULT_CATEGORIES } from "../constants/defaultCategories.js";
+import { DEFAULT_UNIVERSITIES } from "../constants/defaultUniversities.js";
 
 const router = express.Router();
 const controller = new VendorController();
@@ -71,6 +73,44 @@ router.get("/", controller.getApprovedVendors);
 
 router.get("/nearby", controller.getNearbyVendors);
 
+// Get default categories
+router.get("/categories", (req, res) => {
+  try {
+    console.log('Categories endpoint called');
+    res.status(200).json({
+      success: true,
+      message: "Categories fetched successfully",
+      data: DEFAULT_CATEGORIES
+    });
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch categories"
+    });
+  }
+});
+
+// Get default universities
+router.get("/universities", (req, res) => {
+  try {
+    console.log('Universities endpoint called');
+    console.log('DEFAULT_UNIVERSITIES:', DEFAULT_UNIVERSITIES);
+    res.status(200).json({
+      success: true,
+      message: "Universities fetched successfully",
+      data: DEFAULT_UNIVERSITIES
+    });
+  } catch (error) {
+    console.error('Error fetching universities:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch universities"
+    });
+  }
+});
+
+// Get single vendor by ID (must come after specific routes)
 router.get("/:id", controller.getVendor);
 
 // =========================
