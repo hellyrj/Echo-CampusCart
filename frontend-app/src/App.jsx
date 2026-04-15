@@ -50,4 +50,10 @@ function App() {
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </div>
-    
+                </div>
+            </Router>
+        </AuthProvider>
+    );
+}
+
+export default App;

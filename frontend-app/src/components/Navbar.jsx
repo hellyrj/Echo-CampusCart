@@ -55,7 +55,16 @@ const Navbar = () => {
                             </Link>
                         )}
                         
-                        {isAuthenticated && user?.role !== 'vendor' && (
+                        {isAuthenticated && user?.role === 'admin' && (
+                            <Link
+                                to="/admin/dashboard"
+                                className="text-purple-600 hover:text-purple-700 px-3 py-2 rounded-md text-sm font-medium font-semibold"
+                            >
+                                Admin Dashboard
+                            </Link>
+                        )}
+                        
+                        {isAuthenticated && user?.role !== 'vendor' && user?.role !== 'admin' && (
                             <Link
                                 to="/vendor/apply"
                                 className="text-orange-600 hover:text-orange-700 px-3 py-2 rounded-md text-sm font-medium font-semibold"

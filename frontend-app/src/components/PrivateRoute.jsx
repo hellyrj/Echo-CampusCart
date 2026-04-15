@@ -1,8 +1,9 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = () => {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user } = useAuth();
+    const location = useLocation();
 
     if (loading) {
         return (
@@ -12,7 +13,16 @@ const PrivateRoute = () => {
         );
     }
 
-    return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+    if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    // Check if route requires admin role
+    if (location.pathname.startsWith('/admin') && user?.role !== 'admin') {
+        return <Navigate to="/" replace />;
+    }
+
+    return <Outlet />;
 };
 
 export default PrivateRoute;
