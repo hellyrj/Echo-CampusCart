@@ -7,6 +7,7 @@ import { uploadDocuments } from "../middlewares/upload.js";
 import { MongoClient, GridFSBucket } from "mongodb";
 import { DEFAULT_CATEGORIES } from "../constants/defaultCategories.js";
 import { DEFAULT_UNIVERSITIES } from "../constants/defaultUniversities.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 const controller = new VendorController();

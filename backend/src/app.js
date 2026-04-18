@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 
 import authRoutes from "./routes/auth.routes.js";
 import vendorRouters from "./routes/vendor.routes.js";
@@ -13,6 +14,9 @@ const app = express();
  * global middlewares
  */
 app.use(cors());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Custom middleware to handle requests without Content-Type
 app.use((req, res, next) => {

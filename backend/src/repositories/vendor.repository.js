@@ -11,7 +11,7 @@ class VendorRepository extends BaseRepository {
   }
 
   async findAll() {
-    return this.model.findAll();
+    return this.model.find({});
   }
 
   async findApproved() {
@@ -61,34 +61,6 @@ class VendorRepository extends BaseRepository {
       }
     });
   }
-
-  async findPending() {
-  return this.model.find({ isApproved: false });
-}
-
-async approveVendor(vendorId, adminId) {
-  return this.model.findByIdAndUpdate(
-    vendorId,
-    {
-      isApproved: true,
-      approvedBy: adminId,
-      approvedAt: new Date(),
-      rejectionReason: null
-    },
-    { new: true }
-  );
-}
-
-async rejectVendor(vendorId, reason) {
-  return this.model.findByIdAndUpdate(
-    vendorId,
-    {
-      isApproved: false,
-      rejectionReason: reason
-    },
-    { new: true }
-  );
-}
 }
 
 export default new VendorRepository();

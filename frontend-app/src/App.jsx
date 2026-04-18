@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -14,6 +14,17 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorApplication from './pages/VendorApplication';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+
+const FallbackRoute = () => {
+    const location = useLocation();
+    
+    // Exclude API routes and uploads from frontend routing
+    if (location.pathname.startsWith('/api') || location.pathname.startsWith('/uploads')) {
+        return null;
+    }
+    
+    return <Navigate to="/" replace />;
+};
 
 function App() {
     return (
@@ -43,11 +54,15 @@ function App() {
                                 <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                                  <Route path="/my-products" element={<MyProducts />} />
                                 <Route path="/profile" element={<Profile />} />
-                                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                                <Route path="/admin/dashboard" element={
+                                    <ErrorBoundary>
+                                        <AdminDashboard />
+                                    </ErrorBoundary>
+                                } />
                             </Route>
                             
                             {/* Fallback */}
-                            <Route path="*" element={<Navigate to="/" replace />} />
+                            <Route path="*" element={<FallbackRoute />} />
                         </Routes>
                     </div>
                 </div>

@@ -50,14 +50,18 @@ const AdminDashboard = () => {
                 getAllVendors()
             ]);
 
+            console.log('Stats result:', statsResult);
+            console.log('Applications result:', applicationsResult);
+            console.log('Vendors result:', vendorsResult);
+
             if (statsResult.success) {
                 setStats(statsResult.data);
             }
             if (applicationsResult.success) {
-                setVendorApplications(applicationsResult.data.applications || []);
+                setVendorApplications(applicationsResult.data.data.applications || []);
             }
             if (vendorsResult.success) {
-                setVendors(vendorsResult.data.vendors || []);
+                setVendors(vendorsResult.data.data.vendors || []);
             }
         } catch (err) {
             console.error('Error loading dashboard data:', err);
@@ -135,9 +139,16 @@ const AdminDashboard = () => {
                     <p className="text-sm font-medium text-gray-700 mb-2">Legal Documents:</p>
                     <div className="flex flex-wrap gap-2">
                         {application.legalDocuments.map((doc, index) => (
-                            <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            <a
+                                key={index}
+                                href={`/uploads/documents/${doc.fileId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors"
+                            >
+                                <FileText className="w-3 h-3 mr-1" />
                                 {doc.documentType}
-                            </span>
+                            </a>
                         ))}
                     </div>
                 </div>
@@ -433,6 +444,23 @@ const AdminDashboard = () => {
                                                 <p><strong>Uploaded:</strong> {new Date(doc.uploadedAt).toLocaleDateString()}</p>
                                                 {doc.originalName && (
                                                     <p><strong>File:</strong> {doc.originalName}</p>
+                                                )}
+                                                <p><strong>Debug - Full document:</strong></p>
+                                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
+                                                    {JSON.stringify(doc, null, 2)}
+                                                </pre>
+                                                {doc.fileId ? (
+                                                    <a
+                                                        href={`/uploads/documents/${doc.fileId}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors mt-2"
+                                                    >
+                                                        <FileText className="w-3 h-3 mr-1" />
+                                                        View Document
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-red-500 text-xs mt-2">No file available - missing fileId</p>
                                                 )}
                                             </div>
                                         ))}

@@ -44,9 +44,9 @@ const vendorSchema = new mongoose.Schema ({
             enum: ['business_license', 'tax_certificate', 'health_permit', 'other'],
             required: true
         },
-        documentUrl: {
+        fileId: {
             type: String,
-            required: true
+            required: false
         },
         uploadedAt: {
             type: Date,

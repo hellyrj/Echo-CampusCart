@@ -1,75 +1,45 @@
 // middleware/upload.js
-import multer from 'multer';
-import { GridFSBucket } from 'mongodb';
-import mongoose from 'mongoose';
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
-// GridFS storage for file uploads
-const storage = multer.memoryStorage();
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(process.cwd(), 'uploads', 'documents');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
-// GridFS bucket instance (will be initialized when needed)
-let gridFSBucket;
-
-const getGridFSBucket = () => {
-    if (!gridFSBucket) {
-        // Use the existing mongoose connection instead of creating a new one
-        const db = mongoose.connection.db;
-        gridFSBucket = new GridFSBucket(db, {
-            bucketName: 'vendorDocuments'
-        });
+// Configure multer for file system storage
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
-    return gridFSBucket;
-};
-
-// Custom storage handler for GridFS
-const gridFSStorage = multer.memoryStorage();
+});
 
 export const uploadDocuments = multer({
-    storage: gridFSStorage,
+    storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-        cb(null, allowedTypes.includes(file.mimetype));
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PDF, JPEG, PNG allowed.'), false);
+        }
     }
 }).array('documents', 5); // Max 5 documents
 
-// Helper function to save files to GridFS
+// Helper function to save files to filesystem
 export const saveFilesToGridFS = async (files) => {
-    const bucket = getGridFSBucket();
-    const uploadedFiles = [];
-    
-    for (const file of files) {
-        try {
-            const uploadStream = bucket.openUploadStream(file.originalname, {
-                metadata: {
-                    originalName: file.originalname,
-                    mimeType: file.mimetype,
-                    size: file.size,
-                    uploadedAt: new Date()
-                }
-            });
-            
-            // Convert buffer to stream and upload
-            uploadStream.end(file.buffer);
-            
-            // Wait for upload to complete
-            const fileId = await new Promise((resolve, reject) => {
-                uploadStream.on('finish', () => resolve(uploadStream.id));
-                uploadStream.on('error', reject);
-            });
-            
-            uploadedFiles.push({
-                fileId,
-                filename: file.originalname,
-                originalName: file.originalname,
-                mimeType: file.mimetype,
-                size: file.size,
-                url: `/api/vendors/files/${fileId}`
-            });
-        } catch (error) {
-            console.error('Error uploading file to GridFS:', error);
-            throw new Error(`Failed to upload ${file.originalname}: ${error.message}`);
-        }
-    }
-    
-    return uploadedFiles;
+    return files.map((file) => ({
+        fileId: file.filename, // Use filename as fileId
+        originalName: file.originalname,
+        mimeType: file.mimetype,
+        size: file.size,
+        url: `/uploads/documents/${file.filename}` // Optional: for reference
+    }));
 };

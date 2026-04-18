@@ -68,7 +68,7 @@ export class AdminVendorService {
       query.isActive = filters.isActive;
     }
     
-    return this.vendorRepo.findAll(query);
+    return this.vendorRepo.find(query);
   }
 
   async toggleVendorStatus(vendorId, isActive) {

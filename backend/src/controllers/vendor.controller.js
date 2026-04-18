@@ -27,9 +27,8 @@ export class VendorController {
         const uploadedFiles = await saveFilesToGridFS(req.files);
         legalDocuments = uploadedFiles.map((file, index) => ({
           documentType: 'other', // Use valid enum value
-          documentUrl: file.url,
-          uploadedAt: new Date(),
           fileId: file.fileId,
+          uploadedAt: new Date(),
           originalName: file.originalName,
           mimeType: file.mimeType,
           size: file.size
