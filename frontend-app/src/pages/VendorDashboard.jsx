@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import { useProductApi } from '../hooks/useProductApi';
+import { useCategoryApi } from '../hooks/useCategoryApi';
 import VendorApplicationForm from '../components/VendorApplicationForm';
 import ProductForm from '../components/ProductForm';
 import VendorProfile from '../components/VendorProfile';
@@ -10,15 +11,11 @@ import VendorProfile from '../components/VendorProfile';
 const VendorDashboard = () => {
     const { user, isAuthenticated } = useAuth();
     
-    const { getProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { getVendorProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { getCategories } = useCategoryApi();
     const { 
         getMyVendorProfile, 
-        getMyProducts, 
-        createMyProduct, 
-        updateMyProduct, 
-        deleteMyProduct,
         submitVendorApplication,
-        getCategories,
         updateVendor,
         loading: vendorLoading,
         error: vendorError,
@@ -57,16 +54,11 @@ const VendorDashboard = () => {
 
     const fetchUserProducts = async () => {
         try {
-            const result = await getMyProducts();
+            const result = await getVendorProducts();
             if (result.success) {
                 // Handle different possible response structures
                 const productsData = result.data.data || result.data || [];
-                
-                // Filter products by current user
-                const userProducts = Array.isArray(productsData) 
-                    ? productsData.filter(product => product.vendorId === user._id)
-                    : [];
-                setProducts(userProducts);
+                setProducts(Array.isArray(productsData) ? productsData : []);
             }
         } catch (error) {
             console.error('Error fetching user products:', error);
@@ -137,7 +129,7 @@ const VendorDashboard = () => {
 
     const handleCreateProduct = async (productData) => {
         try {
-            const result = await createMyProduct(productData);
+            const result = await createProduct(productData);
             if (result.success) {
                 setShowProductForm(false);
                 fetchUserProducts();
@@ -153,7 +145,7 @@ const VendorDashboard = () => {
 
     const handleUpdateProduct = async (productId, productData) => {
         try {
-            const result = await updateMyProduct(productId, productData);
+            const result = await updateProduct(productId, productData);
             if (result.success) {
                 fetchUserProducts();
                 alert('Product updated successfully!');
@@ -169,7 +161,7 @@ const VendorDashboard = () => {
     const handleDeleteProduct = async (productId) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                const result = await deleteMyProduct(productId);
+                const result = await deleteProduct(productId);
                 if (result.success) {
                     fetchUserProducts();
                     alert('Product deleted successfully!');
@@ -207,7 +199,7 @@ const VendorDashboard = () => {
     const handleProductSubmit = async (productData) => {
         try {
             if (editingProduct) {
-                const result = await updateMyProduct(editingProduct._id, productData);
+                const result = await updateProduct(editingProduct._id, productData);
                 if (result.success) {
                     setShowProductForm(false);
                     setEditingProduct(null);
@@ -217,7 +209,7 @@ const VendorDashboard = () => {
                     alert(`Failed to update product: ${result.message}`);
                 }
             } else {
-                const result = await createMyProduct(productData);
+                const result = await createProduct(productData);
                 if (result.success) {
                     setShowProductForm(false);
                     fetchUserProducts();

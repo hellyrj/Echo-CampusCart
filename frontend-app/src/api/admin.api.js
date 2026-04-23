@@ -22,8 +22,8 @@ export const adminApi = {
     getVendorDetails: (vendorId) => axiosInstance.get(`/admin/${vendorId}`),
     
     // Approve vendor application
-    approveVendorApplication: (vendorId) => {
-        return axiosInstance.patch(`/admin/${vendorId}/approve`);
+    approveVendorApplication: (vendorId, approvalData) => {
+        return axiosInstance.patch(`/admin/${vendorId}/approve`, approvalData);
     },
     
     // Reject vendor application
@@ -32,8 +32,8 @@ export const adminApi = {
     },
     
     // Toggle vendor active status (activate/deactivate)
-    toggleVendorStatus: (vendorId, isActive) => {
-        return axiosInstance.patch(`/admin/${vendorId}/toggle-status`, { isActive });
+    toggleVendorStatus: (vendorId) => {
+        return axiosInstance.patch(`/admin/${vendorId}/toggle-status`);
     },
     
     // =========================

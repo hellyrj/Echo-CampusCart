@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProductApi } from '../hooks/useProductApi';
 import { useNavigate } from 'react-router-dom';
+import ProductForm from '../components/ProductForm.jsx';
+import { useCategoryApi } from '../hooks/useCategoryApi.js';
 
 const MyProducts = () => {
     const { user, isAuthenticated } = useAuth();
-    const { getProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { getVendorProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { getCategories } = useCategoryApi();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -23,55 +27,74 @@ const MyProducts = () => {
             return;
         }
 
-        fetchUserProducts();
+        fetchData();
     }, [isAuthenticated, user, navigate]);
 
-    const fetchUserProducts = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const result = await getProducts();
-            if (result.success) {
-                // Filter products by current user
-                const userProducts = result.data.filter(product => product.vendorId === user._id);
-                setProducts(userProducts);
+            
+            // Fetch products and categories in parallel
+            const [productsResult, categoriesResult] = await Promise.all([
+                getVendorProducts(),
+                getCategories()
+            ]);
+            
+            if (productsResult.success) {
+                setProducts(productsResult.data || []);
+            }
+            
+            if (categoriesResult.success) {
+                setCategories(categoriesResult.data || []);
             }
         } catch (error) {
-            console.error('Error fetching user products:', error);
-             console.log("Type of result.data:", typeof result.data); // Add this line
-    console.log("Value of result.data:", result.data);  
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleCreateProduct = async (productData) => {
-        const result = await createProduct(productData);
-        if (result.success) {
-            setShowProductForm(false);
-            fetchUserProducts();
+        try {
+            const result = await createProduct(productData);
+            if (result.success) {
+                setShowCreateForm(false);
+                fetchData();
+            }
+        } catch (error) {
+            console.error('Error creating product:', error);
         }
     };
 
-    const handleUpdateProduct = async (productId, productData) => {
-        const result = await updateProduct(productId, productData);
-        if (result.success) {
-            setEditingProduct(null);
-            fetchUserProducts();
+    const handleUpdateProduct = async (productData) => {
+        try {
+            const result = await updateProduct(editingProduct._id, productData);
+            if (result.success) {
+                setEditingProduct(null);
+                setShowCreateForm(false);
+                fetchData();
+            }
+        } catch (error) {
+            console.error('Error updating product:', error);
         }
     };
 
     const handleDeleteProduct = async (productId) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
-            const result = await deleteProduct(productId);
-            if (result.success) {
-                fetchUserProducts();
+            try {
+                const result = await deleteProduct(productId);
+                if (result.success) {
+                    fetchData();
+                }
+            } catch (error) {
+                console.error('Error deleting product:', error);
             }
         }
     };
 
     const handleEditProduct = (product) => {
         setEditingProduct(product);
-        setShowProductForm(true);
+        setShowCreateForm(true);
     };
 
     if (!isAuthenticated || !user) {
@@ -111,7 +134,7 @@ const MyProducts = () => {
                     <button
                         onClick={() => {
                             setEditingProduct(null);
-                            setShowProductForm(true);
+                            setShowCreateForm(true);
                         }}
                         className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
                     >
@@ -119,15 +142,16 @@ const MyProducts = () => {
                     </button>
                 </div>
 
-                {showProductForm ? (
+                {showCreateForm ? (
                     <ProductForm
                         product={editingProduct}
-                        userId={user._id}
                         onSubmit={editingProduct ? handleUpdateProduct : handleCreateProduct}
                         onCancel={() => {
-                            setShowProductForm(false);
+                            setShowCreateForm(false);
                             setEditingProduct(null);
                         }}
+                        loading={false}
+                        categories={categories}
                     />
                 ) : (
                     <ProductList
@@ -156,6 +180,15 @@ const ProductList = ({ products, onEdit, onDelete }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
                 <div key={product._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    {product.images && product.images.length > 0 && (
+                        <div className="h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+                            <img
+                                src={product.images[0].url}
+                                alt={product.name}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                    )}
                     <div className="p-6">
                         <div className="flex justify-between items-start mb-4">
                             <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
@@ -179,148 +212,39 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                             </div>
                         </div>
                         
-                        <p className="text-gray-600 mb-4">{product.description}</p>
+                        <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
                         
                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-2xl font-bold text-blue-600">${product.price}</span>
-                            {product.stockQuantity > 0 ? (
-                                <span className="text-sm text-green-600 font-medium">In Stock: {product.stockQuantity}</span>
+                            <span className="text-2xl font-bold text-blue-600">${product.basePrice}</span>
+                            {product.inventory?.totalStock > 0 ? (
+                                <span className="text-sm text-green-600 font-medium">In Stock: {product.inventory.totalStock}</span>
                             ) : (
                                 <span className="text-sm text-red-600 font-medium">Out of Stock</span>
                             )}
                         </div>
                         
-                        {product.category && (
-                            <span className="inline-block px-3 py-1 text-sm font-medium text-gray-600 bg-gray-100 rounded-full">
-                                {product.category}
-                            </span>
+                        {product.categories && product.categories.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {product.categories.map((category, index) => (
+                                    <span key={index} className="inline-block px-3 py-1 text-sm font-medium text-gray-600 bg-gray-100 rounded-full">
+                                        {category.name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {product.tags && product.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                                {product.tags.map((tag, index) => (
+                                    <span key={index} className="inline-block px-2 py-1 text-xs text-gray-500 bg-gray-50 rounded">
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
             ))}
-        </div>
-    );
-};
-
-// Product Form Component
-const ProductForm = ({ product, onSubmit, onCancel, userId }) => {
-    const [formData, setFormData] = useState({
-        name: product?.name || '',
-        description: product?.description || '',
-        price: product?.price || '',
-        category: product?.category || '',
-        stockQuantity: product?.stockQuantity || '',
-        images: product?.images || [],
-    });
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const productData = {
-            ...formData,
-            price: parseFloat(formData.price),
-            stockQuantity: parseInt(formData.stockQuantity),
-            vendorId: userId, // Add vendorId for new products
-        };
-        
-        if (product) {
-            onSubmit(product._id, productData);
-        } else {
-            onSubmit(productData);
-        }
-    };
-
-    return (
-        <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                {product ? 'Edit Product' : 'Add New Product'}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                        <input
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            step="0.01"
-                            min="0"
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        rows={4}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <input
-                            type="text"
-                            name="category"
-                            value={formData.category}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
-                        <input
-                            type="number"
-                            name="stockQuantity"
-                            value={formData.stockQuantity}
-                            onChange={handleChange}
-                            min="0"
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex justify-end space-x-4">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        {product ? 'Update Product' : 'Add Product'}
-                    </button>
-                </div>
-            </form>
         </div>
     );
 };

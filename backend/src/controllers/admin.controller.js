@@ -8,7 +8,7 @@ export class AdminVendorController {
   }
 
   // Get all vendor applications with optional status filter
-  getVendorApplications = asyncHandler(async (req, res) => {
+  getVendorApplications = asyncHandler(async (req, res, next) => {
     const { status } = req.query;
     
     const applications = await this.adminVendorSer.getVendorApplications(status);
@@ -20,7 +20,7 @@ export class AdminVendorController {
   });
 
   // Get single vendor details
-  getVendorDetails = asyncHandler(async (req, res) => {
+  getVendorDetails = asyncHandler(async (req, res, next) => {
     const { vendorId } = req.params;
     
     const vendor = await this.adminVendorSer.getVendorDetails(vendorId);
@@ -29,7 +29,7 @@ export class AdminVendorController {
   });
 
   // Get all vendors with filters
-  getAllVendors = asyncHandler(async (req, res) => {
+  getAllVendors = asyncHandler(async (req, res, next) => {
     const { isApproved, isActive } = req.query;
     
     const filters = {};
@@ -45,7 +45,7 @@ export class AdminVendorController {
   });
 
   // Approve vendor application
-  approveVendorApplication = asyncHandler(async (req, res) => {
+  approveVendorApplication = asyncHandler(async (req, res, next) => {
     const adminUserId = req.user._id;
     const { vendorId } = req.params;
     
@@ -58,7 +58,7 @@ export class AdminVendorController {
   });
 
   // Reject vendor application
-  rejectVendorApplication = asyncHandler(async (req, res) => {
+  rejectVendorApplication = asyncHandler(async (req, res, next) => {
     const adminUserId = req.user._id;
     const { vendorId } = req.params;
     const { rejectionReason } = req.body;
@@ -73,7 +73,7 @@ export class AdminVendorController {
   });
 
   // Toggle vendor active status
-  toggleVendorStatus = asyncHandler(async (req, res) => {
+  toggleVendorStatus = asyncHandler(async (req, res, next) => {
     const { vendorId } = req.params;
     const { isActive } = req.body;
     

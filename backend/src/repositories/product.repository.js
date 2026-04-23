@@ -30,6 +30,32 @@ class ProductRepository extends BaseRepository {
       { new: true }
     );
   }
+
+  // Add to ProductRepository class in product.repository.js
+
+async incrementPurchases(productId) {
+  return this.model.findByIdAndUpdate(
+    productId,
+    { $inc: { purchases: 1 } },
+    { new: true }
+  );
+}
+
+async updateRating(productId, newRating) {
+  const product = await this.model.findById(productId);
+  if (!product) return null;
+  
+  const newAverageRating = (product.averageRating * product.reviewCount + newRating) / (product.reviewCount + 1);
+  
+  return this.model.findByIdAndUpdate(
+    productId,
+    {
+      $set: { averageRating: newAverageRating },
+      $inc: { reviewCount: 1 }
+    },
+    { new: true }
+  );
+}
 }
 
 export default new ProductRepository();

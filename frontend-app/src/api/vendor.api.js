@@ -44,18 +44,6 @@ export const vendorApi = {
     // Get my vendor profile
     getMyVendorProfile: () => axiosInstance.get('/vendors/me'),
     
-    // Get my products
-    getMyProducts: () => axiosInstance.get('/vendors/me/products'),
-    
-    // Create product
-    createMyProduct: (productData) => axiosInstance.post('/vendors/me/products', productData),
-    
-    // Update product
-    updateMyProduct: (id, productData) => axiosInstance.put(`/vendors/me/products/${id}`, productData),
-    
-    // Delete product
-    deleteMyProduct: (id) => axiosInstance.delete(`/vendors/me/products/${id}`),
-    
     // Update vendor profile
     updateVendor: (id, vendorData) => axiosInstance.put(`/vendors/${id}`, vendorData),
     

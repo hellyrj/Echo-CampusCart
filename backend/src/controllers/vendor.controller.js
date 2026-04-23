@@ -12,7 +12,7 @@ export class VendorController {
   // USER SIDE
   // =========================
 
-  submitVendorApplication = asyncHandler(async (req, res) => {
+  submitVendorApplication = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
     
     console.log('Vendor application submission started');
@@ -70,7 +70,7 @@ export class VendorController {
     sendResponse(res, 201, "Vendor application submitted. Awaiting admin approval.", vendorApplication);
   });
 
-  getMyVendorProfile = asyncHandler(async (req, res) => {
+  getMyVendorProfile = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
 
     const vendor = await this.vendorSer.getVendorByUserId(userId);
@@ -78,7 +78,7 @@ export class VendorController {
     sendResponse(res, 200, "Vendor profile fetched successfully", vendor);
   });
 
-  getAllMyVendorProfiles = asyncHandler(async (req, res) => {
+  getAllMyVendorProfiles = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
 
     const vendors = await this.vendorSer.getAllVendorsByUserId(userId);
@@ -87,62 +87,16 @@ export class VendorController {
   });
 
   // =========================
-  // PRODUCT MANAGEMENT (Vendor Only)
-  // =========================
-
-  createMyProduct = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-
-    const product = await this.vendorSer.createVendorProduct(
-      userId,
-      req.body
-    );
-
-    sendResponse(res, 201, "Product created successfully", product);
-  });
-
-  updateMyProduct = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-
-    const product = await this.vendorSer.updateVendorProduct(
-      userId,
-      req.params.id,
-      req.body
-    );
-
-    sendResponse(res, 200, "Product updated successfully", product);
-  });
-
-  deleteMyProduct = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-
-    const result = await this.vendorSer.deleteVendorProduct(
-      userId,
-      req.params.id
-    );
-
-    sendResponse(res, 200, "Product deleted successfully", result);
-  });
-
-  getMyProducts = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-
-    const products = await this.vendorSer.getVendorProducts(userId);
-
-    sendResponse(res, 200, "Vendor products fetched", products);
-  });
-
-  // =========================
   // PUBLIC (STUDENTS)
   // =========================
 
-  getApprovedVendors = asyncHandler(async (req, res) => {
+  getApprovedVendors = asyncHandler(async (req, res, next) => {
     const vendors = await this.vendorSer.getApprovedVendors();
 
     sendResponse(res, 200, "Approved vendors fetched", vendors);
   });
 
-  getNearbyVendors = asyncHandler(async (req, res) => {
+  getNearbyVendors = asyncHandler(async (req, res, next) => {
     const { lng, lat, radius = 3000 } = req.query;
 
     const vendors = await this.vendorSer.getNearbyVendors({
@@ -154,7 +108,7 @@ export class VendorController {
     sendResponse(res, 200, "Nearby vendors fetched", vendors);
   });
 
-  getVendor = asyncHandler(async (req, res) => {
+  getVendor = asyncHandler(async (req, res, next) => {
     const vendor = await this.vendorSer.getVendorById(req.params.id);
 
     sendResponse(res, 200, "Vendor fetched", vendor);

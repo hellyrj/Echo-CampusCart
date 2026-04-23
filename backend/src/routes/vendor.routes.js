@@ -39,34 +39,6 @@ router.get(
  */
 
 // =========================
-// VENDOR PRODUCTS
-// =========================
-
-router.get(
-  "/me/products",
-  authenticate,
-  controller.getMyProducts
-);
-
-router.post(
-  "/me/products",
-  authenticate,
-  controller.createMyProduct
-);
-
-router.patch(
-  "/me/products/:id",
-  authenticate,
-  controller.updateMyProduct
-);
-
-router.delete(
-  "/me/products/:id",
-  authenticate,
-  controller.deleteMyProduct
-);
-
-// =========================
 // PUBLIC
 // =========================
 

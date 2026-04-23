@@ -43,6 +43,7 @@ export class AuthService {
             throw new ApiError(401 , "Invalid credential")
         }
 
+        console.log('Auth Service - JWT_SECRET during token generation:', process.env.JWT_SECRET);
         const token = generateToken(user._id);
 
         return { user , token };

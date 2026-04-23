@@ -13,11 +13,21 @@ axiosInstance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         
-        // Public endpoints that don't need authentication
-        const publicEndpoints = ['/products', '/auth/login', '/auth/register', '/vendors/universities', '/vendors/categories'];
-        const isPublicEndpoint = publicEndpoints.some(endpoint => 
-            config.url === endpoint || config.url?.startsWith(endpoint)
-        );
+        // Public endpoints that don't need authentication (GET requests only for products)
+        const publicEndpoints = [
+            '/products', 
+            '/products/search', 
+            '/products/popular',
+            '/auth/login', 
+            '/auth/register', 
+            '/vendors/universities', 
+            '/vendors/categories',
+            '/vendors',
+            '/vendors/nearby'
+        ];
+        
+        // Check if it's exactly a public endpoint AND GET method
+        const isPublicEndpoint = publicEndpoints.includes(config.url) && config.method === 'get';
         
         // Add token for authenticated endpoints
         if (token && !isPublicEndpoint) {
