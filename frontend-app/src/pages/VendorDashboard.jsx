@@ -52,6 +52,54 @@ const VendorDashboard = () => {
         }
     };
 
+    const getCategoryNames = (categoryIds) => {
+        if (!categoryIds || !Array.isArray(categoryIds)) {
+            return 'Uncategorized';
+        }
+        
+        // Debug: log the structure to understand what we're getting
+        console.log('Category IDs structure:', categoryIds);
+        console.log('Available categories:', categories);
+        
+        const categoryNames = categoryIds.map(catItem => {
+            // Handle different possible structures
+            let categoryId;
+            
+            if (typeof catItem === 'string') {
+                categoryId = catItem;
+            } else if (typeof catItem === 'object') {
+                // It might be a populated category object or an ObjectId wrapper
+                if (catItem._id) {
+                    // If it's already a populated category object with name, use the name
+                    if (catItem.name) {
+                        return catItem.name;
+                    }
+                    categoryId = catItem._id.toString();
+                } else if (catItem.toString && catItem.toString() !== '[object Object]') {
+                    categoryId = catItem.toString();
+                } else {
+                    console.log('Unknown category object structure:', catItem);
+                    return 'Unknown Category';
+                }
+            } else {
+                console.log('Unknown category type:', typeof catItem, catItem);
+                return 'Unknown Category';
+            }
+            
+            // Find category by _id from the loaded categories
+            const category = categories.find(cat => {
+                const catIdStr = cat._id?.toString() || cat._id;
+                return catIdStr === categoryId;
+            });
+            
+            return category?.name || categoryId.substring(0, 8) + '...';
+        }).filter(Boolean);
+        
+        const result = categoryNames.length > 0 ? categoryNames.join(', ') : 'Uncategorized';
+        console.log('Final category names:', result);
+        return result;
+    };
+
     const fetchUserProducts = async () => {
         try {
             const result = await getVendorProducts();
@@ -384,13 +432,16 @@ const VendorDashboard = () => {
                                                 <div className="flex justify-between items-start mb-2">
                                                     <h3 className="font-semibold text-gray-900">{product.name}</h3>
                                                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                        {product.category || 'Uncategorized'}
+                                                        {getCategoryNames(product.categories)}
                                                     </span>
                                                 </div>
                                                 <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <p className="text-lg font-bold text-blue-600">${product.basePrice || product.price}</p>
-                                                    <p className="text-sm text-gray-500">Stock: {product.stock || 0}</p>
+                                                <div className="flex justify-between items-center text-sm text-gray-500">
+                                                    <span>Price: ${product.basePrice}</span>
+                                                    <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {product.isAvailable ? 'Available' : 'Out of Stock'}
+                                                    </span>
+                                                    <span>Stock: {product.inventory?.totalStock || 0}</span>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button

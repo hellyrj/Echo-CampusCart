@@ -5,9 +5,6 @@ const ProductForm = ({ product, onSubmit, onCancel, loading, categories }) => {
         name: product?.name || '',
         description: product?.description || '',
         basePrice: product?.basePrice || product?.price || '',
-        category: product?.category || '',
-        stock: product?.stock || '',
-        images: product?.images || [],
         categories: product?.categories?.map(cat => cat._id) || [],
         tags: product?.tags?.join(', ') || '',
         isAvailable: product?.isAvailable !== false,
@@ -83,14 +80,60 @@ const ProductForm = ({ product, onSubmit, onCancel, loading, categories }) => {
         submitData.append('basePrice', formData.basePrice);
         submitData.append('isAvailable', formData.isAvailable);
         
-        // Add arrays as JSON strings
-        submitData.append('categories', JSON.stringify(formData.categories));
-        submitData.append('tags', JSON.stringify(formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)));
-        submitData.append('dimensions', JSON.stringify(formData.dimensions));
-        submitData.append('inventory', JSON.stringify(formData.inventory));
-        submitData.append('discount', JSON.stringify(formData.discount));
+        // Add arrays as JSON strings (only if they're not already arrays)
+        // Debug: Check what formData.categories actually contains
+        console.log('formData.categories type:', typeof formData.categories);
+        console.log('formData.categories value:', formData.categories);
         
-        // Add files
+        // Ensure categories is properly formatted as JSON array
+        let categoriesToSend;
+        if (typeof formData.categories === 'string') {
+            // If it's already a string, parse it first to ensure it's not double-encoded
+            try {
+                categoriesToSend = JSON.parse(formData.categories);
+            } catch (e) {
+                // If parsing fails, it might be a single category ID
+                categoriesToSend = [formData.categories];
+            }
+        } else {
+            // If it's an array, use it directly
+            categoriesToSend = formData.categories;
+        }
+        
+        console.log('Categories to send:', categoriesToSend);
+        submitData.append('categories', JSON.stringify(categoriesToSend));
+        
+        // Handle tags properly - split comma-separated and filter empty
+        const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+        submitData.append('tags', JSON.stringify(tagsArray));
+        
+        // Clean up dimensions - remove empty values
+        const cleanDimensions = Object.fromEntries(
+            Object.entries(formData.dimensions).filter(([_, value]) => value !== '')
+        );
+        if (Object.keys(cleanDimensions).length > 0) {
+            submitData.append('dimensions', JSON.stringify(cleanDimensions));
+        }
+        
+        // Clean up inventory - ensure proper types
+        const cleanInventory = {
+            totalStock: parseInt(formData.inventory.totalStock) || 0,
+            lowStockThreshold: parseInt(formData.inventory.lowStockThreshold) || 5,
+            trackInventory: formData.inventory.trackInventory
+        };
+        submitData.append('inventory', JSON.stringify(cleanInventory));
+        
+        // Clean up discount - only include if percentage > 0
+        if (formData.discount.percentage > 0) {
+            const cleanDiscount = {
+                percentage: parseFloat(formData.discount.percentage) || 0,
+                validUntil: formData.discount.validUntil || undefined,
+                isActive: formData.discount.isActive
+            };
+            submitData.append('discount', JSON.stringify(cleanDiscount));
+        }
+        
+        // Add files with correct field name for multer
         selectedFiles.forEach(file => {
             submitData.append('images', file);
         });
@@ -139,22 +182,29 @@ const ProductForm = ({ product, onSubmit, onCancel, loading, categories }) => {
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category *
+                        Categories *
                     </label>
                     <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
+                        name="categories"
+                        value={formData.categories}
+                        onChange={(e) => {
+                            const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                            setFormData(prev => ({
+                                ...prev,
+                                categories: selectedOptions
+                            }));
+                        }}
                         required
+                        multiple
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="">Select a category</option>
                         {categories.map((category, index) => (
                             <option key={index} value={category._id}>
                                 {category.name}
                             </option>
                         ))}
                     </select>
+                    <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple categories</p>
                 </div>
 
                 <div>
@@ -239,6 +289,81 @@ const ProductForm = ({ product, onSubmit, onCancel, loading, categories }) => {
                         />
                         <span className="text-sm font-medium text-gray-700">Product Available</span>
                     </label>
+                </div>
+
+                <div className="space-y-4">
+                    <h4 className="text-md font-medium text-gray-900">Inventory</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                            <input
+                                type="number"
+                                value={formData.inventory.totalStock}
+                                onChange={(e) => handleNestedChange('inventory', 'totalStock', parseInt(e.target.value) || 0)}
+                                min="0"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Low Stock Alert</label>
+                            <input
+                                type="number"
+                                value={formData.inventory.lowStockThreshold}
+                                onChange={(e) => handleNestedChange('inventory', 'lowStockThreshold', parseInt(e.target.value) || 5)}
+                                min="0"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center mt-6">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.inventory.trackInventory}
+                                    onChange={(e) => handleNestedChange('inventory', 'trackInventory', e.target.checked)}
+                                    className="mr-2"
+                                />
+                                <span className="text-sm font-medium text-gray-700">Track Inventory</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <h4 className="text-md font-medium text-gray-900">Discount (Optional)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Discount %</label>
+                            <input
+                                type="number"
+                                value={formData.discount.percentage}
+                                onChange={(e) => handleNestedChange('discount', 'percentage', parseFloat(e.target.value) || 0)}
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+                            <input
+                                type="date"
+                                value={formData.discount.validUntil}
+                                onChange={(e) => handleNestedChange('discount', 'validUntil', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="flex items-center mt-6">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.discount.isActive}
+                                    onChange={(e) => handleNestedChange('discount', 'isActive', e.target.checked)}
+                                    className="mr-2"
+                                />
+                                <span className="text-sm font-medium text-gray-700">Active Discount</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

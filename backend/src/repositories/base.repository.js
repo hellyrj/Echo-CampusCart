@@ -2,6 +2,11 @@
  * BaseRepository provides common CRUD operations for all models.
  * Specific repositories can extend this class to inherit these methods.
  */
+/**
+ * BaseRepository provides common CRUD operations for all models.
+ * Specific repositories can extend this class to inherit these methods.
+ */
+import Category from "../models/category.model.js";
 
 class BaseRepository {
   constructor(model) {
@@ -13,7 +18,7 @@ class BaseRepository {
   }
 
   async findById(id) {
-    return this.model.findById(id);
+    return this.model.findById(id).populate({ path: 'categories', model: Category, strictPopulate: false });
   }
 
   async findOne(filter) {
@@ -21,7 +26,12 @@ class BaseRepository {
   }
 
   async find(filter = {}, options = {}) {
-    return this.model.find(filter, null, options);
+    const defaultOptions = {
+      populate: { path: 'categories', model: Category, strictPopulate: false }
+    };
+    
+    const mergedOptions = { ...defaultOptions, ...options };
+    return this.model.find(filter, null, mergedOptions);
   }
 
   async update(id, data) {

@@ -47,14 +47,30 @@ router.get("/", controller.getApprovedVendors);
 router.get("/nearby", controller.getNearbyVendors);
 
 // Get default categories
-router.get("/categories", (req, res) => {
+router.get("/categories", async (req, res) => {
   try {
     console.log('Categories endpoint called');
-    res.status(200).json({
-      success: true,
-      message: "Categories fetched successfully",
-      data: DEFAULT_CATEGORIES
-    });
+    
+    // Import Category model to get actual database categories
+    const Category = (await import("../models/category.model.js")).default;
+    
+    // Try to get categories from database first
+    const dbCategories = await Category.find({ isActive: true });
+    
+    if (dbCategories.length > 0) {
+      res.status(200).json({
+        success: true,
+        message: "Categories fetched successfully",
+        data: dbCategories
+      });
+    } else {
+      // Fallback to default categories if none in database
+      res.status(200).json({
+        success: true,
+        message: "Categories fetched successfully",
+        data: DEFAULT_CATEGORIES
+      });
+    }
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({

@@ -2,6 +2,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import Category from "./models/category.model.js"; // Import Category model for population
 
 import authRoutes from "./routes/auth.routes.js";
 import vendorRouters from "./routes/vendor.routes.js";
