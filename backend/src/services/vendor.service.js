@@ -28,13 +28,25 @@ export class VendorService {
   const existing = await this.vendorRepo.findByOwner(userId);
 
   if (existing) {
-    throw new ApiError(400, "You already have a vendor application");
+    // Allow resubmission if the existing application was rejected
+    if (existing.status === 'rejected') {
+      console.log(`User ${userId} is resubmitting after rejection. Deleting previous rejected application.`);
+      
+      // Delete the rejected application to allow fresh submission
+      await this.vendorRepo.deleteById(existing._id);
+      
+      // Continue with new application creation
+    } else {
+      // Block if they have pending or approved application
+      throw new ApiError(400, `You already have a ${existing.status} vendor application`);
+    }
   }
 
   return this.vendorRepo.create({
     ...data,
     ownerId: userId,
-    isApproved: false
+    isApproved: false,
+    status: 'pending' // Ensure new application starts as pending
   });
 
 }

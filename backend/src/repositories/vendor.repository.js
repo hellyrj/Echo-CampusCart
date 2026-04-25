@@ -11,27 +11,32 @@ class VendorRepository extends BaseRepository {
   }
 
   async findAll() {
-    return this.model.find({});
+    return this.model.find({}).populate('ownerId', 'name email');
   }
 
   async findApproved() {
-    return this.model.find({ isApproved: true, isActive: true });
+    return this.model.find({ status: 'approved', isActive: true }).populate('ownerId', 'name email');
   }
 
   async findPending() {
-    return this.model.find({ isApproved: false });
+    return this.model.find({ status: 'pending' }).populate('ownerId', 'name email');
+  }
+
+  async findRejected() {
+    return this.model.find({ status: 'rejected' }).populate('ownerId', 'name email');
   }
 
   async approveVendor(vendorId, adminId) {
     return this.model.findByIdAndUpdate(
       vendorId,
       {
+        status: 'approved',
         isApproved: true,
         approvedBy: adminId,
         approvedAt: new Date(),
         rejectionReason: null
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
   }
 
@@ -39,10 +44,11 @@ class VendorRepository extends BaseRepository {
     return this.model.findByIdAndUpdate(
       vendorId,
       {
+        status: 'rejected',
         isApproved: false,
         rejectionReason: reason
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
   }
 
@@ -60,6 +66,10 @@ class VendorRepository extends BaseRepository {
         }
       }
     });
+  }
+
+  async deleteById(vendorId) {
+    return this.model.findByIdAndDelete(vendorId);
   }
 }
 

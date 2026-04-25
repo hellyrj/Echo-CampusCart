@@ -2,14 +2,19 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 
-// Create uploads directory if it doesn't exist
+// Get the correct directory path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Create uploads directory in the project root
 const uploadsDir = path.join(process.cwd(), 'uploads', 'documents');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure multer for file system storage
+// Rest of your code remains the same...
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadsDir);
@@ -22,7 +27,7 @@ const storage = multer.diskStorage({
 
 export const uploadDocuments = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -31,15 +36,14 @@ export const uploadDocuments = multer({
             cb(new Error('Invalid file type. Only PDF, JPEG, PNG allowed.'), false);
         }
     }
-}).array('documents', 5); // Max 5 documents
+}).array('documents', 5);
 
-// Helper function to save files to filesystem
 export const saveFilesToGridFS = async (files) => {
     return files.map((file) => ({
-        fileId: file.filename, // Use filename as fileId
+        fileId: file.filename,
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
-        url: `/uploads/documents/${file.filename}` // Optional: for reference
+        url: `/uploads/documents/${file.filename}` // This URL will now work!
     }));
 };

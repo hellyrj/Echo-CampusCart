@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Notifications from './Notifications.jsx';
 
 const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
@@ -87,6 +88,7 @@ const Navbar = () => {
                     <div className="flex items-center space-x-4">
                         {isAuthenticated ? (
                             <div className="flex items-center space-x-4">
+                                <Notifications />
                                 <span className="text-gray-700">Welcome, {user?.name}</span>
                                 <button
                                     onClick={handleLogout}

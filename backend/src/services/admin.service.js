@@ -1,6 +1,7 @@
 import vendorRepository from "../repositories/vendor.repository.js";
 import { ApiError } from "../utils/ApiError.js";
 import User from "../models/user.model.js";
+import { NotificationService } from "./notification.service.js";
 
 export class AdminVendorService {
   constructor(vendorRepo = vendorRepository) {
@@ -14,6 +15,10 @@ export class AdminVendorService {
     
     if (status === "approved") {
       return this.vendorRepo.findApproved();
+    }
+    
+    if (status === "rejected") {
+      return this.vendorRepo.findRejected();
     }
     
     // Return all applications if no status filter
@@ -49,6 +54,18 @@ export class AdminVendorService {
         // Don't throw error here since vendor was already approved, but log it
       } else {
         console.log(`User ${vendor.ownerId} role updated to "vendor" successfully`);
+      }
+      
+      // Send approval notification to the user
+      try {
+        await NotificationService.sendApprovalNotification(
+          vendor.ownerId,
+          vendor.storeName
+        );
+        console.log(`Approval notification sent to user ${vendor.ownerId}`);
+      } catch (notificationError) {
+        console.error('Failed to send approval notification:', notificationError);
+        // Don't fail the approval if notification fails
       }
       
       return approvedVendor;
@@ -87,6 +104,19 @@ export class AdminVendorService {
         // Don't throw error here since vendor was already rejected, but log it
       } else {
         console.log(`User ${vendor.ownerId} role ensured as "student" after rejection`);
+      }
+      
+      // Send rejection notification to the user
+      try {
+        await NotificationService.sendRejectionNotification(
+          vendor.ownerId,
+          vendor.storeName,
+          rejectionReason
+        );
+        console.log(`Rejection notification sent to user ${vendor.ownerId}`);
+      } catch (notificationError) {
+        console.error('Failed to send rejection notification:', notificationError);
+        // Don't fail the rejection if notification fails
       }
       
       return rejectedVendor;
@@ -144,17 +174,27 @@ export class AdminVendorService {
   }
 
   async getAllVendors(filters = {}) {
-    const query = {};
-    
-    if (filters.isApproved !== undefined) {
-      query.isApproved = filters.isApproved;
+    if (filters.isApproved !== undefined || filters.isActive !== undefined) {
+      // Build query for filtered results
+      const query = {};
+      
+      if (filters.isApproved !== undefined) {
+        if (filters.isApproved === 'true') {
+          query.status = 'approved';
+        } else if (filters.isApproved === 'false') {
+          query.status = { $in: ['pending', 'rejected'] };
+        }
+      }
+      
+      if (filters.isActive !== undefined) {
+        query.isActive = filters.isActive === 'true';
+      }
+      
+      return this.vendorRepo.model.find(query).populate('ownerId', 'name email');
+    } else {
+      // Use the findAll method which includes population
+      return this.vendorRepo.findAll();
     }
-    
-    if (filters.isActive !== undefined) {
-      query.isActive = filters.isActive;
-    }
-    
-    return this.vendorRepo.find(query);
   }
 
   async toggleVendorStatus(vendorId, isActive) {

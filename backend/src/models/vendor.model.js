@@ -97,6 +97,12 @@ const vendorSchema = new mongoose.Schema ({
         default: false
     },
 
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+
     approvedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/apiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 import { AdminVendorService } from "../services/admin.service.js";
 
 export class AdminVendorController {
@@ -59,15 +60,24 @@ export class AdminVendorController {
 
   // Reject vendor application
   rejectVendorApplication = asyncHandler(async (req, res, next) => {
+    console.log('=== Backend Reject Debug ===');
+    console.log('Request body:', req.body);
+    console.log('Request params:', req.params);
+    console.log('Admin user ID:', req.user?._id);
+    
     const adminUserId = req.user._id;
     const { vendorId } = req.params;
     const { rejectionReason } = req.body;
+    
+    console.log('Extracted data:', { adminUserId, vendorId, rejectionReason });
     
     const rejectedVendor = await this.adminVendorSer.rejectVendorApplication(
       adminUserId,
       vendorId,
       rejectionReason
     );
+    
+    console.log('Vendor rejected successfully:', rejectedVendor.storeName);
     
     sendResponse(res, 200, "Vendor application rejected successfully", rejectedVendor);
   });

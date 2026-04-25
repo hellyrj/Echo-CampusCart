@@ -21,7 +21,7 @@ router.get("/stats", async (req, res) => {
         const totalUsers = await User.countDocuments();
         const totalVendors = await Vendor.countDocuments();
         const totalProducts = await Product.countDocuments();
-        const pendingApplications = await Vendor.countDocuments({ isApproved: false });
+        const pendingApplications = await Vendor.countDocuments({ status: 'pending' });
 
         res.json({
             success: true,

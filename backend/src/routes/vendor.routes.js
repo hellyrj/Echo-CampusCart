@@ -156,6 +156,20 @@ router.get("/debug/all-products", async (req, res) => {
   }
 });
 
+// Test endpoint to verify backend is receiving requests
+router.get("/test", (req, res) => {
+  console.log('=== Backend Test Endpoint Hit ===');
+  console.log('Request headers:', req.headers);
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  res.json({ 
+    message: 'Backend is working!',
+    timestamp: new Date().toISOString(),
+    url: req.url,
+    method: req.method
+  });
+});
+
 // Get single vendor by ID (must come after specific routes)
 router.get("/:id", controller.getVendor);
 
@@ -163,33 +177,84 @@ router.get("/:id", controller.getVendor);
 // FILE SERVING
 // =========================
 
-// Serve uploaded files from GridFS
+// Serve uploaded files from filesystem
 router.get("/files/:fileId", async (req, res) => {
   try {
-    const client = new MongoClient(process.env.MONGODB_URI);
-    await client.connect();
-    const db = client.db();
-    const bucket = new GridFSBucket(db, { bucketName: 'vendorDocuments' });
+    console.log('=== File Request Debug ===');
+    console.log('File request received for ID:', req.params.fileId);
     
-    const fileId = new ObjectId(req.params.fileId);
-    const downloadStream = bucket.openDownloadStream(fileId);
+    // Files are stored in filesystem, not GridFS
+    const fs = await import('fs');
+    const path = await import('path');
     
-    downloadStream.on('error', (error) => {
-      console.error('File download error:', error);
-      res.status(404).json({ message: 'File not found' });
-      client.close();
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'documents');
+    const filePath = path.join(uploadsDir, req.params.fileId);
+    
+    console.log('Uploads directory:', uploadsDir);
+    console.log('Full file path:', filePath);
+    console.log('File exists:', fs.existsSync(filePath));
+    
+    // Check if uploads directory exists
+    if (!fs.existsSync(uploadsDir)) {
+      console.error('Uploads directory does not exist:', uploadsDir);
+      return res.status(404).json({ message: 'Uploads directory not found' });
+    }
+    
+    // List files in uploads directory for debugging
+    try {
+      const files = fs.readdirSync(uploadsDir);
+      console.log('Files in uploads directory:', files);
+    } catch (err) {
+      console.error('Error reading uploads directory:', err);
+    }
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error('File not found:', filePath);
+      return res.status(404).json({ 
+        message: 'File not found',
+        fileId: req.params.fileId,
+        uploadsDir: uploadsDir,
+        filePath: filePath
+      });
+    }
+    
+    console.log('File found, serving:', filePath);
+    
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    console.log('File size:', stats.size, 'bytes');
+    console.log('File modified:', stats.mtime);
+    
+    // Set appropriate content type based on file extension
+    const ext = path.extname(req.params.fileId).toLowerCase();
+    const contentTypes = {
+      '.pdf': 'application/pdf',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png'
+    };
+    
+    const contentType = contentTypes[ext] || 'application/octet-stream';
+    console.log('Content type:', contentType);
+    
+    res.set('Content-Type', contentType);
+    res.set('Content-Disposition', `inline; filename="${req.params.fileId}"`);
+    res.set('Content-Length', stats.size);
+    
+    // Serve the file
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('error', (error) => {
+      console.error('File stream error:', error);
+      res.status(500).json({ message: 'Error serving file' });
     });
     
-    downloadStream.on('file', (file) => {
-      res.set('Content-Type', file.metadata?.mimeType || 'application/octet-stream');
-      res.set('Content-Disposition', `inline; filename="${file.filename}"`);
+    fileStream.on('end', () => {
+      console.log('File stream ended successfully');
     });
     
-    downloadStream.pipe(res);
-    
-    downloadStream.on('end', () => {
-      client.close();
-    });
   } catch (error) {
     console.error('Error serving file:', error);
     res.status(500).json({ message: 'Error serving file' });

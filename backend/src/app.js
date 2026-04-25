@@ -2,16 +2,24 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import { fileURLToPath } from "url";
 import Category from "./models/category.model.js"; // Import Category model for population
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 import authRoutes from "./routes/auth.routes.js";
 import vendorRouters from "./routes/vendor.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import productRoutes from "./routes/product.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 
 const app = express();
+
+app.use('uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global middlewares
 app.use(cors());
@@ -31,6 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRouters);
 app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
 
