@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
+import FloatingVendorButton from './components/FloatingVendorButton';
 
 // Pages
 import Home from './pages/Home';
@@ -12,6 +13,7 @@ import Products from './pages/Products';
 import MyProducts from './pages/MyProducts';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorApplication from './pages/VendorApplication';
+import VendorPublicPage from './pages/VendorPublicPage';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -48,6 +50,11 @@ function App() {
                                     <VendorApplication />
                                 </ErrorBoundary>
                             } />
+                            <Route path="/vendor/:vendorId" element={
+                                <ErrorBoundary>
+                                    <VendorPublicPage />
+                                </ErrorBoundary>
+                            } />
                             
                             {/* Protected Routes */}
                             <Route element={<PrivateRoute />}>
@@ -65,6 +72,7 @@ function App() {
                             <Route path="*" element={<FallbackRoute />} />
                         </Routes>
                     </div>
+                    <FloatingVendorButton />
                 </div>
             </Router>
         </AuthProvider>

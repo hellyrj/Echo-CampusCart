@@ -57,11 +57,41 @@ export const useVendorApi = () => {
         setError(null);
         try {
             const response = await vendorApi.getVendor(id);
-            return { success: true, data: response.data };
+            return response.data;
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch vendor';
             setError(errorMessage);
-            return { success: false, message: errorMessage };
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getVendorDetails = useCallback(async (id) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await vendorApi.getVendor(id);
+            return response.data;
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to fetch vendor details';
+            setError(errorMessage);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const getVendorProducts = useCallback(async (vendorId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await vendorApi.getVendorProducts(vendorId);
+            return response.data;
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to fetch vendor products';
+            setError(errorMessage);
+            throw err;
         } finally {
             setLoading(false);
         }
@@ -161,6 +191,8 @@ export const useVendorApi = () => {
         getNearbyVendors,
         getApprovedVendors,
         getVendor,
+        getVendorDetails,
+        getVendorProducts,
         
         // Authenticated Vendor Operations
         getMyVendorProfile,

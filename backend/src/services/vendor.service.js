@@ -47,6 +47,14 @@ export class VendorService {
     return vendor;
   }
 
+  async getVendorById(vendorId) {
+    const vendor = await this.vendorRepo.findById(vendorId);
+
+    if (!vendor) throw new ApiError(404, "Vendor not found");
+
+    return vendor;
+  }
+
   async getVendorProducts(userId) {
 
   const vendor = await this.vendorRepo.findByOwner(userId);
@@ -60,6 +68,27 @@ export class VendorService {
   }
 
   return this.productRepo.findByVendorId(vendor._id);
+}
+
+async getVendorProductsByVendorId(vendorId) {
+  console.log('Service: Getting products for vendor:', vendorId);
+  const vendor = await this.vendorRepo.findById(vendorId);
+
+  if (!vendor) {
+    console.log('Service: Vendor not found:', vendorId);
+    throw new ApiError(404, "Vendor not found");
+  }
+
+  if (!vendor.isApproved) {
+    console.log('Service: Vendor not approved:', vendorId);
+    throw new ApiError(403, "Vendor not approved yet");
+  }
+
+  console.log('Service: Finding products for vendor:', vendorId);
+  const products = await this.productRepo.findByVendorId(vendorId);
+  console.log('Service: Products found:', products?.length || 0);
+  
+  return products;
 }
 
   async getApprovedVendors() {

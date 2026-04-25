@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axios';
@@ -80,6 +80,8 @@ const Products = () => {
             if (result.success) {
                 const productsData = result.data?.data || result.data || [];
                 console.log('Products data:', productsData);
+                console.log('First product structure:', productsData[0]);
+                console.log('First product vendorId:', productsData[0]?.vendorId);
                 setProducts(Array.isArray(productsData) ? productsData : []);
             } else {
                 console.error('Failed to load products:', result.message);
@@ -313,18 +315,77 @@ const Products = () => {
 
                 {/* Products Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {Array.isArray(products) && products.map((product) => (
+                    {Array.isArray(products) && products.map((product, index) => {
+                        console.log(`Product ${index} vendorId:`, product.vendorId);
+                        return (
                         <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                             <div className="aspect-w-16 aspect-h-12 bg-gray-200">
                                 <img
-                                    src={product.image || 'https://via.placeholder.com/300x200?text=Product'}
+                                    src={product.images && product.images.length > 0 
+                                        ? product.images[0].url 
+                                        : 'https://via.placeholder.com/300x200?text=Product'}
                                     alt={product.name}
                                     className="w-full h-48 object-cover"
+                                    onError={(e) => {
+                                        e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                    }}
                                 />
                             </div>
                             <div className="p-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
                                 <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                                
+                                {/* Vendor Information */}
+                                {product.vendorId ? (
+                                    <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                                    <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-500">Sold by</p>
+                                                    {product.vendorId.storeName ? (
+                                                        <Link 
+                                                            to={`/vendor/${product.vendorId._id}`}
+                                                            className="text-sm font-medium text-orange-600 hover:text-orange-700 hover:underline"
+                                                        >
+                                                            {product.vendorId.storeName}
+                                                        </Link>
+                                                    ) : (
+                                                        <span className="text-sm font-medium text-orange-600">
+                                                            Vendor (ID: {product.vendorId._id})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {product.vendorId.deliveryAvailable && (
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Delivery
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500">Sold by</p>
+                                                <span className="text-sm font-medium text-gray-600">
+                                                    Vendor information loading...
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div className="flex items-center justify-between">
                                     <span className="text-2xl font-bold text-blue-600">${product.basePrice || product.price}</span>
                                     <button 
@@ -336,7 +397,8 @@ const Products = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {products.length === 0 && !loading && (

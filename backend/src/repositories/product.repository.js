@@ -21,7 +21,10 @@ class ProductRepository extends BaseRepository {
   }
 
   async findByVendorId(vendorId) {
-    return this.model.find({ vendorId });
+    console.log('Repository: Finding products for vendorId:', vendorId);
+    const products = await this.model.find({ vendorId });
+    console.log('Repository: Found products:', products?.length || 0);
+    return products;
   }
 
   async findByVendor(vendorId, options = {}) {

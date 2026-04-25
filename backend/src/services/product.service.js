@@ -1,6 +1,8 @@
 import ProductRepository from "../repositories/product.repository.js";
 import { ApiError } from "../utils/ApiError.js";
 import { CloudinaryService } from "./cloudinary.service.js";
+import Category from "../models/category.model.js";
+import Vendor from "../models/vendor.model.js";
 
 export class ProductService {
 
@@ -36,7 +38,22 @@ export class ProductService {
   }
 
   async getAllProducts(filters = {}) {
-    return this.productRepo.find(filters);
+    const options = {
+      populate: [
+        { path: 'categories', model: Category, strictPopulate: false },
+        { 
+          path: 'vendorId', 
+          select: 'storeName deliveryAvailable pickupAvailable _id',
+          model: Vendor 
+        }
+      ]
+    };
+    
+    console.log('Product service: Getting all products with options:', options);
+    const products = await this.productRepo.find(filters, options);
+    console.log('Product service: First product vendorId:', products[0]?.vendorId);
+    
+    return products;
   }
 
   async searchProducts({ query, category, minPrice, maxPrice, sort = 'relevance' }) {

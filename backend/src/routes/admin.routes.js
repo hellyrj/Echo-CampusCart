@@ -82,6 +82,9 @@ router.patch("/:vendorId/approve", adminVendorController.approveVendorApplicatio
 // Reject vendor application
 router.patch("/:vendorId/reject", adminVendorController.rejectVendorApplication);
 
+// Fix vendor user roles (utility endpoint)
+router.post("/fix-vendor-roles", adminVendorController.fixVendorUserRoles);
+
 // Toggle vendor active status (activate/deactivate)
 router.patch("/:vendorId/toggle-status", adminVendorController.toggleVendorStatus);
 

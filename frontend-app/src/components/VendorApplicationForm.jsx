@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useVendorApi } from '../hooks/useVendorApi';
+import LocationInput from './LocationInput';
 
 const VendorApplicationForm = ({ onSubmit, loading }) => {
     const { user } = useAuth();
@@ -11,7 +12,22 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         address: '',
         phone: '',
         universityNear: '',
-        legalDocuments: []
+        legalDocuments: [],
+        // New location fields
+        placeName: '',
+        fullAddress: '',
+        landmark: '',
+        area: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: 'Ethiopia',
+        locationDetails: null,
+        // Delivery options
+        deliveryAvailable: true,
+        pickupAvailable: true,
+        deliveryRadius: 3000,
+        deliveryFee: 0
     });
     const [errors, setErrors] = useState({});
     const [universities, setUniversities] = useState([]);
@@ -52,11 +68,59 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             [name]: value
         }));
         
-        // Clear error for this field
+        // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
                 [name]: ''
+            }));
+        }
+        
+        // Clear related delivery errors when user changes delivery options
+        if (name === 'deliveryAvailable' || name === 'pickupAvailable') {
+            setErrors(prev => ({
+                ...prev,
+                deliveryOptions: ''
+            }));
+        }
+        
+        if (name === 'deliveryRadius') {
+            setErrors(prev => ({
+                ...prev,
+                deliveryRadius: ''
+            }));
+        }
+        
+        if (name === 'deliveryFee') {
+            setErrors(prev => ({
+                ...prev,
+                deliveryFee: ''
+            }));
+        }
+    };
+
+    const handleLocationChange = (locationDetails) => {
+        setFormData(prev => ({
+            ...prev,
+            locationDetails,
+            // Update individual location fields
+            placeName: locationDetails?.placeName || '',
+            fullAddress: locationDetails?.fullAddress || '',
+            landmark: locationDetails?.landmark || '',
+            area: locationDetails?.area || '',
+            city: locationDetails?.city || '',
+            state: locationDetails?.state || '',
+            postalCode: locationDetails?.postalCode || '',
+            country: locationDetails?.country || 'Nigeria',
+            // Also update the address field for backward compatibility
+            address: locationDetails?.fullAddress || ''
+        }));
+        
+        // Clear location error
+        if (errors.address) {
+            setErrors(prev => ({
+                ...prev,
+                address: ''
             }));
         }
     };
@@ -117,16 +181,38 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             newErrors.storeName = 'Store name is required';
         }
         
-        if (!formData.address.trim()) {
-            newErrors.address = 'Address is required';
+        // Check for location details (either new format or fallback to address)
+        if (!formData.locationDetails && !formData.address.trim()) {
+            newErrors.address = 'Business location is required';
         }
         
         if (!formData.phone.trim()) {
             newErrors.phone = 'Phone number is required';
         }
         
-        if (!formData.universityNear) {
-            newErrors.universityNear = 'Please select a university';
+        if (!formData.universityNear.trim()) {
+            newErrors.universityNear = 'University selection is required';
+        }
+        
+        // Validate delivery options
+        if (!formData.deliveryAvailable && !formData.pickupAvailable) {
+            newErrors.deliveryOptions = 'At least one of delivery or pickup must be available';
+        }
+        
+        if (formData.deliveryAvailable) {
+            if (!formData.deliveryRadius || formData.deliveryRadius < 100 || formData.deliveryRadius > 10000) {
+                newErrors.deliveryRadius = 'Delivery radius must be between 100 and 10000 meters';
+            }
+            
+            if (formData.deliveryFee < 0) {
+                newErrors.deliveryFee = 'Delivery fee cannot be negative';
+            }
+        }
+        
+        // Validate phone format (Ethiopian phone numbers)
+        const phoneRegex = /^(\+251|0)?[1-9]\d{8}$/;
+        if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+            newErrors.phone = 'Please enter a valid Ethiopian phone number (e.g., +251911234567 or 0911234567)';
         }
         
         if (formData.legalDocuments.length === 0) {
@@ -143,28 +229,48 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!validateForm()) {
             return;
         }
-
+        
         // Create FormData for file upload
         const formDataToSend = new FormData();
         
-        // Add form fields
+        // Add basic fields
         formDataToSend.append('storeName', formData.storeName);
         formDataToSend.append('description', formData.description);
         formDataToSend.append('address', formData.address);
         formDataToSend.append('phone', formData.phone);
         formDataToSend.append('universityNear', formData.universityNear);
         
-        // Add location coordinates
-        formDataToSend.append('location', JSON.stringify({
-            type: "Point",
-            coordinates: [3.3792, 6.9722] // Lagos coordinates
-        }));
+        // Add delivery options
+        formDataToSend.append('deliveryAvailable', formData.deliveryAvailable);
+        formDataToSend.append('pickupAvailable', formData.pickupAvailable);
+        formDataToSend.append('deliveryRadius', formData.deliveryRadius);
+        formDataToSend.append('deliveryFee', formData.deliveryFee);
+        
+        // Add location details if available
+        if (formData.locationDetails) {
+            formDataToSend.append('placeName', formData.locationDetails.placeName);
+            formDataToSend.append('fullAddress', formData.locationDetails.fullAddress);
+            formDataToSend.append('landmark', formData.locationDetails.landmark || '');
+            formDataToSend.append('area', formData.locationDetails.area || '');
+            formDataToSend.append('city', formData.locationDetails.city);
+            formDataToSend.append('state', formData.locationDetails.state);
+            formDataToSend.append('postalCode', formData.locationDetails.postalCode || '');
+            formDataToSend.append('country', formData.locationDetails.country);
+            
+            // Add coordinates as JSON string
+            if (formData.locationDetails.coordinates) {
+                formDataToSend.append('location', JSON.stringify({
+                    type: "Point",
+                    coordinates: formData.locationDetails.coordinates
+                }));
+            }
+        }
         
         // Add document files
         formData.legalDocuments.forEach((doc, index) => {
@@ -217,24 +323,22 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                     />
                 </div>
 
-                {/* Address */}
+                {/* Business Location */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Address *
+                        Business Location *
                     </label>
-                    <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        placeholder="Enter your business address"
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.address ? 'border-red-500' : 'border-gray-300'
-                        }`}
+                    <LocationInput
+                        value={formData.locationDetails}
+                        onChange={handleLocationChange}
+                        placeholder="Search for your business location..."
                     />
                     {errors.address && (
                         <p className="mt-1 text-sm text-red-600">{errors.address}</p>
                     )}
+                    <p className="mt-1 text-xs text-gray-500">
+                        Start typing to search for your location. We'll use this to help customers find you.
+                    </p>
                 </div>
 
                 {/* Phone */}
@@ -247,7 +351,7 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        placeholder="Enter your phone number"
+                        placeholder="Enter phone number (e.g., +251911234567 or 0911234567)"
                         className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                             errors.phone ? 'border-red-500' : 'border-gray-300'
                         }`}
@@ -281,6 +385,100 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                     {errors.universityNear && (
                         <p className="mt-1 text-sm text-red-600">{errors.universityNear}</p>
                     )}
+                </div>
+
+                {/* Delivery Options */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Delivery Options
+                    </label>
+                    {errors.deliveryOptions && (
+                        <p className="mt-1 text-sm text-red-600">{errors.deliveryOptions}</p>
+                    )}
+                    <div className="space-y-3">
+                        {/* Delivery Available */}
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="deliveryAvailable"
+                                checked={formData.deliveryAvailable}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="deliveryAvailable" className="ml-2 text-sm text-gray-700">
+                                I offer delivery services
+                            </label>
+                        </div>
+
+                        {/* Pickup Available */}
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                name="pickupAvailable"
+                                checked={formData.pickupAvailable}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="pickupAvailable" className="ml-2 text-sm text-gray-700">
+                                I offer pickup services
+                            </label>
+                        </div>
+
+                        {/* Delivery Radius */}
+                        {formData.deliveryAvailable && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Delivery Radius (meters)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="deliveryRadius"
+                                    value={formData.deliveryRadius}
+                                    onChange={handleInputChange}
+                                    min="100"
+                                    max="10000"
+                                    step="100"
+                                    placeholder="3000"
+                                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                        errors.deliveryRadius ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Maximum distance for delivery (100-10000 meters)
+                                </p>
+                                {errors.deliveryRadius && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.deliveryRadius}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Delivery Fee */}
+                        {formData.deliveryAvailable && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Delivery Fee (ETB)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="deliveryFee"
+                                    value={formData.deliveryFee}
+                                    onChange={handleInputChange}
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0"
+                                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                        errors.deliveryFee ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Leave 0 for free delivery
+                                </p>
+                                {errors.deliveryFee && (
+                                    <p className="mt-1 text-sm text-red-600">{errors.deliveryFee}</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Legal Documents */}

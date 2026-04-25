@@ -27,6 +27,43 @@ const vendorSchema = new mongoose.Schema ({
      required: true
     },
 
+    // Enhanced location fields for place-based addressing
+    locationDetails: {
+        placeName: {
+            type: String,
+            required: true
+        },
+        fullAddress: {
+            type: String,
+            required: true
+        },
+        landmark: {
+            type: String,
+            default: null
+        },
+        area: {
+            type: String,
+            default: null
+        },
+        city: {
+            type: String,
+            required: true
+        },
+        state: {
+            type: String,
+            required: true
+        },
+        postalCode: {
+            type: String,
+            default: null
+        },
+        country: {
+            type: String,
+            required: true,
+            default: "Ethiopia"
+        }
+    },
+
     phone: {
         type: String,
         required: true

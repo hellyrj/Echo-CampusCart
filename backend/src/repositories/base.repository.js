@@ -31,7 +31,34 @@ class BaseRepository {
     };
     
     const mergedOptions = { ...defaultOptions, ...options };
-    return this.model.find(filter, null, mergedOptions);
+    
+    let query = this.model.find(filter, null);
+    
+    // Handle populate - can be object or array
+    if (mergedOptions.populate) {
+      if (Array.isArray(mergedOptions.populate)) {
+        mergedOptions.populate.forEach(populateOption => {
+          query = query.populate(populateOption);
+        });
+      } else {
+        query = query.populate(mergedOptions.populate);
+      }
+    }
+    
+    // Handle other options
+    if (mergedOptions.sort) {
+      query = query.sort(mergedOptions.sort);
+    }
+    
+    if (mergedOptions.skip) {
+      query = query.skip(mergedOptions.skip);
+    }
+    
+    if (mergedOptions.limit) {
+      query = query.limit(mergedOptions.limit);
+    }
+    
+    return query;
   }
 
   async update(id, data) {

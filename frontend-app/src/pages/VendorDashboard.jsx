@@ -428,34 +428,51 @@ const VendorDashboard = () => {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {products.map((product) => (
-                                            <div key={product._id} className="bg-gray-50 rounded-lg p-4">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                        {getCategoryNames(product.categories)}
-                                                    </span>
+                                            <div key={product._id} className="bg-gray-50 rounded-lg overflow-hidden">
+                                                {/* Product Image */}
+                                                <div className="h-48 bg-gray-200">
+                                                    <img
+                                                        src={product.images && product.images.length > 0 
+                                                            ? product.images[0].url 
+                                                            : 'https://via.placeholder.com/300x200?text=Product'}
+                                                        alt={product.name}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                        }}
+                                                    />
                                                 </div>
-                                                <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                                                <div className="flex justify-between items-center text-sm text-gray-500">
-                                                    <span>Price: ${product.basePrice}</span>
-                                                    <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                        {product.isAvailable ? 'Available' : 'Out of Stock'}
-                                                    </span>
-                                                    <span>Stock: {product.inventory?.totalStock || 0}</span>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => handleEditProduct(product)}
-                                                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteProduct(product._id)}
-                                                        className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                                                    >
-                                                        Delete
-                                                    </button>
+                                                
+                                                {/* Product Info */}
+                                                <div className="p-4">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                            {getCategoryNames(product.categories)}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                                                    <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
+                                                        <span>Price: ${product.basePrice}</span>
+                                                        <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                            {product.isAvailable ? 'Available' : 'Out of Stock'}
+                                                        </span>
+                                                        <span>Stock: {product.inventory?.totalStock || 0}</span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleEditProduct(product)}
+                                                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteProduct(product._id)}
+                                                            className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

@@ -8,6 +8,7 @@ import { MongoClient, GridFSBucket } from "mongodb";
 import { DEFAULT_CATEGORIES } from "../constants/defaultCategories.js";
 import { DEFAULT_UNIVERSITIES } from "../constants/defaultUniversities.js";
 import mongoose from "mongoose";
+import geocodingService from "../services/geocoding.service.js";
 
 const router = express.Router();
 const controller = new VendorController();
@@ -96,6 +97,62 @@ router.get("/universities", (req, res) => {
       success: false,
       message: "Failed to fetch universities"
     });
+  }
+});
+
+// Get place suggestions for location autocomplete
+router.get("/place-suggestions", async (req, res) => {
+  try {
+    const { query, country = 'ET' } = req.query;
+    
+    if (!query || query.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Query parameter is required and must be at least 2 characters"
+      });
+    }
+    
+    console.log('Getting place suggestions for:', query);
+    
+    const suggestions = await geocodingService.getSuggestions(query, country);
+    
+    res.status(200).json({
+      success: true,
+      message: "Place suggestions fetched successfully",
+      data: suggestions
+    });
+  } catch (error) {
+    console.error('Error fetching place suggestions:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch place suggestions"
+    });
+  }
+});
+
+// Get vendor products (must come before /:id route)
+router.get("/:id/products", controller.getVendorProducts);
+
+// Temporary debug endpoint to check all products
+router.get("/debug/all-products", async (req, res) => {
+  try {
+    const Product = (await import("../models/product.model.js")).default;
+    const allProducts = await Product.find({});
+    console.log('All products in database:', allProducts.length);
+    console.log('Sample product:', allProducts[0]);
+    res.json({
+      success: true,
+      count: allProducts.length,
+      products: allProducts.map(p => ({
+        _id: p._id,
+        name: p.name,
+        vendorId: p.vendorId,
+        vendorIdType: typeof p.vendorId
+      }))
+    });
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

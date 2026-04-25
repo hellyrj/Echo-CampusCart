@@ -72,6 +72,13 @@ export class AdminVendorController {
     sendResponse(res, 200, "Vendor application rejected successfully", rejectedVendor);
   });
 
+  // Fix vendor user roles (utility endpoint)
+  fixVendorUserRoles = asyncHandler(async (req, res, next) => {
+    const result = await this.adminVendorSer.fixVendorUserRoles();
+    
+    sendResponse(res, 200, "Vendor user roles fix completed", result);
+  });
+
   // Toggle vendor active status
   toggleVendorStatus = asyncHandler(async (req, res, next) => {
     const { vendorId } = req.params;

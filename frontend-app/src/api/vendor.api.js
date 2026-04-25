@@ -14,6 +14,9 @@ export const vendorApi = {
     // Get single vendor by ID (public)
     getVendor: (id) => axiosInstance.get(`/vendors/${id}`),
     
+    // Get vendor products (public)
+    getVendorProducts: (vendorId) => axiosInstance.get(`/vendors/${vendorId}/products`),
+    
     // Get universities (public)
     getUniversities: () => axiosInstance.get('/vendors/universities'),
     

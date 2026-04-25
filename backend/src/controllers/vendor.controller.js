@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendResponse } from "../utils/apiResponse.js";
 import { VendorService } from "../services/vendor.service.js";
 import { saveFilesToGridFS } from "../middlewares/upload.js";
+import geocodingService from "../services/geocoding.service.js";
 
 export class VendorController {
   constructor(vendSer = new VendorService()) {
@@ -43,17 +44,48 @@ export class VendorController {
       legalDocuments = [];
     }
     
-    // Parse location from string if needed
-    let location = req.body.location;
-    if (typeof location === 'string') {
-      try {
-        location = JSON.parse(location);
-      } catch (e) {
-        console.error('Error parsing location:', e);
-        // Default location if parsing fails
+    // Process location with geocoding
+    let location = {
+      type: "Point",
+      coordinates: [38.7578, 9.0092] // Addis Ababa, Ethiopia coordinates
+    };
+    
+    let locationDetails = {
+      placeName: req.body.storeName || 'Unknown Location',
+      fullAddress: req.body.address || 'Unknown Address',
+      landmark: null,
+      area: null,
+      city: 'Unknown',
+      state: 'Unknown',
+      postalCode: null,
+      country: 'Ethiopia'
+    };
+    
+    // If location details are provided, use geocoding
+    if (req.body.placeName || req.body.fullAddress) {
+      const query = req.body.fullAddress || req.body.placeName || req.body.address;
+      console.log('Geocoding location:', query);
+      
+      const geocodeResult = await geocodingService.geocode(query);
+      if (geocodeResult.success) {
         location = {
           type: "Point",
-          coordinates: [3.3792, 6.9722] // Lagos coordinates
+          coordinates: geocodeResult.data.coordinates
+        };
+        locationDetails = geocodeResult.data;
+        console.log('Geocoded location:', locationDetails);
+      } else {
+        console.warn('Geocoding failed, using provided address:', geocodeResult.message);
+        // Use provided address as fallback
+        locationDetails = {
+          placeName: req.body.placeName || req.body.storeName || 'Unknown Location',
+          fullAddress: req.body.fullAddress || req.body.address || 'Unknown Address',
+          landmark: req.body.landmark || null,
+          area: req.body.area || null,
+          city: req.body.city || 'Unknown',
+          state: req.body.state || 'Unknown',
+          postalCode: req.body.postalCode || null,
+          country: req.body.country || 'Ethiopia'
         };
       }
     }
@@ -62,8 +94,14 @@ export class VendorController {
       ...req.body,
       legalDocuments,
       location,
+      locationDetails,
       ownerId: userId
     };
+    
+    console.log('Final vendor data:', {
+      ...vendorData,
+      legalDocuments: `${vendorData.legalDocuments.length} documents`
+    });
     
     const vendorApplication = await this.vendorSer.submitVendorApplication(userId, vendorData);
     
@@ -109,9 +147,22 @@ export class VendorController {
   });
 
   getVendor = asyncHandler(async (req, res, next) => {
+    console.log('Getting vendor with ID:', req.params.id);
     const vendor = await this.vendorSer.getVendorById(req.params.id);
+    console.log('Vendor found:', vendor ? vendor.storeName : 'Not found');
 
     sendResponse(res, 200, "Vendor fetched", vendor);
+  });
+
+  getVendorProducts = asyncHandler(async (req, res, next) => {
+    const { id: vendorId } = req.params;
+    
+    console.log('Getting products for vendor:', vendorId);
+    const products = await this.vendorSer.getVendorProductsByVendorId(vendorId);
+    console.log('Products found:', products?.length || 0);
+    console.log('First product:', products[0]);
+
+    sendResponse(res, 200, "Vendor products fetched successfully", products);
   });
 
   
