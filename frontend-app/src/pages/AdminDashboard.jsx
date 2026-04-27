@@ -12,7 +12,8 @@ import {
     Ban,
     CheckSquare,
     AlertCircle,
-    FileText
+    FileText,
+    Trash2
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -23,6 +24,8 @@ const AdminDashboard = () => {
     const [selectedVendor, setSelectedVendor] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState('');
     
     const {
         loading,
@@ -34,6 +37,7 @@ const AdminDashboard = () => {
         approveVendorApplication,
         rejectVendorApplication,
         toggleVendorStatus,
+        deleteVendor,
         getSystemStats
     } = useAdminApi();
 
@@ -44,6 +48,7 @@ const AdminDashboard = () => {
 
     const loadDashboardData = async () => {
         try {
+            console.log('Loading dashboard data...');
             const [statsResult, applicationsResult, vendorsResult] = await Promise.all([
                 getSystemStats(),
                 getVendorApplications('pending'),
@@ -51,11 +56,14 @@ const AdminDashboard = () => {
             ]);
 
             console.log('Stats result:', statsResult);
-            console.log('Applications result:', applicationsResult);
-            console.log('Vendors result:', vendorsResult);
+            console.log('Stats result data:', statsResult.data);
+            console.log('Stats result success:', statsResult.success);
 
             if (statsResult.success) {
-                setStats(statsResult.data);
+                console.log('Setting stats:', statsResult.data.data);
+                setStats(statsResult.data.data); // Nested data structure
+            } else {
+                console.error('Stats API failed:', statsResult.message);
             }
             if (applicationsResult.success) {
                 setVendorApplications(applicationsResult.data.data.applications || []);
@@ -130,6 +138,30 @@ const AdminDashboard = () => {
 
     const viewVendorDetails = async (vendor) => {
         setSelectedVendor(vendor);
+    };
+
+    const handleDeleteVendor = async () => {
+        if (!selectedVendor || deleteConfirmation !== 'DELETE') {
+            alert('Please type "DELETE" to confirm vendor deletion');
+            return;
+        }
+        
+        const result = await deleteVendor(selectedVendor._id);
+        if (result.success) {
+            setShowDeleteModal(false);
+            setDeleteConfirmation('');
+            setSelectedVendor(null);
+            loadDashboardData();
+            alert(`Vendor "${result.data.vendor.storeName}" deleted successfully!\n\nDeleted:\n- ${result.data.deleted.products} products\n- ${result.data.deleted.reviews} reviews\n- User role reset to student`);
+        } else {
+            alert(`Error: ${result.message}`);
+        }
+    };
+
+    const openDeleteModal = (vendor) => {
+        setSelectedVendor(vendor);
+        setShowDeleteModal(true);
+        setDeleteConfirmation('');
     };
 
     const StatCard = ({ title, value, icon: Icon, color = 'blue' }) => (
@@ -326,6 +358,13 @@ const AdminDashboard = () => {
                         </>
                     )}
                 </button>
+                <button
+                    onClick={() => openDeleteModal(vendor)}
+                    className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                </button>
             </div>
         </div>
     );
@@ -481,8 +520,82 @@ const AdminDashboard = () => {
                     </div>
                 )}
 
+                {/* Delete Vendor Modal */}
+                {showDeleteModal && selectedVendor && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold mb-4 text-red-600">Delete Vendor</h3>
+                            
+                            <div className="mb-4">
+                                <p className="text-gray-700 mb-2">
+                                    Are you sure you want to delete this vendor permanently?
+                                </p>
+                                <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                                    <p className="text-sm text-red-800">
+                                        <strong>⚠️ This action cannot be undone!</strong>
+                                    </p>
+                                    <p className="text-sm text-red-700 mt-1">
+                                        This will permanently delete:
+                                    </p>
+                                    <ul className="text-sm text-red-700 mt-1 ml-4 list-disc">
+                                        <li>The vendor account</li>
+                                        <li>All their products</li>
+                                        <li>All product reviews</li>
+                                        <li>Reset user role to student</li>
+                                    </ul>
+                                </div>
+                                <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                                    <p className="text-sm text-gray-700">
+                                        <strong>Vendor:</strong> {selectedVendor.storeName}
+                                    </p>
+                                    <p className="text-sm text-gray-700">
+                                        <strong>Owner:</strong> {selectedVendor.ownerId?.name || 'Unknown'}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Type "DELETE" to confirm:
+                                </label>
+                                <input
+                                    type="text"
+                                    value={deleteConfirmation}
+                                    onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    placeholder="Type DELETE"
+                                />
+                            </div>
+                            
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={handleDeleteVendor}
+                                    disabled={deleteConfirmation !== 'DELETE'}
+                                    className={`flex-1 px-4 py-2 rounded font-medium ${
+                                        deleteConfirmation === 'DELETE'
+                                            ? 'bg-red-600 text-white hover:bg-red-700'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    }`}
+                                >
+                                    Delete Permanently
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setDeleteConfirmation('');
+                                        setSelectedVendor(null);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 font-medium"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Vendor Details Modal */}
-                {selectedVendor && !showRejectModal && (
+                {selectedVendor && !showRejectModal && !showDeleteModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
                             <div className="flex justify-between items-start mb-4">

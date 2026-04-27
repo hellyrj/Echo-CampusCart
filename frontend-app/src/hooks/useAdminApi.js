@@ -81,14 +81,29 @@ export const useAdminApi = () => {
         }
     }, []);
 
-    const toggleVendorStatus = useCallback(async (vendorId) => {
+    const toggleVendorStatus = useCallback(async (vendorId, isActive) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await adminApi.toggleVendorStatus(vendorId);
+            const response = await adminApi.toggleVendorStatus(vendorId, isActive);
             return { success: true, data: response.data };
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to toggle vendor status';
+            setError(errorMessage);
+            return { success: false, message: errorMessage };
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const deleteVendor = useCallback(async (vendorId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await adminApi.deleteVendor(vendorId);
+            return { success: true, data: response.data };
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || 'Failed to delete vendor';
             setError(errorMessage);
             return { success: false, message: errorMessage };
         } finally {
@@ -338,6 +353,7 @@ export const useAdminApi = () => {
         approveVendorApplication,
         rejectVendorApplication,
         toggleVendorStatus,
+        deleteVendor,
         
         // User Management
         getAllUsers,

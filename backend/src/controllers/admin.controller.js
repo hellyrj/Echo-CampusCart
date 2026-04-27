@@ -8,6 +8,15 @@ export class AdminVendorController {
     this.adminVendorSer = adminVendorSer;
   }
 
+  // Get system statistics
+  getSystemStats = asyncHandler(async (req, res, next) => {
+    console.log('Getting system statistics...');
+    
+    const stats = await this.adminVendorSer.getSystemStats();
+    
+    sendResponse(res, 200, "System statistics fetched successfully", stats);
+  });
+
   // Get all vendor applications with optional status filter
   getVendorApplications = asyncHandler(async (req, res, next) => {
     const { status } = req.query;
@@ -102,5 +111,20 @@ export class AdminVendorController {
     
     const message = isActive ? "Vendor activated successfully" : "Vendor deactivated successfully";
     sendResponse(res, 200, message, updatedVendor);
+  });
+
+  // Delete vendor completely
+  deleteVendor = asyncHandler(async (req, res, next) => {
+    const { vendorId } = req.params;
+    const { confirmation } = req.body;
+    
+    // Require explicit confirmation for safety
+    if (!confirmation || confirmation !== 'DELETE') {
+      throw new ApiError(400, "Must provide 'DELETE' confirmation to delete vendor");
+    }
+    
+    const result = await this.adminVendorSer.deleteVendor(vendorId);
+    
+    sendResponse(res, 200, "Vendor deleted successfully", result);
   });
 }

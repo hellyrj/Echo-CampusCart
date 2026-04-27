@@ -2,9 +2,6 @@ import { Router } from "express";
 import { AdminVendorController } from "../controllers/admin.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { authorize } from "../middlewares/authorize.middleware.js";
-import User from "../models/user.model.js";
-import Vendor from "../models/vendor.model.js";
-import Product from "../models/product.model.js";
 import mongoose from "mongoose";
 import { GridFSBucket } from "mongodb";
 
@@ -16,29 +13,7 @@ router.use(authenticate);
 router.use(authorize("admin"));
 
 // Get system statistics (must come before /:vendorId)
-router.get("/stats", async (req, res) => {
-    try {
-        const totalUsers = await User.countDocuments();
-        const totalVendors = await Vendor.countDocuments();
-        const totalProducts = await Product.countDocuments();
-        const pendingApplications = await Vendor.countDocuments({ status: 'pending' });
-
-        res.json({
-            success: true,
-            data: {
-                totalUsers,
-                totalVendors,
-                totalProducts,
-                pendingApplications
-            }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch system stats"
-        });
-    }
-});
+router.get("/stats", adminVendorController.getSystemStats);
 
 // Get all vendor applications (with optional status filter)
 // Query params: ?status=pending|approved
@@ -87,5 +62,8 @@ router.post("/fix-vendor-roles", adminVendorController.fixVendorUserRoles);
 
 // Toggle vendor active status (activate/deactivate)
 router.patch("/:vendorId/toggle-status", adminVendorController.toggleVendorStatus);
+
+// Delete vendor completely
+router.delete("/:vendorId/delete", adminVendorController.deleteVendor);
 
 export default router;

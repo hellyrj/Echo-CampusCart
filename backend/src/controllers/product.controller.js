@@ -320,12 +320,15 @@ export class ProductController {
     });
 
     searchProducts = asyncHandler(async (req, res, next) => {
-        const { q, category, minPrice, maxPrice, sort = 'relevance' } = req.query;
+        const { q, category, minPrice, maxPrice, university, sort = 'relevance' } = req.query;
+        console.log('Search products controller:', { q, category, minPrice, maxPrice, university, sort });
+        
         const products = await this.productService.searchProducts({ 
             query: q, 
             category, 
             minPrice, 
             maxPrice, 
+            university,
             sort 
         });
         sendResponse(res, 200, "Search results", products);

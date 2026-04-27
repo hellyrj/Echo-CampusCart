@@ -1,19 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useVendorApi } from '../hooks/useVendorApi';
+import { Search, Filter, X } from 'lucide-react';
 
 const VendorPublicPage = () => {
     const { vendorId } = useParams();
-    const { getVendorDetails, getVendorProducts } = useVendorApi();
+    const { getVendorDetails, getVendorProducts, getCategories } = useVendorApi();
     
     const [vendor, setVendor] = useState(null);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Filter states
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [sortBy, setSortBy] = useState('name');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [showFilters, setShowFilters] = useState(false);
+    const [categories, setCategories] = useState([]);
+    const [searchTimeout, setSearchTimeout] = useState(null);
+
+    // Debounced search function
+    const debouncedSearch = useCallback((value) => {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        const timeout = setTimeout(() => {
+            setSearchTerm(value);
+        }, 300); // 300ms delay
+        
+        setSearchTimeout(timeout);
+    }, [searchTimeout]);
 
     useEffect(() => {
         loadVendorData();
+        loadCategories();
     }, [vendorId]);
+
+    useEffect(() => {
+        if (vendor) {
+            loadVendorProducts();
+        }
+    }, [searchTerm, selectedCategory, minPrice, maxPrice, sortBy, sortOrder, vendor]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
+
+    const loadCategories = async () => {
+        try {
+            console.log('Loading categories...');
+            const response = await getCategories();
+            console.log('Categories response:', response);
+            const categoriesData = response?.data || response || [];
+            console.log('Categories loaded:', categoriesData);
+            setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        } catch (err) {
+            console.error('Failed to load categories:', err);
+            setCategories([]);
+        }
+    };
 
     const loadVendorData = async () => {
         try {
@@ -21,18 +76,12 @@ const VendorPublicPage = () => {
             
             console.log('Loading vendor data for:', vendorId);
             
-            // Load vendor details and products in parallel
-            const [vendorData, productsData] = await Promise.all([
-                getVendorDetails(vendorId),
-                getVendorProducts(vendorId)
-            ]);
+            // Load vendor details only (products will be loaded separately with filters)
+            const vendorData = await getVendorDetails(vendorId);
             
             console.log('Vendor data received:', vendorData);
-            console.log('Products data received:', productsData);
-            console.log('Products array length:', productsData?.data?.length || productsData?.length || 0);
             
             setVendor(vendorData?.data || vendorData);
-            setProducts(productsData?.data || productsData || []);
             setError(null);
         } catch (err) {
             setError('Failed to load vendor information');
@@ -41,6 +90,83 @@ const VendorPublicPage = () => {
             setLoading(false);
         }
     };
+
+    const loadVendorProducts = async () => {
+        if (!vendor) {
+            console.log('No vendor available, skipping product load');
+            return;
+        }
+        
+        try {
+            setLoading(true);
+            
+            // Only apply filters if they have values
+            const filters = {};
+            
+            if (searchTerm && searchTerm.trim()) {
+                filters.search = searchTerm.trim();
+            }
+            
+            if (selectedCategory) {
+                filters.category = selectedCategory;
+            }
+            
+            if (minPrice && minPrice.trim()) {
+                const price = parseFloat(minPrice);
+                if (!isNaN(price) && price >= 0) {
+                    filters.minPrice = price;
+                }
+            }
+            
+            if (maxPrice && maxPrice.trim()) {
+                const price = parseFloat(maxPrice);
+                if (!isNaN(price) && price >= 0) {
+                    filters.maxPrice = price;
+                }
+            }
+            
+            if (sortBy) {
+                filters.sortBy = sortBy;
+            }
+            
+            if (sortOrder) {
+                filters.sortOrder = sortOrder;
+            }
+            
+            console.log('Loading products for vendor:', vendorId);
+            console.log('With filters:', filters);
+            
+            const productsData = await getVendorProducts(vendorId, filters);
+            
+            console.log('Raw API response:', productsData);
+            console.log('Products array:', productsData?.data || productsData);
+            console.log('Products length:', (productsData?.data || productsData)?.length || 0);
+            
+            // Handle different response formats
+            const products = productsData?.data || productsData || [];
+            setProducts(Array.isArray(products) ? products : []);
+            
+        } catch (err) {
+            console.error('Error loading products:', err);
+            console.error('Error response:', err.response?.data);
+            setProducts([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const clearFilters = () => {
+        setSearchTerm('');
+        setSelectedCategory('');
+        setMinPrice('');
+        setMaxPrice('');
+        setSortBy('name');
+        setSortOrder('asc');
+        // Clear the search input by triggering a debounced search with empty value
+        debouncedSearch('');
+    };
+
+    const hasActiveFilters = searchTerm || selectedCategory || minPrice || maxPrice;
 
     if (loading) {
         return (
@@ -188,19 +314,184 @@ const VendorPublicPage = () => {
 
                 {/* Products Section */}
                 <div>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            Products ({products.length})
-                        </h2>
+                    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
+                        <div className="flex-1">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                Products ({products.length})
+                            </h2>
+                            
+                            {/* Search Bar */}
+                            <div className="relative mb-4">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Search products by name or description..."
+                                    onChange={(e) => debouncedSearch(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            debouncedSearch(e.target.value);
+                                        }
+                                    }}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                />
+                            </div>
+                        </div>
                         
-                        {products.length === 0 && (
-                            <p className="text-gray-500">
-                                This vendor hasn't listed any products yet.
-                            </p>
-                        )}
+                        {/* Filter Button */}
+                        <div className="flex gap-2 mb-4 lg:mb-0">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                <Filter className="w-4 h-4" />
+                                Filters
+                                {hasActiveFilters && (
+                                    <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full">
+                                        Active
+                                    </span>
+                                )}
+                            </button>
+                            
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Clear
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    {products.length > 0 ? (
+                    {/* Filter Panel */}
+                    {showFilters && (
+                        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <form onSubmit={(e) => e.preventDefault()}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Category Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Category
+                                        </label>
+                                        <select
+                                            value={selectedCategory}
+                                            onChange={(e) => {
+                                                console.log('Category changed to:', e.target.value);
+                                                setSelectedCategory(e.target.value);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        >
+                                            <option value="">All Categories</option>
+                                            {categories.map((category) => (
+                                                <option key={category} value={category}>
+                                                    {category}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {categories.length === 0 && (
+                                            <p className="text-xs text-gray-500 mt-1">No categories available</p>
+                                        )}
+                                    </div>
+
+                                    {/* Min Price Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Min Price (ETB)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            value={minPrice}
+                                            onChange={(e) => {
+                                                console.log('Min price changed to:', e.target.value);
+                                                setMinPrice(e.target.value);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        />
+                                    </div>
+
+                                    {/* Max Price Filter */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Max Price (ETB)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            placeholder="999999"
+                                            value={maxPrice}
+                                            onChange={(e) => {
+                                                console.log('Max price changed to:', e.target.value);
+                                                setMaxPrice(e.target.value);
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        />
+                                    </div>
+
+                                    {/* Sort Options */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Sort By
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={sortBy}
+                                                onChange={(e) => {
+                                                    console.log('Sort by changed to:', e.target.value);
+                                                    setSortBy(e.target.value);
+                                                }}
+                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            >
+                                                <option value="name">Name</option>
+                                                <option value="basePrice">Price</option>
+                                                <option value="createdAt">Date</option>
+                                            </select>
+                                            <select
+                                                value={sortOrder}
+                                                onChange={(e) => {
+                                                    console.log('Sort order changed to:', e.target.value);
+                                                    setSortOrder(e.target.value);
+                                                }}
+                                                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            >
+                                                <option value="asc">A-Z</option>
+                                                <option value="desc">Z-A</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    )}
+                    
+                    {products.length === 0 && !loading && (
+                        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                {hasActiveFilters ? 'No Products Found' : 'No Products Available'}
+                            </h3>
+                            <p className="text-gray-500 mb-4">
+                                {hasActiveFilters 
+                                    ? 'Try adjusting your filters or search terms.' 
+                                    : 'This vendor hasn\'t added any products yet. Check back later!'
+                                }
+                            </p>
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                                >
+                                    <X className="w-4 h-4 mr-2" />
+                                    Clear Filters
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {products.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {products.map((product) => (
                                 <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -230,6 +521,23 @@ const VendorPublicPage = () => {
                                         <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                                             {product.description}
                                         </p>
+                                        
+                                        {/* Categories */}
+                                        {product.categories && product.categories.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mb-3">
+                                                {product.categories.slice(0, 2).map((category, index) => (
+                                                    <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                                        {typeof category === 'string' ? category : category.name}
+                                                    </span>
+                                                ))}
+                                                {product.categories.length > 2 && (
+                                                    <span className="text-xs text-gray-500">
+                                                        +{product.categories.length - 2} more
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        
                                         <div className="flex justify-between items-center">
                                             <span className="text-lg font-bold text-orange-600">
                                                 ETB {product.basePrice || product.price}
@@ -247,18 +555,6 @@ const VendorPublicPage = () => {
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                            </svg>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                No Products Available
-                            </h3>
-                            <p className="text-gray-500">
-                                This vendor hasn't added any products yet. Check back later!
-                            </p>
                         </div>
                     )}
                 </div>

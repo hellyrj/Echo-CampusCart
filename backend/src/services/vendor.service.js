@@ -82,8 +82,10 @@ export class VendorService {
   return this.productRepo.findByVendorId(vendor._id);
 }
 
-async getVendorProductsByVendorId(vendorId) {
+async getVendorProductsByVendorId(vendorId, filters = {}) {
   console.log('Service: Getting products for vendor:', vendorId);
+  console.log('Service: Filters applied:', filters);
+  
   const vendor = await this.vendorRepo.findById(vendorId);
 
   if (!vendor) {
@@ -97,7 +99,56 @@ async getVendorProductsByVendorId(vendorId) {
   }
 
   console.log('Service: Finding products for vendor:', vendorId);
-  const products = await this.productRepo.findByVendorId(vendorId);
+  
+  // Build query based on filters
+  let query = { vendorId };
+  
+  // Add search filter - search in both name and description
+  if (filters.search && filters.search.trim()) {
+    const searchRegex = { $regex: filters.search.trim(), $options: 'i' };
+    query.$or = [
+      { name: searchRegex },
+      { description: searchRegex }
+    ];
+  }
+  
+  // Add category filter
+  if (filters.category) {
+    query.categories = filters.category;
+  }
+  
+  // Add price range filters
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    query.basePrice = {};
+    if (filters.minPrice !== undefined) {
+      query.basePrice.$gte = filters.minPrice;
+    }
+    if (filters.maxPrice !== undefined) {
+      query.basePrice.$lte = filters.maxPrice;
+    }
+  }
+  
+  // Build sort options
+  let sortOptions = {};
+  if (filters.sortBy) {
+    const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
+    sortOptions[filters.sortBy] = sortOrder;
+  } else {
+    sortOptions = { name: 1 }; // Default sort by name ascending
+  }
+  
+  console.log('Service: Query:', JSON.stringify(query, null, 2));
+  console.log('Service: Sort options:', sortOptions);
+  
+  const products = await this.productRepo.model
+    .find(query)
+    .sort(sortOptions)
+    .populate({
+      path: 'categories',
+      model: 'Category',
+      strictPopulate: false
+    });
+  
   console.log('Service: Products found:', products?.length || 0);
   
   return products;

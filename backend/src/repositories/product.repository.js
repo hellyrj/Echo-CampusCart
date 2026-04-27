@@ -1,21 +1,204 @@
 import BaseRepository from "./base.repository.js";
 import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
+import mongoose from "mongoose";
 
 class ProductRepository extends BaseRepository {
   constructor() {
     super(Product);
   }
 
-  async search(query) {
-    return this.model.find({
-      $text: { $search: query }
-    });
+  async search(filters = {}) {
+    const { query, category, minPrice, maxPrice, university, sort = 'relevance' } = filters;
+    
+    // Build search query
+    let searchQuery = {};
+    
+    // Text search
+    if (query) {
+        searchQuery.$text = { $search: query };
+    }
+    
+    // Category filter
+    if (category) {
+        searchQuery.categories = category;
+    }
+    
+    // Price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+        searchQuery.basePrice = {};
+        if (minPrice !== undefined) {
+            searchQuery.basePrice.$gte = parseFloat(minPrice);
+        }
+        if (maxPrice !== undefined) {
+            searchQuery.basePrice.$lte = parseFloat(maxPrice);
+        }
+    }
+    
+    // Only available products
+    searchQuery.isAvailable = true;
+    
+    // Build sort options
+    let sortOptions = {};
+    switch (sort) {
+        case 'price-low':
+            sortOptions.basePrice = 1;
+            break;
+        case 'price-high':
+            sortOptions.basePrice = -1;
+            break;
+        case 'newest':
+            sortOptions.createdAt = -1;
+            break;
+        case 'popular':
+            sortOptions.purchases = -1;
+            break;
+        case 'rating':
+            sortOptions.averageRating = -1;
+            break;
+        case 'relevance':
+        default:
+            if (query) {
+                sortOptions.score = { $meta: 'textScore' };
+            } else {
+                sortOptions.createdAt = -1;
+            }
+            break;
+    }
+    
+    console.log('Repository search query:', searchQuery);
+    console.log('Repository sort options:', sortOptions);
+    
+    let productQuery = this.model.find(searchQuery);
+    
+    // Add text score projection if searching
+    if (query && sortOptions.score) {
+        productQuery = productQuery.select('score');
+    }
+    
+    // Build population with university filter
+    let vendorPopulation = {
+        path: 'vendorId',
+        select: 'storeName isActive universityNear',
+        model: 'Vendor'
+    };
+    
+    // Add university filter if specified
+    if (university) {
+        vendorPopulation.match = { universityNear: university };
+    }
+    
+    return productQuery
+        .populate(vendorPopulation)
+        .populate({
+            path: 'categories',
+            model: Category,
+            strictPopulate: false
+        })
+        .sort(sortOptions);
+  }
+
+  // Alternative method for university filtering (if population match doesn't work)
+  async searchWithUniversityFilter(filters = {}) {
+    const { query, category, minPrice, maxPrice, university, sort = 'relevance' } = filters;
+    
+    // First get vendor IDs for the university
+    let vendorMatchQuery = {};
+    if (university) {
+        vendorMatchQuery.universityNear = university;
+    }
+    
+    const vendors = await mongoose.model('Vendor').find(vendorMatchQuery).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
+    // Build search query
+    let searchQuery = {
+        vendorId: { $in: vendorIds },
+        isAvailable: true
+    };
+    
+    // Text search
+    if (query) {
+        searchQuery.$text = { $search: query };
+    }
+    
+    // Category filter
+    if (category) {
+        searchQuery.categories = category;
+    }
+    
+    // Price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+        searchQuery.basePrice = {};
+        if (minPrice !== undefined) {
+            searchQuery.basePrice.$gte = parseFloat(minPrice);
+        }
+        if (maxPrice !== undefined) {
+            searchQuery.basePrice.$lte = parseFloat(maxPrice);
+        }
+    }
+    
+    // Build sort options
+    let sortOptions = {};
+    switch (sort) {
+        case 'price-low':
+            sortOptions.basePrice = 1;
+            break;
+        case 'price-high':
+            sortOptions.basePrice = -1;
+            break;
+        case 'newest':
+            sortOptions.createdAt = -1;
+            break;
+        case 'popular':
+            sortOptions.purchases = -1;
+            break;
+        case 'rating':
+            sortOptions.averageRating = -1;
+            break;
+        case 'relevance':
+        default:
+            if (query) {
+                sortOptions.score = { $meta: 'textScore' };
+            } else {
+                sortOptions.createdAt = -1;
+            }
+            break;
+    }
+    
+    console.log('Repository search with university filter query:', searchQuery);
+    console.log('Repository sort options:', sortOptions);
+    
+    let productQuery = this.model.find(searchQuery);
+    
+    // Add text score projection if searching
+    if (query && sortOptions.score) {
+        productQuery = productQuery.select('score');
+    }
+    
+    return productQuery
+        .populate({
+            path: 'vendorId',
+            select: 'storeName isActive universityNear',
+            model: 'Vendor'
+        })
+        .populate({
+            path: 'categories',
+            model: Category,
+            strictPopulate: false
+        })
+        .sort(sortOptions);
   }
 
   async getPopular(limit = 20) {
     return this.model
       .find({ isAvailable: true })
+      .populate({
+        path: 'vendorId',
+        select: 'isActive',
+        model: 'Vendor',
+        match: { isActive: true } // Only include products from active vendors
+      })
       .sort({ purchases: -1, views: -1 })
       .limit(limit);
   }

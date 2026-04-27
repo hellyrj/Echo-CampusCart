@@ -32,8 +32,15 @@ export const adminApi = {
     },
     
     // Toggle vendor active status (activate/deactivate)
-    toggleVendorStatus: (vendorId) => {
-        return axiosInstance.patch(`/admin/${vendorId}/toggle-status`);
+    toggleVendorStatus: (vendorId, isActive) => {
+        return axiosInstance.patch(`/admin/${vendorId}/toggle-status`, { isActive });
+    },
+    
+    // Delete vendor completely
+    deleteVendor: (vendorId) => {
+        return axiosInstance.delete(`/admin/${vendorId}/delete`, { 
+            data: { confirmation: 'DELETE' } 
+        });
     },
     
     // =========================

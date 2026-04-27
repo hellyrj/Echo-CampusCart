@@ -82,11 +82,11 @@ export const useVendorApi = () => {
         }
     }, []);
 
-    const getVendorProducts = useCallback(async (vendorId) => {
+    const getVendorProducts = useCallback(async (vendorId, params = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await vendorApi.getVendorProducts(vendorId);
+            const response = await vendorApi.getVendorProducts(vendorId, params);
             return response.data;
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to fetch vendor products';

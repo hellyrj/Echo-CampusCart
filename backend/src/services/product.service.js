@@ -43,8 +43,9 @@ export class ProductService {
         { path: 'categories', model: Category, strictPopulate: false },
         { 
           path: 'vendorId', 
-          select: 'storeName deliveryAvailable pickupAvailable _id',
-          model: Vendor 
+          select: 'storeName deliveryAvailable pickupAvailable _id isActive universityNear',
+          model: Vendor
+          // Removed match: { isActive: true } to include all vendors for now
         }
       ]
     };
@@ -56,9 +57,9 @@ export class ProductService {
     return products;
   }
 
-  async searchProducts({ query, category, minPrice, maxPrice, sort = 'relevance' }) {
-    if (!query && !category) {
-      throw new ApiError(400, "Search query or category required");
+  async searchProducts({ query, category, minPrice, maxPrice, university, sort = 'relevance' }) {
+    if (!query && !category && !university) {
+      throw new ApiError(400, "Search query, category, or university required");
     }
 
     const searchFilters = {};
@@ -71,6 +72,10 @@ export class ProductService {
       searchFilters.category = category;
     }
     
+    if (university) {
+      searchFilters.university = university;
+    }
+    
     if (minPrice !== undefined) {
       searchFilters.minPrice = parseFloat(minPrice);
     }
@@ -81,7 +86,15 @@ export class ProductService {
     
     searchFilters.sort = sort;
 
-    return this.productRepo.search(searchFilters);
+    console.log('Product service: Search filters:', searchFilters);
+
+    // Try the main search method first, fallback to alternative if needed
+    try {
+      return this.productRepo.search(searchFilters);
+    } catch (error) {
+      console.log('Main search failed, trying alternative method:', error.message);
+      return this.productRepo.searchWithUniversityFilter(searchFilters);
+    }
   }
 
   async getPopularProducts(limit = 10) {

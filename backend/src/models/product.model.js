@@ -165,6 +165,14 @@ productSchema.index({
   tags: "text"
 });
 
+// Performance indexes for faster queries
+productSchema.index({ vendorId: 1 });
+productSchema.index({ categories: 1 });
+productSchema.index({ basePrice: 1 });
+productSchema.index({ isAvailable: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ vendorId: 1, isAvailable: 1 }); // Compound index for vendor filtering
+
 productSchema.pre('save', function(next) {
   if (this.isModified('name') && !this.slug) {
     this.slug = this.name

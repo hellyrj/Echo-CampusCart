@@ -156,11 +156,21 @@ export class VendorController {
 
   getVendorProducts = asyncHandler(async (req, res, next) => {
     const { id: vendorId } = req.params;
+    const { search, category, minPrice, maxPrice, sortBy = 'name', sortOrder = 'asc' } = req.query;
     
     console.log('Getting products for vendor:', vendorId);
-    const products = await this.vendorSer.getVendorProductsByVendorId(vendorId);
+    console.log('Filters:', { search, category, minPrice, maxPrice, sortBy, sortOrder });
+    
+    const products = await this.vendorSer.getVendorProductsByVendorId(vendorId, {
+        search,
+        category,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        sortBy,
+        sortOrder
+    });
+    
     console.log('Products found:', products?.length || 0);
-    console.log('First product:', products[0]);
 
     sendResponse(res, 200, "Vendor products fetched successfully", products);
   });

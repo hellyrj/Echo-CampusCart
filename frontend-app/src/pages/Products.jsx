@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,7 @@ import axiosInstance from '../api/axios';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
+    const [allProducts, setAllProducts] = useState([]); // Store all products for client-side filtering
     const [categories, setCategories] = useState([]);
     const [universities, setUniversities] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -13,6 +14,7 @@ const Products = () => {
     const [selectedUniversity, setSelectedUniversity] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchTimeout, setSearchTimeout] = useState(null);
     
     const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
     const { isAuthenticated, user } = useAuth();
@@ -22,16 +24,58 @@ const Products = () => {
         navigate('/vendor/apply');
     };
 
+    // Debounced search function
+    const debouncedSearch = useCallback((value) => {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        const timeout = setTimeout(() => {
+            setSearchTerm(value);
+        }, 500); // Increased to 500ms delay for better performance
+        
+        setSearchTimeout(timeout);
+    }, [searchTimeout]);
+
     useEffect(() => {
         loadProducts();
         loadCategories();
         loadUniversities();
     }, []);
 
+    // Trigger client-side filtering when searchTerm, category, or university changes
+    useEffect(() => {
+        applyClientSideFilters();
+    }, [searchTerm, selectedCategory, selectedUniversity, allProducts]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
+
     const loadCategories = async () => {
         try {
-            // For now, using default categories. Later we can fetch from API
-            const defaultCategories = [
+            console.log('Loading categories from API...');
+            // Fetch categories from API instead of hardcoded
+            const response = await axiosInstance.get('/vendors/categories');
+            console.log('Categories API response:', response.data);
+            if (response.data.success) {
+                const categoriesData = response.data.data || [];
+                console.log('Categories loaded:', categoriesData);
+                console.log('Categories length:', categoriesData.length);
+                setCategories(categoriesData);
+            } else {
+                console.error('Failed to load categories:', response.data.message);
+                setCategories([]);
+            }
+        } catch (error) {
+            console.error('Error loading categories:', error);
+            // Fallback to hardcoded categories if API fails
+            const fallbackCategories = [
                 "Stationery",
                 "Food & Drinks", 
                 "Printing Services",
@@ -39,19 +83,18 @@ const Products = () => {
                 "Dorm Supplies",
                 "Books"
             ];
-            setCategories(defaultCategories);
-        } catch (error) {
-            console.error('Error loading categories:', error);
+            console.log('Using fallback categories:', fallbackCategories);
+            setCategories(fallbackCategories);
         }
     };
 
     const loadUniversities = async () => {
         try {
-            const response = await axiosInstance.get('/universities');
+            const response = await axiosInstance.get('/vendors/universities');
             console.log('Universities API response:', response.data); // Debug log
             if (response.data.success) {
                 console.log('Universities data:', response.data.data); // Debug log
-                setUniversities(response.data.data);
+                setUniversities(response.data.data || []);
             } else {
                 console.error('Failed to load universities:', response.data.message);
                 setUniversities([]);
@@ -74,7 +117,7 @@ const Products = () => {
     const loadProducts = async () => {
         try {
             setError(null);
-            console.log('Attempting to fetch products...');
+            console.log('Loading all products...');
             const result = await getProducts();
             console.log('API Response:', result);
             if (result.success) {
@@ -82,10 +125,17 @@ const Products = () => {
                 console.log('Products data:', productsData);
                 console.log('First product structure:', productsData[0]);
                 console.log('First product vendorId:', productsData[0]?.vendorId);
+                console.log('First product vendorId universityNear:', productsData[0]?.vendorId?.universityNear);
+                console.log('First product categories:', productsData[0]?.categories);
+                console.log('First product category:', productsData[0]?.category);
+                
+                // Store all products for client-side filtering
+                setAllProducts(Array.isArray(productsData) ? productsData : []);
                 setProducts(Array.isArray(productsData) ? productsData : []);
             } else {
                 console.error('Failed to load products:', result.message);
                 setError(result.message || 'Failed to load products');
+                setAllProducts([]);
                 setProducts([]);
             }
         } catch (error) {
@@ -106,77 +156,10 @@ const Products = () => {
                 console.error('General error:', error.message);
                 setError(error.message || 'Failed to load products');
             }
+            setAllProducts([]);
             setProducts([]);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        applyFilters();
-    };
-
-    const applyFilters = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            let filteredProducts = [];
-            
-            // If no filters, load all products
-            if (!searchTerm.trim() && !selectedCategory && !selectedUniversity) {
-                const result = await getProducts();
-                if (result.success) {
-                    filteredProducts = result.data?.data || result.data || [];
-                }
-            } else {
-                // Apply filters
-                const result = await getProducts();
-                if (result.success) {
-                    filteredProducts = result.data?.data || result.data || [];
-                    
-                    // Filter by search term
-                    if (searchTerm.trim()) {
-                        filteredProducts = filteredProducts.filter(product =>
-                            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            product.description.toLowerCase().includes(searchTerm.toLowerCase())
-                        );
-                    }
-                    
-                    // Filter by category
-                    if (selectedCategory) {
-                        filteredProducts = filteredProducts.filter(product =>
-                            product.category === selectedCategory
-                        );
-                    }
-                    
-                    // Filter by university (would need vendor data)
-                    if (selectedUniversity) {
-                        // This would require joining with vendor data
-                        // For now, we'll skip this filter
-                        console.log('University filter not yet implemented:', selectedUniversity);
-                    }
-                }
-            }
-            
-            setProducts(Array.isArray(filteredProducts) ? filteredProducts : []);
-        } catch (error) {
-            console.error('Error applying filters:', error);
-            setError('Failed to filter products');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleFilterChange = () => {
-        applyFilters();
-    };
-
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        if (!e.target.value.trim() && !selectedCategory && !selectedUniversity) {
-            loadProducts();
         }
     };
 
@@ -184,7 +167,87 @@ const Products = () => {
         setSearchTerm('');
         setSelectedCategory('');
         setSelectedUniversity('');
-        loadProducts();
+        debouncedSearch('');
+    };
+
+    const applyClientSideFilters = () => {
+        console.log('Applying client-side filters:', {
+            searchTerm: searchTerm,
+            selectedCategory,
+            selectedUniversity,
+            totalProducts: allProducts.length
+        });
+        
+        let filteredProducts = [...allProducts];
+        
+        // If no filters, show all products
+        if (!searchTerm.trim() && !selectedCategory && !selectedUniversity) {
+            console.log('No filters applied, showing all products');
+            setProducts(filteredProducts);
+            return;
+        }
+        
+        // Filter by search term
+        if (searchTerm.trim()) {
+            const searchLower = searchTerm.toLowerCase();
+            const beforeSearch = filteredProducts.length;
+            filteredProducts = filteredProducts.filter(product => {
+                // Search in product name and description
+                const nameMatch = product.name && product.name.toLowerCase().includes(searchLower);
+                const descriptionMatch = product.description && product.description.toLowerCase().includes(searchLower);
+                
+                // Also search in vendor information if available
+                let vendorMatch = false;
+                if (product.vendorId) {
+                    const vendorNameMatch = product.vendorId.storeName && product.vendorId.storeName.toLowerCase().includes(searchLower);
+                    const vendorDescMatch = product.vendorId.description && product.vendorId.description.toLowerCase().includes(searchLower);
+                    vendorMatch = vendorNameMatch || vendorDescMatch;
+                }
+                
+                return nameMatch || descriptionMatch || vendorMatch;
+            });
+            console.log(`Search filter: "${searchTerm}" - ${beforeSearch} → ${filteredProducts.length} products`);
+        }
+        
+        // Filter by category
+        if (selectedCategory) {
+            const beforeCategory = filteredProducts.length;
+            filteredProducts = filteredProducts.filter(product => {
+                // Handle different category structures
+                if (Array.isArray(product.categories)) {
+                    return product.categories.some(cat => 
+                        (typeof cat === 'string' ? cat : cat.name) === selectedCategory
+                    );
+                } else if (product.category) {
+                    return product.category === selectedCategory;
+                }
+                return false;
+            });
+            console.log(`Category filter: "${selectedCategory}" - ${beforeCategory} → ${filteredProducts.length} products`);
+        }
+        
+        // Filter by university
+        if (selectedUniversity) {
+            const beforeUniversity = filteredProducts.length;
+            filteredProducts = filteredProducts.filter(product => {
+                // Check if product has vendor with universityNear
+                if (product.vendorId && product.vendorId.universityNear) {
+                    console.log(`Checking university: ${product.vendorId.universityNear} === ${selectedUniversity}`);
+                    return product.vendorId.universityNear === selectedUniversity;
+                }
+                // Also check if vendorId is just a string (not populated)
+                else if (typeof product.vendorId === 'string') {
+                    console.log('Product vendorId is not populated, skipping university filter for this product');
+                    return false; // Can't filter if vendor not populated
+                }
+                console.log('Product has no vendorId or universityNear field');
+                return false;
+            });
+            console.log(`University filter: "${selectedUniversity}" - ${beforeUniversity} → ${filteredProducts.length} products`);
+        }
+        
+        console.log('Final filtered products:', filteredProducts.length);
+        setProducts(filteredProducts);
     };
 
     if (loading) {
@@ -228,9 +291,14 @@ const Products = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Search Products</label>
                                 <input
                                     type="text"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
                                     placeholder="Search by name or description..."
+                                    onChange={(e) => debouncedSearch(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            debouncedSearch(e.target.value);
+                                        }
+                                    }}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </div>
@@ -247,11 +315,15 @@ const Products = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">All Categories</option>
-                                    {categories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
+                                    {categories.map((category) => {
+                                        const categoryValue = typeof category === 'string' ? category : category.name || category;
+                                        const categoryId = typeof category === 'string' ? category : category._id || category;
+                                        return (
+                                            <option key={categoryId} value={categoryValue}>
+                                                {categoryValue}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                             
@@ -267,28 +339,28 @@ const Products = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">All Universities</option>
-                                    {universities.map((university) => (
-                                        <option key={university._id || university.name} value={university.name || university}>
-                                            {university.name || university}
-                                        </option>
-                                    ))}
+                                    {universities.map((university) => {
+                                        const universityValue = typeof university === 'string' ? university : university.name || university;
+                                        const universityId = typeof university === 'string' ? university : university._id || university;
+                                        return (
+                                            <option key={universityId} value={universityValue}>
+                                                {universityValue}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             </div>
                         </div>
                         
-                        {/* Search Button and Clear Filters */}
-                        <div className="flex justify-between items-center mt-4">
+                        {/* Clear Filters */}
+                        <div className="flex justify-end items-center mt-4">
                             <button
-                                type="button"
-                                onClick={handleSearch}
-                                disabled={apiLoading}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {apiLoading ? 'Searching...' : 'Search'}
-                            </button>
-                            
-                            <button
-                                onClick={clearFilters}
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setSelectedCategory('');
+                                    setSelectedUniversity('');
+                                    debouncedSearch('');
+                                }}
                                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                             >
                                 Clear Filters

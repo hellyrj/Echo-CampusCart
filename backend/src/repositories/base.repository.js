@@ -65,7 +65,7 @@ class BaseRepository {
     return this.model.findByIdAndUpdate(
       id,
       data,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
   }
 
