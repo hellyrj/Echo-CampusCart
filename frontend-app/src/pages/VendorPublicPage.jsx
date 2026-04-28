@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useVendorApi } from '../hooks/useVendorApi';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, Heart } from 'lucide-react';
+import { useWishlist } from '../hooks/useWishlist';
 
 const VendorPublicPage = () => {
     const { vendorId } = useParams();
     const { getVendorDetails, getVendorProducts, getCategories } = useVendorApi();
+    const { toggleWishlistItem, isProductInWishlist } = useWishlist();
     
     const [vendor, setVendor] = useState(null);
     const [products, setProducts] = useState([]);
@@ -494,22 +496,30 @@ const VendorPublicPage = () => {
                     {products.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {products.map((product) => (
-                                <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                                    <div className="aspect-w-16 aspect-h-9 bg-gray-200">
+                                <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative">
+                                    {/* Wishlist Button */}
+                                    <button
+                                        onClick={() => toggleWishlistItem(product._id)}
+                                        className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white shadow-md text-red-500 hover:bg-red-50 transition-colors duration-200"
+                                        title={isProductInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
+                                    >
+                                        <Heart className={`w-5 h-5 ${isProductInWishlist(product._id) ? 'fill-current text-red-600' : 'text-red-400'}`} />
+                                    </button>
+                                    <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
                                         {product.images && product.images.length > 0 ? (
                                             <img
-                                                src={product.images[0].url}
+                                                src={product.images[0].url || `/uploads/${product.images[0]}`}
                                                 alt={product.name}
-                                                className="w-full h-48 object-cover"
+                                                className="w-full h-full object-cover"
                                                 onError={(e) => {
-                                                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                    e.target.onerror = null;
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentElement.innerHTML = '<div class="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200"><span class="text-gray-400 text-sm font-medium">No Image</span></div>';
                                                 }}
                                             />
                                         ) : (
-                                            <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                                                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
+                                            <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200">
+                                                <span className="text-gray-400 text-sm font-medium">No Image</span>
                                             </div>
                                         )}
                                     </div>

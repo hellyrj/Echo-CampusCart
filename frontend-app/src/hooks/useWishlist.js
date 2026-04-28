@@ -1,118 +1,129 @@
+// hooks/useWishlist.js
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { wishlistApi } from '../api/wishlist.api';
 
-// Module-level shared state - all components using this hook share this data
-let sharedWishlist = [];
-let sharedWishlistCount = 0;
-let sharedLoading = false;
-let sharedError = null;
-const listeners = new Set();
-
-function notifyListeners() {
-    listeners.forEach(cb => cb());
-}
-
-function updateState(newWishlist, newCount, newLoading, newError) {
-    sharedWishlist = newWishlist;
-    sharedWishlistCount = newCount;
-    sharedLoading = newLoading;
-    sharedError = newError;
-    notifyListeners();
-}
-
-async function loadWishlistData() {
-    try {
-        updateState(sharedWishlist, sharedWishlistCount, true, null);
-        const response = await wishlistApi.getWishlist();
-        const products = response.data?.products || [];
-        updateState(products, products.length, false, null);
-    } catch (err) {
-        updateState(sharedWishlist, sharedWishlistCount, false, err.response?.data?.message || 'Failed to load wishlist');
-        console.error('Error loading wishlist:', err);
-    }
-}
-
-async function addItem(productId) {
-    try {
-        const response = await wishlistApi.addToWishlist(productId);
-        const products = response.data?.products || [];
-        updateState(products, products.length, false, null);
-    } catch (err) {
-        updateState(sharedWishlist, sharedWishlistCount, false, err.response?.data?.message || 'Failed to add');
-        throw err;
-    }
-}
-
-async function removeItem(productId) {
-    try {
-        const response = await wishlistApi.removeFromWishlist(productId);
-        const products = response.data?.products || [];
-        updateState(products, products.length, false, null);
-    } catch (err) {
-        updateState(sharedWishlist, sharedWishlistCount, false, err.response?.data?.message || 'Failed to remove');
-        throw err;
-    }
-}
-
-async function toggleItem(productId) {
-    try {
-        await wishlistApi.toggleWishlistItem(productId);
-        await loadWishlistData();
-    } catch (err) {
-        updateState(sharedWishlist, sharedWishlistCount, false, err.response?.data?.message || 'Failed to toggle');
-        throw err;
-    }
-}
-
-async function clearItems() {
-    try {
-        await wishlistApi.clearWishlist();
-        updateState([], 0, false, null);
-    } catch (err) {
-        updateState(sharedWishlist, sharedWishlistCount, false, err.response?.data?.message || 'Failed to clear');
-        throw err;
-    }
-}
-
 export const useWishlist = () => {
-    // Force re-render when shared state changes
-    const [, setTick] = useState(0);
+    const [wishlist, setWishlist] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const { isAuthenticated } = useAuth();
 
+    // Load wishlist when authenticated
     useEffect(() => {
-        const listener = () => setTick(t => t + 1);
-        listeners.add(listener);
-        return () => listeners.delete(listener);
-    }, []);
+        if (isAuthenticated) {
+            loadWishlist();
+        } else {
+            setWishlist([]);
+        }
+    }, [isAuthenticated]);
 
     const loadWishlist = useCallback(async () => {
-        await loadWishlistData();
-    }, []);
+        if (!isAuthenticated) {
+            setWishlist([]);
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await wishlistApi.getWishlist();
+            console.log('Wishlist API response:', response.data);
+            
+            // Handle different response structures
+            const products = response.data?.data?.products || 
+                           response.data?.products || 
+                           [];
+            
+            console.log('Loaded wishlist products:', products);
+            setWishlist(products);
+        } catch (err) {
+            console.error('Error loading wishlist:', err);
+            setError(err.response?.data?.message || 'Failed to load wishlist');
+            setWishlist([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [isAuthenticated]);
 
     const addToWishlist = useCallback(async (productId) => {
-        await addItem(productId);
-    }, []);
+        try {
+            setLoading(true);
+            const response = await wishlistApi.addToWishlist(productId);
+            console.log('Add to wishlist response:', response.data);
+            
+            // Reload wishlist to get updated data
+            await loadWishlist();
+            
+            return response.data;
+        } catch (err) {
+            console.error('Error adding to wishlist:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [loadWishlist]);
 
     const removeFromWishlist = useCallback(async (productId) => {
-        await removeItem(productId);
-    }, []);
+        try {
+            setLoading(true);
+            const response = await wishlistApi.removeFromWishlist(productId);
+            console.log('Remove from wishlist response:', response.data);
+            
+            // Reload wishlist to get updated data
+            await loadWishlist();
+            
+            return response.data;
+        } catch (err) {
+            console.error('Error removing from wishlist:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [loadWishlist]);
 
     const toggleWishlistItem = useCallback(async (productId) => {
-        await toggleItem(productId);
-    }, []);
+        try {
+            setLoading(true);
+            console.log('Toggling wishlist item:', productId);
+            
+            const response = await wishlistApi.toggleWishlistItem(productId);
+            console.log('Toggle wishlist response:', response.data);
+            
+            // Reload wishlist to get updated data
+            await loadWishlist();
+            
+            return response.data;
+        } catch (err) {
+            console.error('Error toggling wishlist:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, [loadWishlist]);
 
     const clearWishlist = useCallback(async () => {
-        await clearItems();
+        try {
+            setLoading(true);
+            await wishlistApi.clearWishlist();
+            setWishlist([]);
+        } catch (err) {
+            console.error('Error clearing wishlist:', err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     const isProductInWishlist = useCallback((productId) => {
-        return sharedWishlist.some(item => item._id === productId);
-    }, []);
+        return wishlist.some(item => item._id === productId);
+    }, [wishlist]);
 
     return {
-        wishlist: sharedWishlist,
-        wishlistCount: sharedWishlistCount,
-        loading: sharedLoading,
-        error: sharedError,
+        wishlist,
+        wishlistCount: wishlist.length,
+        loading,
+        error,
         loadWishlist,
         addToWishlist,
         removeFromWishlist,
