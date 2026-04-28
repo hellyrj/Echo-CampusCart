@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../hooks/useWishlist';
+import { Heart } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
 const Products = () => {
@@ -18,6 +20,7 @@ const Products = () => {
     
     const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
     const { isAuthenticated, user } = useAuth();
+    const { toggleWishlistItem, isProductInWishlist } = useWishlist();
     const navigate = useNavigate();
 
     const handleVendorApplication = () => {
@@ -112,6 +115,19 @@ const Products = () => {
         }
         // TODO: Implement cart functionality
         alert('Cart functionality coming soon!');
+    };
+
+    const handleWishlistToggle = async (product) => {
+        if (!isAuthenticated) {
+            alert('Please login to add items to wishlist');
+            return;
+        }
+
+        try {
+            await toggleWishlistItem(product._id);
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+        }
     };
 
     const loadProducts = async () => {
@@ -315,11 +331,13 @@ const Products = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">All Categories</option>
-                                    {categories.map((category) => {
+                                    {categories.map((category, idx) => {
                                         const categoryValue = typeof category === 'string' ? category : category.name || category;
-                                        const categoryId = typeof category === 'string' ? category : category._id || category;
+                                        const categoryId = typeof category === 'string'
+                                            ? category
+                                            : (category._id || category.name || JSON.stringify(category) || `cat-${idx}`);
                                         return (
-                                            <option key={categoryId} value={categoryValue}>
+                                            <option key={`cat-${categoryId}`} value={categoryValue}>
                                                 {categoryValue}
                                             </option>
                                         );
@@ -339,11 +357,13 @@ const Products = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">All Universities</option>
-                                    {universities.map((university) => {
+                                    {universities.map((university, idx) => {
                                         const universityValue = typeof university === 'string' ? university : university.name || university;
-                                        const universityId = typeof university === 'string' ? university : university._id || university;
+                                        const universityId = typeof university === 'string'
+                                            ? university
+                                            : (university._id || university.name || JSON.stringify(university) || `uni-${idx}`);
                                         return (
-                                            <option key={universityId} value={universityValue}>
+                                            <option key={`uni-${universityId}`} value={universityValue}>
                                                 {universityValue}
                                             </option>
                                         );
@@ -387,21 +407,35 @@ const Products = () => {
 
                 {/* Products Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {Array.isArray(products) && products.map((product, index) => {
-                        console.log(`Product ${index} vendorId:`, product.vendorId);
+                    {Array.isArray(products) && products.map((product) => {
+                        const isInWishlist = isProductInWishlist(product._id);
                         return (
-                        <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                            <div className="aspect-w-16 aspect-h-12 bg-gray-200">
-                                <img
-                                    src={product.images && product.images.length > 0 
-                                        ? product.images[0].url 
-                                        : 'https://via.placeholder.com/300x200?text=Product'}
-                                    alt={product.name}
-                                    className="w-full h-48 object-cover"
-                                    onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
-                                    }}
-                                />
+                        <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative">
+                            {/* Wishlist Button */}
+                            <button
+                                onClick={() => handleWishlistToggle(product)}
+                                className="absolute top-2 right-2 z-10 p-2 rounded-full bg-white text-red-500 hover:bg-red-100 transition-colors duration-200"
+                                title={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+                            >
+                                <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current text-red-600' : 'text-red-500'}`} />
+                            </button>
+                            <div className="aspect-w-16 aspect-h-12 bg-gray-200 h-48">
+                                {product.images && product.images.length > 0 ? (
+                                    <img
+                                        src={product.images[0].url || `/uploads/${product.images[0]}`}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.style.display = 'none';
+                                            e.target.parentElement.innerHTML = '<div class="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200"><span class="text-gray-400 text-sm font-medium">No Image</span></div>';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200">
+                                        <span className="text-gray-400 text-sm font-medium">No Image</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="p-4">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>

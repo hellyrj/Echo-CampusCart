@@ -1,9 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../hooks/useWishlist';
+import { Heart } from 'lucide-react';
 import Notifications from './Notifications.jsx';
 
 const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
+    const { wishlistCount } = useWishlist();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -37,6 +40,21 @@ const Navbar = () => {
                         >
                             Products
                         </Link>
+                        
+                        {isAuthenticated && (
+                            <Link
+                                to="/wishlist"
+                                className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center"
+                            >
+                                <Heart className="w-4 h-4 mr-1" />
+                                Wishlist
+                                {wishlistCount > 0 && (
+                                    <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                                        {wishlistCount}
+                                    </span>
+                                )}
+                            </Link>
+                        )}
                         
                         {isAuthenticated && user?.role === 'vendor' && (
                             <Link

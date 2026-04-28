@@ -16,6 +16,7 @@ import VendorApplication from './pages/VendorApplication';
 import VendorPublicPage from './pages/VendorPublicPage';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import Wishlist from './pages/Wishlist';
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -61,6 +62,7 @@ function App() {
                                 <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                                  <Route path="/my-products" element={<MyProducts />} />
                                 <Route path="/profile" element={<Profile />} />
+                                <Route path="/wishlist" element={<Wishlist />} />
                                 <Route path="/admin/dashboard" element={
                                     <ErrorBoundary>
                                         <AdminDashboard />
