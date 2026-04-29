@@ -200,9 +200,9 @@ const Cart = () => {
                                             <h3 className="text-lg font-semibold text-gray-900 truncate">
                                                 {item.name}
                                             </h3>
-                                            {item.vendorName && (
+                                            {(item.vendorName || item.vendorId?.storeName) && (
                                                 <p className="text-sm text-gray-500 mt-0.5">
-                                                    Sold by {item.vendorName}
+                                                    Sold by {item.vendorName || item.vendorId?.storeName}
                                                 </p>
                                             )}
                                             {item.attributes && Object.keys(item.attributes).length > 0 && (

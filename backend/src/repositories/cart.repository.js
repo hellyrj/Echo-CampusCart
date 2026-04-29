@@ -22,6 +22,11 @@ class CartRepository extends BaseRepository {
             select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
           }
         ]
+      })
+      .populate({
+        path: 'items.vendorId',
+        model: 'Vendor',
+        select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
       });
   }
 
@@ -53,36 +58,91 @@ class CartRepository extends BaseRepository {
       cart.items.push(itemData);
     }
 
-    return cart.save();
+    const savedCart = await cart.save();
+    console.log('Cart saved with totals:', {
+      itemCount: savedCart.itemCount,
+      totalQuantity: savedCart.totalQuantity,
+      subtotal: savedCart.subtotal,
+      total: savedCart.total
+    });
+    return savedCart;
   }
 
   async updateItemQuantity(userId, itemId, quantity) {
-    return this.model.findOneAndUpdate(
-      { 
-        userId, 
-        'items._id': itemId 
+    // First find and update the cart
+    const cart = await this.model.findOne({ userId });
+    
+    if (!cart) {
+      throw new Error('Cart not found');
+    }
+    
+    // Find the item and update quantity
+    const itemIndex = cart.items.findIndex(item => item._id.toString() === itemId.toString());
+    if (itemIndex === -1) {
+      throw new Error('Item not found in cart');
+    }
+    
+    cart.items[itemIndex].quantity = quantity;
+    
+    // Save the cart to trigger pre-save middleware for total recalculation
+    const savedCart = await cart.save();
+    
+    // Populate the necessary fields
+    return savedCart.populate([
+      {
+        path: 'items.productId',
+        model: 'Product',
+        select: 'name basePrice images variants isAvailable inventory vendorId discount',
+        populate: [
+          {
+            path: 'vendorId',
+            model: 'Vendor',
+            select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
+          }
+        ]
       },
-      { 
-        $set: { 'items.$.quantity': quantity } 
-      },
-      { new: true, runValidators: true }
-    ).populate({
-      path: 'items.productId',
-      model: 'Product',
-      select: 'name basePrice images variants isAvailable inventory vendorId discount'
-    });
+      {
+        path: 'items.vendorId',
+        model: 'Vendor',
+        select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
+      }
+    ]);
   }
 
   async removeItem(userId, itemId) {
-    return this.model.findOneAndUpdate(
-      { userId },
-      { $pull: { items: { _id: itemId } } },
-      { new: true }
-    ).populate({
-      path: 'items.productId',
-      model: 'Product',
-      select: 'name basePrice images variants isAvailable inventory vendorId discount'
-    });
+    // First find the cart
+    const cart = await this.model.findOne({ userId });
+    
+    if (!cart) {
+      throw new Error('Cart not found');
+    }
+    
+    // Remove the item
+    cart.items = cart.items.filter(item => item._id.toString() !== itemId.toString());
+    
+    // Save the cart to trigger pre-save middleware for total recalculation
+    const savedCart = await cart.save();
+    
+    // Populate the necessary fields
+    return savedCart.populate([
+      {
+        path: 'items.productId',
+        model: 'Product',
+        select: 'name basePrice images variants isAvailable inventory vendorId discount',
+        populate: [
+          {
+            path: 'vendorId',
+            model: 'Vendor',
+            select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
+          }
+        ]
+      },
+      {
+        path: 'items.vendorId',
+        model: 'Vendor',
+        select: 'storeName isActive universityNear deliveryAvailable pickupAvailable'
+      }
+    ]);
   }
 
   async clearCart(userId) {

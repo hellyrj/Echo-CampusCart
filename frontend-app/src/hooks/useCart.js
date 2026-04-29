@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { cartApi } from '../api/cart.api';
+import { useAuth } from '../context/AuthContext';
 
 // Module-level shared state - all components using this hook share this data
 let sharedCart = { items: [], itemCount: 0, totalQuantity: 0, subtotal: 0, discountAmount: 0, total: 0 };
@@ -26,7 +27,11 @@ async function loadCartData() {
     try {
         updateState(sharedCart, true, null);
         const response = await cartApi.getCart();
+        console.log('Cart API response:', response.data);
+        
+        // Handle different response structures
         const cart = response.data?.data || response.data || emptyCart();
+        console.log('Parsed cart data:', cart);
         updateState(cart, false, null);
     } catch (err) {
         updateState(sharedCart, false, err.response?.data?.message || 'Failed to load cart');
@@ -36,10 +41,15 @@ async function loadCartData() {
 
 async function addItem(productId, quantity = 1) {
     try {
+        console.log('Adding to cart:', { productId, quantity });
         const response = await cartApi.addToCart({ productId, quantity });
+        console.log('Add to cart response:', response.data);
+        
         const cart = response.data?.data || response.data || emptyCart();
+        console.log('Updated cart:', cart);
         updateState(cart, false, null);
     } catch (err) {
+        console.error('Add to cart error:', err);
         updateState(sharedCart, false, err.response?.data?.message || 'Failed to add to cart');
         throw err;
     }
@@ -101,12 +111,22 @@ async function removeCode() {
 
 export const useCart = () => {
     const [, setTick] = useState(0);
+    const { isAuthenticated } = useAuth();
 
     useEffect(() => {
         const listener = () => setTick(t => t + 1);
         listeners.add(listener);
         return () => listeners.delete(listener);
     }, []);
+
+    // Load cart when auth state changes
+    useEffect(() => {
+        if (isAuthenticated) {
+            loadCartData();
+        } else {
+            updateState(emptyCart(), false, null);
+        }
+    }, [isAuthenticated]);
 
     const loadCart = useCallback(async () => {
         await loadCartData();

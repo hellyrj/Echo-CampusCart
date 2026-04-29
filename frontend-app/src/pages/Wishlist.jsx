@@ -1,12 +1,38 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../hooks/useWishlist';
+import { useCart } from '../hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { Heart, Trash2, ShoppingCart, ArrowLeft } from 'lucide-react';
 
 const Wishlist = () => {
     const { wishlist, loading, error, removeFromWishlist, clearWishlist } = useWishlist();
+    const { addToCart } = useCart();
     const { isAuthenticated } = useAuth();
+
+    const handleAddToCart = async (productId) => {
+        try {
+            await addToCart(productId, 1);
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+        }
+    };
+
+    const handleRemoveItem = async (productId) => {
+        try {
+            await removeFromWishlist(productId);
+        } catch (error) {
+            console.error('Failed to remove from wishlist:', error);
+        }
+    };
+
+    const handleClearWishlist = async () => {
+        try {
+            await clearWishlist();
+        } catch (error) {
+            console.error('Failed to clear wishlist:', error);
+        }
+    };
 
     // Redirect if not authenticated
     if (!isAuthenticated) {
@@ -38,24 +64,6 @@ const Wishlist = () => {
             </div>
         );
     }
-
-    const handleRemoveItem = async (productId) => {
-        try {
-            await removeFromWishlist(productId);
-        } catch (error) {
-            console.error('Error removing item:', error);
-        }
-    };
-
-    const handleClearWishlist = async () => {
-        if (window.confirm('Are you sure you want to clear your entire wishlist?')) {
-            try {
-                await clearWishlist();
-            } catch (error) {
-                console.error('Error clearing wishlist:', error);
-            }
-        }
-    };
 
     if (loading) {
         return (
@@ -203,7 +211,7 @@ const Wishlist = () => {
                                                 ${product.basePrice || product.price || 0}
                                             </span>
                                             <button 
-                                                onClick={() => alert('Cart functionality coming soon!')}
+                                                onClick={() => handleAddToCart(product._id)}
                                                 className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 flex items-center"
                                             >
                                                 <ShoppingCart className="w-4 h-4 mr-1" />

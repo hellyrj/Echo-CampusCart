@@ -102,7 +102,9 @@ cartSchema.index({ 'items.productId': 1 });
 cartSchema.index({ updatedAt: 1 });
 
 // Calculate totals before saving
-cartSchema.pre('save', function(next) {
+cartSchema.pre('save', async function() {
+  console.log('Cart pre-save middleware - items:', this.items);
+  
   if (this.items && this.items.length > 0) {
     // Calculate item count
     this.itemCount = this.items.length;
@@ -112,6 +114,12 @@ cartSchema.pre('save', function(next) {
     
     // Calculate subtotal
     this.subtotal = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    console.log('Calculated totals:', {
+      itemCount: this.itemCount,
+      totalQuantity: this.totalQuantity,
+      subtotal: this.subtotal
+    });
     
     // Calculate discount
     this.discountAmount = 0;
@@ -133,8 +141,6 @@ cartSchema.pre('save', function(next) {
     this.discountAmount = 0;
     this.total = 0;
   }
-  
- // next();
 });
 
 // Virtual for formatted totals
