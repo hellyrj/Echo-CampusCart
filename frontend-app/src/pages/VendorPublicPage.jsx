@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useVendorApi } from '../hooks/useVendorApi';
-import { Search, Filter, X, Heart } from 'lucide-react';
+import { Search, Filter, X, Heart, ShoppingCart } from 'lucide-react';
 import { useWishlist } from '../hooks/useWishlist';
+import { useCart } from '../hooks/useCart';
 
 const VendorPublicPage = () => {
     const { vendorId } = useParams();
     const { getVendorDetails, getVendorProducts, getCategories } = useVendorApi();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
+    const { addToCart } = useCart();
     
     const [vendor, setVendor] = useState(null);
     const [products, setProducts] = useState([]);
@@ -504,6 +506,14 @@ const VendorPublicPage = () => {
                                         title={isProductInWishlist(product._id) ? "Remove from wishlist" : "Add to wishlist"}
                                     >
                                         <Heart className={`w-5 h-5 ${isProductInWishlist(product._id) ? 'fill-current text-red-600' : 'text-red-400'}`} />
+                                    </button>
+                                    {/* Add to Cart Button */}
+                                    <button
+                                        onClick={() => addToCart(product._id, 1)}
+                                        className="absolute top-2 right-12 z-10 p-2 rounded-full bg-white shadow-md text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+                                        title="Add to cart"
+                                    >
+                                        <ShoppingCart className="w-5 h-5" />
                                     </button>
                                     <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
                                         {product.images && product.images.length > 0 ? (

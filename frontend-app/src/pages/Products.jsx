@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
-import { Heart } from 'lucide-react';
+import { useCart } from '../hooks/useCart';
+import { Heart, ShoppingCart } from 'lucide-react';
 import axiosInstance from '../api/axios';
 
 const Products = () => {
@@ -21,6 +22,7 @@ const Products = () => {
     const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
     const { isAuthenticated, user } = useAuth();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
+    const { addToCart } = useCart();
     const navigate = useNavigate();
 
     const handleVendorApplication = () => {
@@ -108,13 +110,16 @@ const Products = () => {
         }
     };
 
-    const handleAddToCart = (product) => {
+    const handleAddToCart = async (product) => {
         if (!isAuthenticated) {
             alert('Please login to add items to cart');
             return;
         }
-        // TODO: Implement cart functionality
-        alert('Cart functionality coming soon!');
+        try {
+            await addToCart(product._id, 1);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to add to cart');
+        }
     };
 
     const handleWishlistToggle = async (product) => {
@@ -496,8 +501,9 @@ const Products = () => {
                                     <span className="text-2xl font-bold text-blue-600">${product.basePrice || product.price}</span>
                                     <button 
                                         onClick={() => handleAddToCart(product)}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center transition-colors"
                                     >
+                                        <ShoppingCart className="w-4 h-4 mr-1" />
                                         Add to Cart
                                     </button>
                                 </div>

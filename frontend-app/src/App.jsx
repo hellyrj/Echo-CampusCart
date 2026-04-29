@@ -17,6 +17,7 @@ import VendorPublicPage from './pages/VendorPublicPage';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import Wishlist from './pages/Wishlist';
+import Cart from './pages/Cart';
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -63,6 +64,7 @@ function App() {
                                  <Route path="/my-products" element={<MyProducts />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/wishlist" element={<Wishlist />} />
+                                <Route path="/cart" element={<Cart />} />
                                 <Route path="/admin/dashboard" element={
                                     <ErrorBoundary>
                                         <AdminDashboard />
