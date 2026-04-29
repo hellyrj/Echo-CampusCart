@@ -18,6 +18,8 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+import CheckoutSuccess from './pages/CheckoutSuccess';
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -65,6 +67,8 @@ function App() {
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/wishlist" element={<Wishlist />} />
                                 <Route path="/cart" element={<Cart />} />
+                                <Route path="/checkout" element={<Checkout />} />
+                                <Route path="/checkout/success" element={<CheckoutSuccess />} />
                                 <Route path="/admin/dashboard" element={
                                     <ErrorBoundary>
                                         <AdminDashboard />

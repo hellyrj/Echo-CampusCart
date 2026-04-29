@@ -240,6 +240,20 @@ class CartRepository extends BaseRepository {
       { $set: { 'items.$.price': newPrice } }
     );
   }
+
+  async findByUserId(userId) {
+    return this.model.findOne({ userId })
+      .populate({
+        path: 'items.productId',
+        model: 'Product',
+        select: 'name basePrice images variants isAvailable inventory vendorId discount',
+        populate: {
+          path: 'vendorId',
+          model: 'Vendor',
+          select: 'storeName isActive deliveryFee deliveryAvailable pickupAvailable universityNear'
+        }
+      });
+  }
 }
 
 export default new CartRepository();
