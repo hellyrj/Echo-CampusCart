@@ -1,20 +1,17 @@
 import axiosInstance from './axios';
 
 export const orderApi = {
-  // Cart analysis and checkout
-  analyzeCart: () => axiosInstance.get('/orders/analyze-cart'),
-  checkout: (checkoutData) => axiosInstance.post('/orders/checkout', checkoutData),
-  
-  // Student orders
-  getStudentOrders: () => axiosInstance.get('/orders/student'),
-  getStudentOrderGroups: () => axiosInstance.get('/orders/student/groups'),
-  getOrderById: (orderId) => axiosInstance.get(`/orders/${orderId}`),
-  
-  // Order management
-  updateOrderStatus: (orderId, status) => axiosInstance.patch(`/orders/${orderId}/status`, { status }),
-  updatePaymentStatus: (orderId, paymentStatus) => axiosInstance.patch(`/orders/${orderId}/payment`, { paymentStatus }),
-  
-  // Vendor orders
-  getVendorOrders: () => axiosInstance.get('/orders/vendor'),
-  getVendorOrderGroups: () => axiosInstance.get('/orders/vendor/groups')
+    // Customer endpoints
+    checkout: (orderData) => axiosInstance.post('/orders/checkout', orderData),
+    getMyOrders: (params) => axiosInstance.get('/orders/my-orders', { params }),
+    getOrder: (id) => axiosInstance.get(`/orders/${id}`),
+    trackOrder: (orderNumber) => axiosInstance.get(`/orders/track/${orderNumber}`),
+    cancelOrder: (orderId, reason) => axiosInstance.post(`/orders/${orderId}/cancel`, { reason }),
+    validateCart: () => axiosInstance.get('/orders/validate-cart'),
+    getOrderStats: () => axiosInstance.get('/orders/stats'),
+    
+    // Vendor endpoints
+    getVendorOrders: (params) => axiosInstance.get('/orders/vendor/orders', { params }),
+    updateOrderStatus: (orderId, statusData) => axiosInstance.patch(`/orders/vendor/${orderId}/status`, statusData),
+    cancelVendorOrder: (orderId, reason) => axiosInstance.post(`/orders/vendor/${orderId}/cancel`, { reason }),
 };

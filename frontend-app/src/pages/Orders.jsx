@@ -1,357 +1,172 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useOrder } from '../hooks/useOrder';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { 
-    Package, 
-    Truck, 
-    Phone, 
-    MapPin, 
-    CreditCard,
-    Filter,
-    Calendar,
-    CheckCircle,
-    Clock,
-    XCircle
-} from 'lucide-react';
+import { useOrder } from '../hooks/useOrder';
+import { Package, Clock, CheckCircle, Truck, XCircle, ChevronRight, ShoppingBag } from 'lucide-react';
 
 const Orders = () => {
-    const { orders, orderGroups, loading, error } = useOrder();
-    const { isAuthenticated } = useAuth();
-    const [activeTab, setActiveTab] = useState('orders');
-    const [filterStatus, setFilterStatus] = useState('all');
+    const { user, isAuthenticated } = useAuth();
+    const { getMyOrders, loading } = useOrder();
+    const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
+    const [filter, setFilter] = useState('all');
 
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login');
+            return;
         }
-    }, [isAuthenticated]);
+        fetchOrders();
+    }, [isAuthenticated, filter]);
 
-    const getStatusColor = (status) => {
-        const colors = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            confirmed: 'bg-blue-100 text-blue-800',
-            preparing: 'bg-purple-100 text-purple-800',
-            ready_for_pickup: 'bg-indigo-100 text-indigo-800',
-            out_for_delivery: 'bg-orange-100 text-orange-800',
-            delivered: 'bg-green-100 text-green-800',
-            cancelled: 'bg-red-100 text-red-800'
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+    const fetchOrders = async () => {
+        const params = filter !== 'all' ? { status: filter } : {};
+        const result = await getMyOrders(params);
+        if (result.success) {
+            setOrders(Array.isArray(result.data) ? result.data : result.data?.orders || []);
+        }
     };
 
     const getStatusIcon = (status) => {
-        const icons = {
-            pending: <Clock className="w-4 h-4" />,
-            confirmed: <CheckCircle className="w-4 h-4" />,
-            preparing: <Package className="w-4 h-4" />,
-            ready_for_pickup: <Package className="w-4 h-4" />,
-            out_for_delivery: <Truck className="w-4 h-4" />,
-            delivered: <CheckCircle className="w-4 h-4" />,
-            cancelled: <XCircle className="w-4 h-4" />
-        };
-        return icons[status] || <Clock className="w-4 h-4" />;
+        switch (status) {
+            case 'pending': return <Clock className="w-5 h-5 text-yellow-500" />;
+            case 'processing': return <Package className="w-5 h-5 text-blue-500" />;
+            case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />;
+            case 'cancelled': return <XCircle className="w-5 h-5 text-red-500" />;
+            case 'partially_delivered': return <Truck className="w-5 h-5 text-orange-500" />;
+            default: return <Package className="w-5 h-5 text-gray-500" />;
+        }
     };
 
-    const getPaymentStatusColor = (status) => {
-        const colors = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            paid: 'bg-green-100 text-green-800',
-            failed: 'bg-red-100 text-red-800',
-            refunded: 'bg-gray-100 text-gray-800'
-        };
-        return colors[status] || 'bg-gray-100 text-gray-800';
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'pending': return 'bg-yellow-100 text-yellow-800';
+            case 'processing': return 'bg-blue-100 text-blue-800';
+            case 'completed': return 'bg-green-100 text-green-800';
+            case 'cancelled': return 'bg-red-100 text-red-800';
+            case 'partially_delivered': return 'bg-orange-100 text-orange-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
     };
 
-    const filteredOrders = orders.filter(order => {
-        if (filterStatus === 'all') return true;
-        return order.status === filterStatus;
-    });
+    const getVendorStatusCount = (vendorOrders) => {
+        if (!vendorOrders) return {};
+        return vendorOrders.reduce((acc, vo) => {
+            acc[vo.status] = (acc[vo.status] || 0) + 1;
+            return acc;
+        }, {});
+    };
 
-    const filteredOrderGroups = orderGroups.filter(group => {
-        if (filterStatus === 'all') return true;
-        return group.status === filterStatus;
-    });
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading your orders...</p>
-                </div>
-            </div>
-        );
-    }
+    if (!isAuthenticated) return null;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-                    <p className="text-gray-600 mt-2">
-                        Track and manage your orders
-                    </p>
-                </div>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
 
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-                        {error}
-                    </div>
-                )}
-
-                {/* Tabs */}
-                <div className="mb-6">
-                    <div className="border-b border-gray-200">
-                        <nav className="-mb-px flex space-x-8">
-                            <button
-                                onClick={() => setActiveTab('orders')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'orders'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                Individual Orders
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('groups')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'groups'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
-                            >
-                                Order Groups
-                            </button>
-                        </nav>
-                    </div>
-                </div>
-
-                {/* Status Filter */}
-                <div className="mb-6">
-                    <div className="flex items-center space-x-4">
-                        <Filter className="w-4 h-4 text-gray-400" />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                {/* Filters */}
+                <div className="flex flex-wrap gap-2 mb-6">
+                    {[
+                        { key: 'all', label: 'All Orders' },
+                        { key: 'pending', label: 'Pending' },
+                        { key: 'processing', label: 'Processing' },
+                        { key: 'completed', label: 'Completed' },
+                        { key: 'cancelled', label: 'Cancelled' },
+                    ].map((f) => (
+                        <button
+                            key={f.key}
+                            onClick={() => setFilter(f.key)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                filter === f.key
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            }`}
                         >
-                            <option value="all">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="preparing">Preparing</option>
-                            <option value="ready_for_pickup">Ready for Pickup</option>
-                            <option value="out_for_delivery">Out for Delivery</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
+                            {f.label}
+                        </button>
+                    ))}
                 </div>
 
-                {/* Content */}
-                {activeTab === 'orders' && (
-                    <div className="space-y-6">
-                        {filteredOrders.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                    No orders found
-                                </h3>
-                                <p className="text-gray-600">
-                                    {filterStatus === 'all' 
-                                        ? "You haven't placed any orders yet"
-                                        : `No orders with status "${filterStatus}"`
-                                    }
-                                </p>
-                            </div>
-                        ) : (
-                            filteredOrders.map((order) => (
-                                <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                    {/* Order Header */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                Order to {order.vendor?.storeName}
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                Placed on {new Date(order.createdAt).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                                                {getStatusIcon(order.status)}
-                                                <span className="ml-1">{order.status}</span>
-                                            </span>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                                                <CreditCard className="w-3 h-3 mr-1" />
-                                                {order.paymentStatus}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Order Items */}
-                                    <div className="mb-4">
-                                        <div className="space-y-2">
-                                            {order.items.map((item, index) => (
-                                                <div key={index} className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">
-                                                        {item.quantity} × {item.name}
-                                                    </span>
-                                                    <span className="font-medium">
-                                                        ₦{item.price * item.quantity}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        
-                                        <div className="flex justify-between pt-3 border-t border-gray-200">
-                                            <span className="font-medium">Total:</span>
-                                            <span className="font-semibold">₦{order.totalPrice}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Order Details */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center text-sm">
-                                                <Truck className="w-4 h-4 text-gray-400 mr-2" />
-                                                <span className="font-medium">Delivery:</span>
-                                                <span className="ml-1">
-                                                    {order.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="flex items-center text-sm">
-                                                <CreditCard className="w-4 h-4 text-gray-400 mr-2" />
-                                                <span className="font-medium">Payment:</span>
-                                                <span className="ml-1">
-                                                    {order.paymentMethod === 'cash_on_delivery' ? 'Pay on delivery' : order.paymentMethod}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="space-y-2">
-                                            {order.deliveryAddress && (
-                                                <div className="flex items-start text-sm">
-                                                    <MapPin className="w-4 h-4 text-gray-400 mr-2 mt-1 flex-shrink-0" />
-                                                    <div>
-                                                        <span className="font-medium">Delivery Address:</span>
-                                                        <div className="text-gray-600 mt-1">
-                                                            <p>{order.deliveryAddress.street}</p>
-                                                            <p>{order.deliveryAddress.city}, {order.deliveryAddress.state}</p>
-                                                            <p>{order.deliveryAddress.zipCode}</p>
-                                                            {order.deliveryAddress.phone && (
-                                                                <p>Phone: {order.deliveryAddress.phone}</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                {/* Orders List */}
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                     </div>
-                )}
-
-                {activeTab === 'groups' && (
-                    <div className="space-y-6">
-                        {filteredOrderGroups.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                    No order groups found
-                                </h3>
-                                <p className="text-gray-600">
-                                    {filterStatus === 'all' 
-                                        ? "You haven't placed any multi-vendor orders yet"
-                                        : `No order groups with status "${filterStatus}"`
-                                    }
-                                </p>
-                            </div>
-                        ) : (
-                            filteredOrderGroups.map((group) => (
-                                <div key={group._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                                    {/* Group Header */}
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                Multi-Vendor Order
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                Placed on {new Date(group.createdAt).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(group.status)}`}>
-                                                {getStatusIcon(group.status)}
-                                                <span className="ml-1">{group.status}</span>
-                                            </span>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(group.paymentStatus)}`}>
-                                                <CreditCard className="w-3 h-3 mr-1" />
-                                                {group.paymentStatus}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Group Summary */}
-                                    <div className="mb-4 p-4 bg-gray-50 rounded-md">
-                                        <div className="flex justify-between mb-2">
-                                            <span className="font-medium">Total Amount:</span>
-                                            <span className="font-semibold">₦{group.totalAmount}</span>
-                                        </div>
-                                        <div className="flex justify-between mb-2">
-                                            <span className="font-medium">Number of Vendors:</span>
-                                            <span className="font-semibold">{group.orders?.length || 0}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Individual Orders in Group */}
-                                    <div className="space-y-4">
-                                        <h4 className="font-medium text-gray-900 mb-3">Individual Orders:</h4>
-                                        {group.orders?.map((order) => (
-                                            <div key={order._id} className="border border-gray-200 rounded-md p-4">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <span className="font-medium">
-                                                        {order.vendor?.storeName}
-                                                    </span>
-                                                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(order.status)}`}>
-                                                        {order.status}
-                                                    </span>
-                                                </div>
-                                                
-                                                <div className="text-sm text-gray-600">
-                                                    {order.items?.length || 0} items • ₦{order.totalPrice}
-                                                </div>
+                ) : orders.length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                        <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
+                        <p className="text-gray-600 mb-6">
+                            {filter === 'all' 
+                                ? "You haven't placed any orders yet." 
+                                : `No ${filter} orders found.`}
+                        </p>
+                        <Link
+                            to="/products"
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                        >
+                            Start Shopping
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {orders.map((order) => {
+                            const vendorStatusCount = getVendorStatusCount(order.vendorOrders);
+                            return (
+                                <Link
+                                    key={order._id}
+                                    to={`/orders/${order._id}`}
+                                    className="block bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all"
+                                >
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            {getStatusIcon(order.overallStatus)}
+                                            <div>
+                                                <p className="font-semibold text-gray-900">
+                                                    Order #{order.orderNumber}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {new Date(order.createdAt).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </p>
                                             </div>
+                                        </div>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.overallStatus)}`}>
+                                            {order.overallStatus.replace('_', ' ')}
+                                        </span>
+                                    </div>
+
+                                    {/* Vendor order statuses */}
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {order.vendorOrders?.map((vo) => (
+                                            <span
+                                                key={vo.vendorId}
+                                                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                                            >
+                                                {vo.vendorName}: {vo.status.replace('_', ' ')}
+                                            </span>
                                         ))}
                                     </div>
 
-                                    {/* Group Delivery Info */}
-                                    {group.deliveryAddress && (
-                                        <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                                            <div className="flex items-start">
-                                                <MapPin className="w-4 h-4 text-gray-400 mr-2 mt-1 flex-shrink-0" />
-                                                <div>
-                                                    <span className="font-medium">Delivery Address:</span>
-                                                    <div className="text-gray-600 mt-1">
-                                                        <p>{group.deliveryAddress.street}</p>
-                                                        <p>{group.deliveryAddress.city}, {group.deliveryAddress.state}</p>
-                                                        <p>{group.deliveryAddress.zipCode}</p>
-                                                        {group.deliveryAddress.phone && (
-                                                            <p>Phone: {group.deliveryAddress.phone}</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                                        <div className="text-sm text-gray-600">
+                                            {order.orderSummary?.totalItems || order.vendorOrders?.reduce((sum, vo) => sum + vo.items.length, 0)} items
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className="font-semibold text-lg text-gray-900">
+                                                ETB {order.orderSummary?.grandTotal?.toFixed(2) || '0.00'}
+                                            </span>
+                                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                                        </div>
                                     </div>
-                                </div>
-                            ))
-                        )}
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
             </div>

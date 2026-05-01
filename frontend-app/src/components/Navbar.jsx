@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart, ShoppingCart, Package } from 'lucide-react';
 import Notifications from './Notifications.jsx';
 
 const Navbar = () => {
@@ -72,6 +72,15 @@ const Navbar = () => {
                                 )}
                             </Link>
                         )}
+
+                        {isAuthenticated && (
+    <Link
+        to="/orders"
+        className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+    >
+        My Orders
+    </Link>
+)}
                         
                         {isAuthenticated && user?.role === 'vendor' && (
                             <Link
@@ -90,6 +99,16 @@ const Navbar = () => {
                                 Vendor Dashboard
                             </Link>
                         )}
+
+                        {isAuthenticated && user?.role === 'vendor' && (
+    <Link
+        to="/vendor/orders"
+        className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center"
+    >
+        <Package className="w-4 h-4 mr-1" />
+        Orders
+    </Link>
+)}
                         
                         {isAuthenticated && user?.role === 'admin' && (
                             <Link

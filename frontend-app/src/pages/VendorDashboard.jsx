@@ -345,6 +345,13 @@ const VendorDashboard = () => {
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-8">Vendor Dashboard</h1>
+                    <Link
+    to="/vendor/orders"
+    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 inline-flex items-center"
+>
+    <Package className="w-4 h-4 mr-2" />
+    Manage Orders
+</Link>
                     <VendorApplicationForm 
                         onSubmit={handleVendorApplicationSubmit} 
                         loading={loading}

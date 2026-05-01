@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import FloatingVendorButton from './components/FloatingVendorButton';
 
+
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -20,6 +21,11 @@ import Wishlist from './pages/Wishlist';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
+import Orders from './pages/Orders';
+import OrderDetail from './pages/orderDetail';
+import VendorOrders from './pages/VendorOrders';
+import VendorOrderDetail from './pages/VendorOrderDetail';
+
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -68,7 +74,19 @@ function App() {
                                 <Route path="/wishlist" element={<Wishlist />} />
                                 <Route path="/cart" element={<Cart />} />
                                 <Route path="/checkout" element={<Checkout />} />
+                                <Route path="/orders" element={<Orders />} />
+                                <Route path="/orders/:orderId" element={<OrderDetail />} />
                                 <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                                <Route path="/vendor/orders" element={
+    <ErrorBoundary>
+        <VendorOrders />
+    </ErrorBoundary>
+} />
+<Route path="/vendor/orders/:orderId" element={
+    <ErrorBoundary>
+        <VendorOrderDetail />
+    </ErrorBoundary>
+} />
                                 <Route path="/admin/dashboard" element={
                                     <ErrorBoundary>
                                         <AdminDashboard />

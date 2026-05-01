@@ -1,42 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../hooks/useCart';
 import { useOrder } from '../hooks/useOrder';
-import { useAuth } from '../context/AuthContext';
 import { 
+    ArrowLeft, 
     MapPin, 
     Phone, 
-    Truck, 
-    Package, 
     CreditCard, 
-    ArrowLeft,
-    CheckCircle,
-    AlertCircle
+    ShoppingBag, 
+    Truck, 
+    Store,
+    AlertTriangle 
 } from 'lucide-react';
 
 const Checkout = () => {
+    const { user, isAuthenticated } = useAuth();
+    const { items, totalQuantity, subtotal, discountAmount, total, coupon, loadCart } = useCart();
+    const { createOrder, validateCart, loading } = useOrder();
     const navigate = useNavigate();
-    const { cart, clearCart } = useCart();
-    const { analyzeCart, checkout, loading: orderLoading } = useOrder();
-    const { isAuthenticated } = useAuth();
 
-    const [cartAnalysis, setCartAnalysis] = useState(null);
-    const [analyzing, setAnalyzing] = useState(false);
-    const [checkoutStep, setCheckoutStep] = useState('address');
-    const [deliveryInfo, setDeliveryInfo] = useState({
-        type: 'delivery',
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            country: 'Nigeria',
-            phone: '',
-            instructions: ''
-        }
+    const [formData, setFormData] = useState({
+        phone: user?.phone || '',
+        deliveryAddress: '',
+        landmark: '',
+        city: 'Addis Ababa',
+        state: 'Addis Ababa',
+        deliveryInstructions: '',
+        paymentMethod: 'cash_on_delivery',
+        notes: ''
     });
-    const [paymentMethod, setPaymentMethod] = useState('cash_on_delivery');
-    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
+    const [cartValidation, setCartValidation] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -44,374 +40,356 @@ const Checkout = () => {
             return;
         }
 
-        if (cart.items.length === 0) {
+        if (items.length === 0) {
             navigate('/cart');
             return;
         }
 
-        analyzeCartForCheckout();
-    }, [cart.items, isAuthenticated]);
+        validateCartBeforeCheckout();
+    }, [isAuthenticated, items]);
 
-    const analyzeCartForCheckout = async () => {
+    const validateCartBeforeCheckout = async () => {
         try {
-            setAnalyzing(true);
-            const analysis = await analyzeCart();
-            setCartAnalysis(analysis);
-            console.log('Cart analysis:', analysis);
+            const result = await validateCart();
+            if (result.success) {
+                setCartValidation(result.data);
+                if (!result.data.valid) {
+                    setErrors(prev => ({
+                        ...prev,
+                        cart: result.data.message || 'Your cart has issues that need attention'
+                    }));
+                }
+            }
         } catch (err) {
-            setError('Failed to analyze cart');
-            console.error('Cart analysis error:', err);
-        } finally {
-            setAnalyzing(false);
+            console.error('Cart validation failed:', err);
         }
     };
 
-    const handleAddressChange = (field, value) => {
-        setDeliveryInfo(prev => ({
-            ...prev,
-            address: {
-                ...prev.address,
-                [field]: value
-            }
-        }));
+    // Group items by vendor
+    const vendorGroups = items.reduce((groups, item) => {
+        const vendorId = item.vendorId?._id || item.vendorId;
+        const vendorName = item.vendorId?.storeName || item.vendorName || 'Unknown Vendor';
+        
+        if (!groups[vendorId]) {
+            groups[vendorId] = {
+                vendorId,
+                vendorName,
+                items: [],
+                subtotal: 0
+            };
+        }
+        groups[vendorId].items.push(item);
+        groups[vendorId].subtotal += item.price * item.quantity;
+        return groups;
+    }, {});
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
     };
 
-    const validateDeliveryInfo = () => {
-        if (deliveryInfo.type === 'delivery') {
-            const { street, city, state, phone } = deliveryInfo.address;
-            if (!street || !city || !state || !phone) {
-                setError('Please complete all delivery address fields');
-                return false;
-            }
-        }
-        return true;
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+        if (!formData.deliveryAddress.trim()) newErrors.deliveryAddress = 'Delivery address is required';
+        if (!formData.city.trim()) newErrors.city = 'City is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-    const handleCheckout = async () => {
-        if (!validateDeliveryInfo()) {
-            return;
-        }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
 
+        setSubmitting(true);
         try {
-            setError(null);
-            const result = await checkout({
-                deliveryInfo,
-                paymentMethod
+            const result = await createOrder({
+                name: user?.name,
+                email: user?.email,
+                ...formData
             });
 
-            console.log('Checkout result:', result);
-
-            // Clear cart after successful checkout
-            await clearCart();
-
-            // Navigate to success page
-            if (result.orders) {
-                // Multi-vendor checkout
-                navigate('/checkout/success', { 
-                    state: { 
-                        orderGroup: result.orderGroup,
-                        orders: result.orders,
-                        isMultiVendor: true 
-                    } 
-                });
+            if (result.success) {
+                navigate(`/checkout/success?orderId=${result.data._id}&orderNumber=${result.data.orderNumber}`);
             } else {
-                // Single vendor checkout
-                navigate('/checkout/success', { 
-                    state: { 
-                        order: result.order,
-                        isMultiVendor: false 
-                    } 
-                });
+                setErrors({ submit: result.message });
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Checkout failed');
-            console.error('Checkout error:', err);
+            setErrors({ submit: 'Failed to place order. Please try again.' });
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    if (analyzing) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Analyzing your cart...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!cartAnalysis) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading checkout...</p>
-                </div>
-            </div>
-        );
-    }
+    if (items.length === 0) return null;
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <button
-                        onClick={() => navigate('/cart')}
-                        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-                    >
-                        <ArrowLeft className="w-5 h-5 mr-2" />
+                    <Link to="/cart" className="flex items-center text-gray-600 hover:text-gray-900 mb-4">
+                        <ArrowLeft className="w-5 h-5 mr-1" />
                         Back to Cart
-                    </button>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Checkout
-                        {cartAnalysis.isMultiVendor && (
-                            <span className="ml-3 text-lg font-normal text-orange-600">
-                                (Multiple Vendors)
-                            </span>
-                        )}
-                    </h1>
+                    </Link>
+                    <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
                 </div>
 
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-                        {error}
+                {/* Cart Validation Warning */}
+                {cartValidation && !cartValidation.valid && (
+                    <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3 mt-0.5" />
+                        <div>
+                            <h3 className="font-semibold text-yellow-800">Cart Validation Issues</h3>
+                            <p className="text-yellow-700 text-sm mt-1">{cartValidation.message}</p>
+                            {cartValidation.issues?.length > 0 && (
+                                <ul className="mt-2 space-y-1">
+                                    {cartValidation.issues.map((issue, idx) => (
+                                        <li key={idx} className="text-sm text-yellow-700">• {issue.message}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Order Summary */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
-                            
-                            {cartAnalysis.vendors.map((vendor, index) => (
-                                <div key={vendor.vendorId} className="mb-6 pb-6 border-b border-gray-200 last:border-0">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-lg font-medium text-gray-900">
-                                            {vendor.vendorName}
-                                        </h3>
-                                        <span className="text-sm text-gray-500">
-                                            {vendor.totalQuantity} items
-                                        </span>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        {vendor.items.map((item, itemIndex) => (
-                                            <div key={itemIndex} className="flex justify-between text-sm">
-                                                <span className="text-gray-600">
-                                                    {item.quantity} × {item.name}
-                                                </span>
-                                                <span className="font-medium">
-                                                    ₦{item.price * item.quantity}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    
-                                    <div className="flex justify-between pt-3 border-t border-gray-100">
-                                        <span className="font-medium">Subtotal:</span>
-                                        <span className="font-semibold">₦{vendor.subtotal}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                {errors.submit && (
+                    <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-700">{errors.submit}</p>
                     </div>
+                )}
 
-                    {/* Delivery & Payment */}
-                    <div className="space-y-6">
-                        {/* Delivery Information */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                <Truck className="w-5 h-5 mr-2" />
-                                Delivery Information
-                            </h2>
-                            
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Delivery Type
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            onClick={() => setDeliveryInfo(prev => ({ ...prev, type: 'delivery' }))}
-                                            className={`p-3 border rounded-lg flex items-center justify-center transition-colors ${
-                                                deliveryInfo.type === 'delivery'
-                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                                            }`}
-                                        >
-                                            <Truck className="w-5 h-5 mr-2" />
-                                            Delivery
-                                        </button>
-                                        <button
-                                            onClick={() => setDeliveryInfo(prev => ({ ...prev, type: 'pickup' }))}
-                                            className={`p-3 border rounded-lg flex items-center justify-center transition-colors ${
-                                                deliveryInfo.type === 'pickup'
-                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                    : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                                            }`}
-                                        >
-                                            <Package className="w-5 h-5 mr-2" />
-                                            Pickup
-                                        </button>
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column - Delivery & Payment Info */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Delivery Information */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                    <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                                    Delivery Information
+                                </h2>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Phone Number *
+                                        </label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                                            <input
+                                                type="tel"
+                                                name="phone"
+                                                value={formData.phone}
+                                                onChange={handleInputChange}
+                                                placeholder="+251 91 234 5678"
+                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </div>
+                                        {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                                     </div>
-                                </div>
 
-                                {deliveryInfo.type === 'delivery' && (
-                                    <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Delivery Address *
+                                        </label>
+                                        <textarea
+                                            name="deliveryAddress"
+                                            value={formData.deliveryAddress}
+                                            onChange={handleInputChange}
+                                            rows="2"
+                                            placeholder="Dormitory Block A, Room 123, AAU Main Campus"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                        {errors.deliveryAddress && <p className="text-red-500 text-sm mt-1">{errors.deliveryAddress}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Landmark (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="landmark"
+                                            value={formData.landmark}
+                                            onChange={handleInputChange}
+                                            placeholder="Near the main cafeteria"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Street Address
+                                                City *
                                             </label>
                                             <input
                                                 type="text"
-                                                value={deliveryInfo.address.street}
-                                                onChange={(e) => handleAddressChange('street', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="123 Main Street"
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
+                                            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                                         </div>
-                                        
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    City
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={deliveryInfo.address.city}
-                                                    onChange={(e) => handleAddressChange('city', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Lagos"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    State
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={deliveryInfo.address.state}
-                                                    onChange={(e) => handleAddressChange('state', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="Lagos State"
-                                                />
-                                            </div>
-                                        </div>
-                                        
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Phone Number
+                                                State
                                             </label>
                                             <input
-                                                type="tel"
-                                                value={deliveryInfo.address.phone}
-                                                onChange={(e) => handleAddressChange('phone', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="+234 800 000 0000"
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Delivery Instructions (Optional)
-                                            </label>
-                                            <textarea
-                                                value={deliveryInfo.address.instructions}
-                                                onChange={(e) => handleAddressChange('instructions', e.target.value)}
-                                                rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Leave at gate, call when arriving..."
+                                                type="text"
+                                                name="state"
+                                                value={formData.state}
+                                                onChange={handleInputChange}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Payment Method */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                <CreditCard className="w-5 h-5 mr-2" />
-                                Payment Method
-                            </h2>
-                            
-                            <div className="space-y-3">
-                                <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                                    <input
-                                        type="radio"
-                                        name="paymentMethod"
-                                        value="cash_on_delivery"
-                                        checked={paymentMethod === 'cash_on_delivery'}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        className="mr-3"
-                                    />
                                     <div>
-                                        <div className="font-medium">Cash on Delivery</div>
-                                        <div className="text-sm text-gray-500">Pay when you receive your items</div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Delivery Instructions (Optional)
+                                        </label>
+                                        <textarea
+                                            name="deliveryInstructions"
+                                            value={formData.deliveryInstructions}
+                                            onChange={handleInputChange}
+                                            rows="2"
+                                            placeholder="Call when you arrive, 2nd floor, leave at reception..."
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
                                     </div>
-                                </label>
+                                </div>
+                            </div>
+
+                            {/* Payment Method */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                    <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+                                    Payment Method
+                                </h2>
+                                
+                                <div className="space-y-3">
+                                    {[
+                                        { value: 'cash_on_delivery', label: 'Cash on Delivery', icon: Truck, desc: 'Pay when you receive your order' },
+                                        { value: 'mobile_money', label: 'Mobile Money', icon: CreditCard, desc: 'Pay using mobile money services' },
+                                    ].map((method) => (
+                                        <label
+                                            key={method.value}
+                                            className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
+                                                formData.paymentMethod === method.value
+                                                    ? 'border-blue-500 bg-blue-50'
+                                                    : 'border-gray-300 hover:border-gray-400'
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="paymentMethod"
+                                                value={method.value}
+                                                checked={formData.paymentMethod === method.value}
+                                                onChange={handleInputChange}
+                                                className="mr-3"
+                                            />
+                                            <method.icon className="w-5 h-5 mr-3 text-gray-600" />
+                                            <div>
+                                                <p className="font-medium text-gray-900">{method.label}</p>
+                                                <p className="text-sm text-gray-500">{method.desc}</p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Additional Notes */}
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                    <ShoppingBag className="w-5 h-5 mr-2 text-blue-600" />
+                                    Additional Notes (Optional)
+                                </h2>
+                                <textarea
+                                    name="notes"
+                                    value={formData.notes}
+                                    onChange={handleInputChange}
+                                    rows="2"
+                                    placeholder="Any special instructions for your order..."
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
                             </div>
                         </div>
 
-                        {/* Order Total */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Total</h2>
-                            
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Subtotal:</span>
-                                    <span>₦{cartAnalysis.cartTotal}</span>
-                                </div>
+                        {/* Right Column - Order Summary */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
                                 
-                                {deliveryInfo.type === 'delivery' && (
-                                    <div className="flex justify-between text-sm">
-                                        <span>Delivery Fee:</span>
-                                        <span>
-                                            ₦{cartAnalysis.vendors.reduce((sum, vendor) => 
-                                                sum + (vendor.subtotal >= 5000 ? 0 : 
-                                                    vendor.subtotal >= 2000 ? 200 : 
-                                                    vendor.subtotal >= 1000 ? 300 : 500), 0
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
-                                
-                                <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-                                    <span>Total:</span>
-                                    <span>₦{
-                                        cartAnalysis.cartTotal + 
-                                        (deliveryInfo.type === 'delivery' ? 
-                                            cartAnalysis.vendors.reduce((sum, vendor) => 
-                                                sum + (vendor.subtotal >= 5000 ? 0 : 
-                                                    vendor.subtotal >= 2000 ? 200 : 
-                                                    vendor.subtotal >= 1000 ? 300 : 500), 0
-                                            ) : 0)
-                                    }</span>
+                                {/* Vendor Groups */}
+                                <div className="space-y-4 mb-4">
+                                    {Object.values(vendorGroups).map((group) => (
+                                        <div key={group.vendorId} className="border border-gray-200 rounded-lg p-3">
+                                            <div className="flex items-center text-sm font-medium text-gray-900 mb-2">
+                                                <Store className="w-4 h-4 mr-1 text-gray-500" />
+                                                {group.vendorName}
+                                            </div>
+                                            {group.items.map((item) => (
+                                                <div key={item._id} className="flex justify-between text-sm py-1">
+                                                    <span className="text-gray-600 truncate flex-1">
+                                                        {item.name} x{item.quantity}
+                                                    </span>
+                                                    <span className="text-gray-900 ml-2">
+                                                        ETB {(item.price * item.quantity).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
 
-                            <button
-                                onClick={handleCheckout}
-                                disabled={orderLoading}
-                                className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-                            >
-                                {orderLoading ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                                        Processing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        Place Order
-                                    </>
-                                )}
-                            </button>
+                                {/* Price Breakdown */}
+                                <div className="space-y-2 border-t border-gray-200 pt-4">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Subtotal ({totalQuantity} items)</span>
+                                        <span>ETB {subtotal.toFixed(2)}</span>
+                                    </div>
+                                    {discountAmount > 0 && (
+                                        <div className="flex justify-between text-sm text-green-600">
+                                            <span>Discount {coupon?.code && `(${coupon.code})`}</span>
+                                            <span>-ETB {discountAmount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600">Delivery Fee</span>
+                                        <span>Calculated per vendor</span>
+                                    </div>
+                                    <div className="flex justify-between font-bold text-lg border-t border-gray-200 pt-2">
+                                        <span>Total</span>
+                                        <span className="text-blue-600">ETB {total.toFixed(2)}</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={submitting || (cartValidation && !cartValidation.valid)}
+                                    className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {submitting ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Placing Order...
+                                        </span>
+                                    ) : (
+                                        `Place Order - ETB ${total.toFixed(2)}`
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     );
