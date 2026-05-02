@@ -137,3 +137,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Uploads and media files (sensitive data)
+uploads/
+backend/uploads/
+frontend-app/public/uploads/
+**/uploads/
+
+# Temporary files
+temp/
+tmp/

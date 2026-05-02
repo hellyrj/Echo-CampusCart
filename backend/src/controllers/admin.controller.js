@@ -1,0 +1,130 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendResponse } from "../utils/apiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { AdminVendorService } from "../services/admin.service.js";
+
+export class AdminVendorController {
+  constructor(adminVendorSer = new AdminVendorService()) {
+    this.adminVendorSer = adminVendorSer;
+  }
+
+  // Get system statistics
+  getSystemStats = asyncHandler(async (req, res, next) => {
+    console.log('Getting system statistics...');
+    
+    const stats = await this.adminVendorSer.getSystemStats();
+    
+    sendResponse(res, 200, "System statistics fetched successfully", stats);
+  });
+
+  // Get all vendor applications with optional status filter
+  getVendorApplications = asyncHandler(async (req, res, next) => {
+    const { status } = req.query;
+    
+    const applications = await this.adminVendorSer.getVendorApplications(status);
+    
+    sendResponse(res, 200, "Vendor applications fetched successfully", {
+      total: applications.length,
+      applications
+    });
+  });
+
+  // Get single vendor details
+  getVendorDetails = asyncHandler(async (req, res, next) => {
+    const { vendorId } = req.params;
+    
+    const vendor = await this.adminVendorSer.getVendorDetails(vendorId);
+    
+    sendResponse(res, 200, "Vendor details fetched successfully", vendor);
+  });
+
+  // Get all vendors with filters
+  getAllVendors = asyncHandler(async (req, res, next) => {
+    const { isApproved, isActive } = req.query;
+    
+    const filters = {};
+    if (isApproved !== undefined) filters.isApproved = isApproved === 'true';
+    if (isActive !== undefined) filters.isActive = isActive === 'true';
+    
+    const vendors = await this.adminVendorSer.getAllVendors(filters);
+    
+    sendResponse(res, 200, "Vendors fetched successfully", {
+      total: vendors.length,
+      vendors
+    });
+  });
+
+  // Approve vendor application
+  approveVendorApplication = asyncHandler(async (req, res, next) => {
+    const adminUserId = req.user._id;
+    const { vendorId } = req.params;
+    
+    const approvedVendor = await this.adminVendorSer.approveVendorApplication(
+      adminUserId,
+      vendorId
+    );
+    
+    sendResponse(res, 200, "Vendor application approved successfully", approvedVendor);
+  });
+
+  // Reject vendor application
+  rejectVendorApplication = asyncHandler(async (req, res, next) => {
+    console.log('=== Backend Reject Debug ===');
+    console.log('Request body:', req.body);
+    console.log('Request params:', req.params);
+    console.log('Admin user ID:', req.user?._id);
+    
+    const adminUserId = req.user._id;
+    const { vendorId } = req.params;
+    const { rejectionReason } = req.body;
+    
+    console.log('Extracted data:', { adminUserId, vendorId, rejectionReason });
+    
+    const rejectedVendor = await this.adminVendorSer.rejectVendorApplication(
+      adminUserId,
+      vendorId,
+      rejectionReason
+    );
+    
+    console.log('Vendor rejected successfully:', rejectedVendor.storeName);
+    
+    sendResponse(res, 200, "Vendor application rejected successfully", rejectedVendor);
+  });
+
+  // Fix vendor user roles (utility endpoint)
+  fixVendorUserRoles = asyncHandler(async (req, res, next) => {
+    const result = await this.adminVendorSer.fixVendorUserRoles();
+    
+    sendResponse(res, 200, "Vendor user roles fix completed", result);
+  });
+
+  // Toggle vendor active status
+  toggleVendorStatus = asyncHandler(async (req, res, next) => {
+    const { vendorId } = req.params;
+    const { isActive } = req.body;
+    
+    if (isActive === undefined) {
+      throw new ApiError(400, "isActive field is required");
+    }
+    
+    const updatedVendor = await this.adminVendorSer.toggleVendorStatus(vendorId, isActive);
+    
+    const message = isActive ? "Vendor activated successfully" : "Vendor deactivated successfully";
+    sendResponse(res, 200, message, updatedVendor);
+  });
+
+  // Delete vendor completely
+  deleteVendor = asyncHandler(async (req, res, next) => {
+    const { vendorId } = req.params;
+    const { confirmation } = req.body;
+    
+    // Require explicit confirmation for safety
+    if (!confirmation || confirmation !== 'DELETE') {
+      throw new ApiError(400, "Must provide 'DELETE' confirmation to delete vendor");
+    }
+    
+    const result = await this.adminVendorSer.deleteVendor(vendorId);
+    
+    sendResponse(res, 200, "Vendor deleted successfully", result);
+  });
+}

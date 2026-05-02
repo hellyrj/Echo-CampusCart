@@ -7,7 +7,7 @@ export class ReviewController {
         this.reviewService = new ReviewService();
     }
 
-    createReview = asyncHandler(async (req, res) => {
+    createReview = asyncHandler(async (req, res, next) => {
         const { productId, rating, comment } = req.body;
         const review = await this.reviewService.createReview(
             req.user.id,
@@ -19,17 +19,17 @@ export class ReviewController {
         sendResponse(res, 201, "Review created successfully", review);
     });
 
-    getProductReviews = asyncHandler(async (req, res) => {
+    getProductReviews = asyncHandler(async (req, res, next) => {
         const reviews = await this.reviewService.getProductReviews(req.params.productId);
         sendResponse(res, 200, "Product reviews fetched successfully", reviews);
     });
 
-    getReviewById = asyncHandler(async (req, res) => {
+    getReviewById = asyncHandler(async (req, res, next) => {
         const review = await this.reviewService.getReviewById(req.params.id);
         sendResponse(res, 200, "Review fetched successfully", review);
     });
 
-    updateReview = asyncHandler(async (req, res) => {
+    updateReview = asyncHandler(async (req, res, next) => {
         const updated = await this.reviewService.updateReview(
             req.params.id, 
             req.user.id, 
@@ -38,7 +38,7 @@ export class ReviewController {
         sendResponse(res, 200, "Review updated successfully", updated);
     });
 
-    deleteReview = asyncHandler(async (req, res) => {
+    deleteReview = asyncHandler(async (req, res, next) => {
         const result = await this.reviewService.deleteReview(
             req.params.id, 
             req.user.id
@@ -46,7 +46,7 @@ export class ReviewController {
         sendResponse(res, 200, "Review deleted successfully", result);
     });
 
-    getUserReviews = asyncHandler(async (req, res) => {
+    getUserReviews = asyncHandler(async (req, res, next) => {
         const reviews = await this.reviewService.getUserReviews(req.user.id);
         sendResponse(res, 200, "User reviews fetched successfully", reviews);
     });

@@ -27,6 +27,43 @@ const vendorSchema = new mongoose.Schema ({
      required: true
     },
 
+    // Enhanced location fields for place-based addressing
+    locationDetails: {
+        placeName: {
+            type: String,
+            required: true
+        },
+        fullAddress: {
+            type: String,
+            required: true
+        },
+        landmark: {
+            type: String,
+            default: null
+        },
+        area: {
+            type: String,
+            default: null
+        },
+        city: {
+            type: String,
+            required: true
+        },
+        state: {
+            type: String,
+            required: true
+        },
+        postalCode: {
+            type: String,
+            default: null
+        },
+        country: {
+            type: String,
+            required: true,
+            default: "Ethiopia"
+        }
+    },
+
     phone: {
         type: String,
         required: true
@@ -35,6 +72,65 @@ const vendorSchema = new mongoose.Schema ({
     logo: {
         type: String,
         default: null
+    },
+
+    // Legal documents
+    legalDocuments: [{
+        documentType: {
+            type: String,
+            enum: ['business_license', 'tax_certificate', 'health_permit', 'other'],
+            required: true
+        },
+        fileId: {
+            type: String,
+            required: false
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+
+    // Admin approval fields
+    isApproved: {
+        type: Boolean,
+        default: false
+    },
+
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+
+    approvedAt: {
+        type: Date,
+        default: null
+    },
+
+    rejectionReason: {
+        type: String,
+        default: null
+    },
+
+    // Vendor type classification
+    vendorType: {
+        type: String,
+        enum: ['products', 'services', 'both'],
+        required: true,
+        default: 'products'
+    },
+
+    // University proximity
+    universityNear: {
+        type: String,
+        required: true
     },
 
     location: {
@@ -50,7 +146,7 @@ const vendorSchema = new mongoose.Schema ({
       }
     },
 
-    delivaryAvailable: {
+    deliveryAvailable: {
         type: Boolean,
         default: true
     },
