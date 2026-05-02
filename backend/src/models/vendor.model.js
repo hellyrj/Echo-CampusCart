@@ -119,6 +119,14 @@ const vendorSchema = new mongoose.Schema ({
         default: null
     },
 
+    // Vendor type classification
+    vendorType: {
+        type: String,
+        enum: ['products', 'services', 'both'],
+        required: true,
+        default: 'products'
+    },
+
     // University proximity
     universityNear: {
         type: String,

@@ -13,6 +13,7 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         address: '',
         phone: '',
         universityNear: '',
+        vendorType: 'products', // New field for vendor type
         legalDocuments: [],
         // New location fields
         placeName: '',
@@ -248,6 +249,7 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         formDataToSend.append('address', formData.address);
         formDataToSend.append('phone', formData.phone);
         formDataToSend.append('universityNear', formData.universityNear);
+        formDataToSend.append('vendorType', formData.vendorType);
         
         // Add delivery options
         formDataToSend.append('deliveryAvailable', formData.deliveryAvailable);
@@ -315,6 +317,57 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                     {errors.storeName && (
                         <p className="mt-1 text-sm text-red-600">{errors.storeName}</p>
                     )}
+                </div>
+
+                {/* Vendor Type */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        What will you offer? *
+                    </label>
+                    <div className="space-y-3">
+                        <div className="flex items-center">
+                            <input
+                                type="radio"
+                                name="vendorType"
+                                value="products"
+                                checked={formData.vendorType === 'products'}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            />
+                            <label htmlFor="products" className="ml-2 text-sm text-gray-700">
+                                <span className="font-medium">Products</span> - Physical items students can buy
+                            </label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="radio"
+                                name="vendorType"
+                                value="services"
+                                checked={formData.vendorType === 'services'}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            />
+                            <label htmlFor="services" className="ml-2 text-sm text-gray-700">
+                                <span className="font-medium">Services</span> - Services like tutoring, repair, design, etc.
+                            </label>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="radio"
+                                name="vendorType"
+                                value="both"
+                                checked={formData.vendorType === 'both'}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            />
+                            <label htmlFor="both" className="ml-2 text-sm text-gray-700">
+                                <span className="font-medium">Both</span> - Both products and services
+                            </label>
+                        </div>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                        This helps us categorize your business and show you to the right students.
+                    </p>
                 </div>
 
                 {/* Description */}

@@ -23,7 +23,10 @@ axiosInstance.interceptors.request.use(
             '/vendors/universities', 
             '/vendors/categories',
             '/vendors',
-            '/vendors/nearby'
+            '/vendors/nearby',
+            '/services',
+            '/services/search',
+            '/services/categories/list'
         ];
         
         // Check if it's exactly a public endpoint AND GET method

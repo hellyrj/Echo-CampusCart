@@ -3,15 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import { useProductApi } from '../hooks/useProductApi';
+import { useServiceApi } from '../hooks/useServiceApi';
 import { useCategoryApi } from '../hooks/useCategoryApi';
 import VendorApplicationForm from '../components/VendorApplicationForm';
 import ProductForm from '../components/ProductForm';
+import ServiceCreationForm from '../components/ServiceCreationForm';
 import VendorProfile from '../components/VendorProfile';
 
 const VendorDashboard = () => {
     const { user, isAuthenticated } = useAuth();
     
     const { getVendorProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
+    const { getMyServices, createService, updateService, deleteService } = useServiceApi();
     const { getCategories } = useCategoryApi();
     const { 
         getMyVendorProfile, 
@@ -25,9 +28,12 @@ const VendorDashboard = () => {
     const [vendor, setVendor] = useState(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [products, setProducts] = useState([]);
+    const [services, setServices] = useState([]);
     const [categories, setCategories] = useState([]);
     const [showProductForm, setShowProductForm] = useState(false);
+    const [showServiceForm, setShowServiceForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [editingService, setEditingService] = useState(null);
     const [applicationStatus, setApplicationStatus] = useState('none'); // 'none', 'pending', 'approved', 'rejected'
     const [applicationData, setApplicationData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -36,6 +42,7 @@ const VendorDashboard = () => {
         checkVendorStatus();
         if (user?.role === 'vendor') {
             fetchUserProducts();
+            fetchUserServices();
             loadCategories();
         }
     }, [user]);
@@ -110,6 +117,18 @@ const VendorDashboard = () => {
             }
         } catch (error) {
             console.error('Error fetching user products:', error);
+        }
+    };
+
+    const fetchUserServices = async () => {
+        try {
+            const result = await getMyServices();
+            if (result.success) {
+                const servicesData = result.data?.services || result.data || [];
+                setServices(Array.isArray(servicesData) ? servicesData : []);
+            }
+        } catch (error) {
+            console.error('Error fetching user services:', error);
         }
     };
 
@@ -221,6 +240,67 @@ const VendorDashboard = () => {
                 alert('Failed to delete product. Please try again.');
             }
         }
+    };
+
+    // Service handlers
+    const handleCreateService = async (serviceData) => {
+        try {
+            const result = await createService(serviceData);
+            if (result.success) {
+                setShowServiceForm(false);
+                fetchUserServices();
+                alert('Service created successfully!');
+            } else {
+                alert(`Failed to create service: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error creating service:', error);
+            alert('Failed to create service. Please try again.');
+        }
+    };
+
+    const handleUpdateService = async (serviceData) => {
+        try {
+            const result = await updateService(editingService._id, serviceData);
+            if (result.success) {
+                setEditingService(null);
+                setShowServiceForm(false);
+                fetchUserServices();
+                alert('Service updated successfully!');
+            } else {
+                alert(`Failed to update service: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error updating service:', error);
+            alert('Failed to update service. Please try again.');
+        }
+    };
+
+    const handleDeleteService = async (serviceId) => {
+        if (window.confirm('Are you sure you want to delete this service?')) {
+            try {
+                const result = await deleteService(serviceId);
+                if (result.success) {
+                    fetchUserServices();
+                    alert('Service deleted successfully!');
+                } else {
+                    alert(`Failed to delete service: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('Error deleting service:', error);
+                alert('Failed to delete service. Please try again.');
+            }
+        }
+    };
+
+    const handleEditService = (service) => {
+        setEditingService(service);
+        setShowServiceForm(true);
+    };
+
+    const handleCancelServiceForm = () => {
+        setShowServiceForm(false);
+        setEditingService(null);
     };
 
     const handleUpdateVendorProfile = async (profileData) => {
@@ -400,9 +480,18 @@ const VendorDashboard = () => {
                         />
                     </div>
                     
-                    {/* Right Column - Products */}
+                    {/* Right Column - Products/Services based on vendorType */}
                     <div className="lg:col-span-2">
-                        {showProductForm ? (
+                        {/* Service Form */}
+                        {showServiceForm ? (
+                            <ServiceCreationForm
+                                onSubmit={editingService ? handleUpdateService : handleCreateService}
+                                onCancel={handleCancelServiceForm}
+                                loading={vendorLoading}
+                                initialData={editingService}
+                            />
+                        ) : showProductForm ? (
+                            /* Product Form */
                             <ProductForm
                                 product={editingProduct}
                                 onSubmit={handleProductSubmit}
@@ -411,81 +500,197 @@ const VendorDashboard = () => {
                                 categories={categories}
                             />
                         ) : (
-                            <div className="bg-white rounded-lg shadow-md p-6">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
-                                    <button
-                                        onClick={() => setShowProductForm(true)}
-                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                    >
-                                        Add New Product
-                                    </button>
-                                </div>
+                            <>
+                                {/* Products Section */}
+                                {(vendor?.vendorType === 'products' || vendor?.vendorType === 'both') && (
+                                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
+                                            <button
+                                                onClick={() => setShowProductForm(true)}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                            >
+                                                Add New Product
+                                            </button>
+                                        </div>
 
-                                {products.length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <p className="text-gray-600">You haven't added any products yet.</p>
-                                        <button
-                                            onClick={() => setShowProductForm(true)}
-                                            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                        >
-                                            Add Your First Product
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {products.map((product) => (
-                                            <div key={product._id} className="bg-gray-50 rounded-lg overflow-hidden">
-                                                {/* Product Image */}
-                                                <div className="h-48 bg-gray-200">
-                                                    <img
-                                                        src={product.images && product.images.length > 0 
-                                                            ? product.images[0].url 
-                                                            : 'https://via.placeholder.com/300x200?text=Product'}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
-                                                        }}
-                                                    />
-                                                </div>
-                                                
-                                                {/* Product Info */}
-                                                <div className="p-4">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                                            {getCategoryNames(product.categories)}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                                                    <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
-                                                        <span>Price: ${product.basePrice}</span>
-                                                        <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                                            {product.isAvailable ? 'Available' : 'Out of Stock'}
-                                                        </span>
-                                                        <span>Stock: {product.inventory?.totalStock || 0}</span>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => handleEditProduct(product)}
-                                                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteProduct(product._id)}
-                                                            className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                        {products.length === 0 ? (
+                                            <div className="text-center py-12">
+                                                <p className="text-gray-600">You haven't added any products yet.</p>
+                                                <button
+                                                    onClick={() => setShowProductForm(true)}
+                                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                >
+                                                    Add Your First Product
+                                                </button>
                                             </div>
-                                        ))}
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {products.map((product) => (
+                                                    <div key={product._id} className="bg-gray-50 rounded-lg overflow-hidden">
+                                                        {/* Product Image */}
+                                                        <div className="h-48 bg-gray-200">
+                                                            <img
+                                                                src={product.images && product.images.length > 0 
+                                                                    ? product.images[0].url 
+                                                                    : 'https://via.placeholder.com/300x200?text=Product'}
+                                                                alt={product.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        
+                                                        {/* Product Info */}
+                                                        <div className="p-4">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <h3 className="font-semibold text-gray-900">{product.name}</h3>
+                                                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                    {getCategoryNames(product.categories)}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                                                            <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
+                                                                <span>Price: ${product.basePrice}</span>
+                                                                <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    {product.isAvailable ? 'Available' : 'Out of Stock'}
+                                                                </span>
+                                                                <span>Stock: {product.inventory?.totalStock || 0}</span>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleEditProduct(product)}
+                                                                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteProduct(product._id)}
+                                                                    className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
-                            </div>
+
+                                {/* Services Section */}
+                                {(vendor?.vendorType === 'services' || vendor?.vendorType === 'both') && (
+                                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h2 className="text-xl font-semibold text-gray-900">Your Services</h2>
+                                            <button
+                                                onClick={() => setShowServiceForm(true)}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                            >
+                                                Add New Service
+                                            </button>
+                                        </div>
+
+                                        {services.length === 0 ? (
+                                            <div className="text-center py-12">
+                                                <p className="text-gray-600">You haven't added any services yet.</p>
+                                                <button
+                                                    onClick={() => setShowServiceForm(true)}
+                                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                >
+                                                    Add Your First Service
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {services.map((service) => (
+                                                    <div key={service._id} className="bg-gray-50 rounded-lg overflow-hidden">
+                                                        {/* Service Image */}
+                                                        <div className="h-48 bg-gray-200">
+                                                            {service.images && service.images.length > 0 ? (
+                                                                <img
+                                                                    src={service.images[0].startsWith('http') ? service.images[0] : `http://localhost:5000/uploads/${service.images[0]}`}
+                                                                    alt={service.title}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.src = 'https://via.placeholder.com/300x200?text=Service';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-blue-200">
+                                                                    <span className="text-blue-600 text-lg font-medium">Service</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {/* Service Info */}
+                                                        <div className="p-4">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <h3 className="font-semibold text-gray-900">{service.title}</h3>
+                                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                                                    {service.serviceCategory}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+                                                            <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
+                                                                <span>Price: {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}</span>
+                                                                <span className={`px-2 py-1 rounded ${service.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                                    {service.isActive ? 'Active' : 'Inactive'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleEditService(service)}
+                                                                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteService(service._id)}
+                                                                    className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Empty state for vendors with no offerings */}
+                                {vendor?.vendorType && products.length === 0 && services.length === 0 && (
+                                    <div className="text-center py-12 bg-white rounded-lg shadow-md p-6">
+                                        <p className="text-gray-600 mb-4">
+                                            {vendor.vendorType === 'products' ? 'You haven\'t added any products yet.' :
+                                             vendor.vendorType === 'services' ? 'You haven\'t added any services yet.' :
+                                             'You haven\'t added any products or services yet.'}
+                                        </p>
+                                        <div className="flex justify-center gap-4">
+                                            {(vendor.vendorType === 'products' || vendor.vendorType === 'both') && (
+                                                <button
+                                                    onClick={() => setShowProductForm(true)}
+                                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                >
+                                                    Add Product
+                                                </button>
+                                            )}
+                                            {(vendor.vendorType === 'services' || vendor.vendorType === 'both') && (
+                                                <button
+                                                    onClick={() => setShowServiceForm(true)}
+                                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                >
+                                                    Add Service
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

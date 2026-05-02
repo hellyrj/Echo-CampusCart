@@ -19,6 +19,7 @@ import reviewRoutes from "./routes/review.routes.js";
 import wishlistRoutes from './routes/wishlist.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import serviceRoutes from './routes/service.routes.js';
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/services', serviceRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
