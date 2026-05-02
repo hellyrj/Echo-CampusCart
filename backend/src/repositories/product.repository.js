@@ -1,6 +1,7 @@
 import BaseRepository from "./base.repository.js";
 import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
+import Vendor from "../models/vendor.model.js";
 import mongoose from "mongoose";
 
 class ProductRepository extends BaseRepository {
@@ -244,6 +245,29 @@ class ProductRepository extends BaseRepository {
       { $inc: { purchases: 1 } },
       { new: true }
     );
+  }
+
+  async findById(id, options = {}) {
+    console.log('Repository: Finding product by ID:', id);
+    
+    const defaultOptions = {
+      populate: [
+        { path: 'categories', model: Category, strictPopulate: false },
+        { 
+          path: 'vendorId', 
+          select: 'storeName deliveryAvailable pickupAvailable _id isActive universityNear',
+          model: Vendor
+        }
+      ]
+    };
+    
+    const mergedOptions = { ...defaultOptions, ...options };
+    console.log('Repository: Population options:', mergedOptions.populate);
+    
+    const product = await this.model.findById(id).populate(mergedOptions.populate);
+    console.log('Repository: Found product vendorId:', product?.vendorId);
+    
+    return product;
   }
 
   async updateRating(productId, newRating) {

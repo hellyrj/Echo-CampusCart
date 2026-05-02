@@ -47,6 +47,8 @@ router.get("/", controller.getApprovedVendors);
 
 router.get("/nearby", controller.getNearbyVendors);
 
+router.get("/search", controller.searchVendors);
+
 // Get default categories
 router.get("/categories", async (req, res) => {
   try {

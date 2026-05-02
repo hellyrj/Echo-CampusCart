@@ -44,10 +44,10 @@ export class VendorController {
       legalDocuments = [];
     }
     
-    // Process location with geocoding
+    // Process location - prioritize map coordinates, fallback to geocoding
     let location = {
       type: "Point",
-      coordinates: [38.7578, 9.0092] // Addis Ababa, Ethiopia coordinates
+      coordinates: [38.7578, 9.0092] // Addis Ababa, Ethiopia coordinates as fallback
     };
     
     let locationDetails = {
@@ -60,33 +60,55 @@ export class VendorController {
       postalCode: null,
       country: 'Ethiopia'
     };
+
+    // First, try to parse location from frontend map selection
+    if (req.body.location) {
+      try {
+        const parsedLocation = JSON.parse(req.body.location);
+        if (parsedLocation.type === "Point" && Array.isArray(parsedLocation.coordinates)) {
+          location = parsedLocation;
+          console.log('Using map coordinates from frontend:', location);
+        }
+      } catch (error) {
+        console.warn('Failed to parse location from frontend:', error);
+      }
+    }
     
-    // If location details are provided, use geocoding
-    if (req.body.placeName || req.body.fullAddress) {
-      const query = req.body.fullAddress || req.body.placeName || req.body.address;
-      console.log('Geocoding location:', query);
+    // If location details are provided, use them for locationDetails
+    if (req.body.placeName || req.body.fullAddress || req.body.city) {
+      locationDetails = {
+        placeName: req.body.placeName || req.body.storeName || 'Unknown Location',
+        fullAddress: req.body.fullAddress || req.body.address || 'Unknown Address',
+        landmark: req.body.landmark || null,
+        area: req.body.area || null,
+        city: req.body.city || 'Unknown',
+        state: req.body.state || 'Unknown',
+        postalCode: req.body.postalCode || null,
+        country: req.body.country || 'Ethiopia'
+      };
       
-      const geocodeResult = await geocodingService.geocode(query);
-      if (geocodeResult.success) {
-        location = {
-          type: "Point",
-          coordinates: geocodeResult.data.coordinates
-        };
-        locationDetails = geocodeResult.data;
-        console.log('Geocoded location:', locationDetails);
-      } else {
-        console.warn('Geocoding failed, using provided address:', geocodeResult.message);
-        // Use provided address as fallback
-        locationDetails = {
-          placeName: req.body.placeName || req.body.storeName || 'Unknown Location',
-          fullAddress: req.body.fullAddress || req.body.address || 'Unknown Address',
-          landmark: req.body.landmark || null,
-          area: req.body.area || null,
-          city: req.body.city || 'Unknown',
-          state: req.body.state || 'Unknown',
-          postalCode: req.body.postalCode || null,
-          country: req.body.country || 'Ethiopia'
-        };
+      // If we don't have map coordinates, try geocoding
+      if (!req.body.location || location.coordinates[0] === 38.7578) {
+        const query = req.body.fullAddress || req.body.placeName || req.body.address;
+        if (query && query !== 'Unknown Address') {
+          console.log('Geocoding location:', query);
+          
+          try {
+            const geocodeResult = await geocodingService.geocode(query);
+            if (geocodeResult.success) {
+              location = {
+                type: "Point",
+                coordinates: geocodeResult.data.coordinates
+              };
+              locationDetails = { ...locationDetails, ...geocodeResult.data };
+              console.log('Geocoded location:', locationDetails);
+            } else {
+              console.warn('Geocoding failed, using default coordinates:', geocodeResult.message);
+            }
+          } catch (error) {
+            console.warn('Geocoding service error:', error);
+          }
+        }
       }
     }
     
@@ -144,6 +166,40 @@ export class VendorController {
     });
 
     sendResponse(res, 200, "Nearby vendors fetched", vendors);
+  });
+
+  searchVendors = asyncHandler(async (req, res, next) => {
+    const { 
+      lng, 
+      lat, 
+      radius = 3000, 
+      searchItem, 
+      category, 
+      minPrice, 
+      maxPrice,
+      sortBy = 'distance',
+      page = 1,
+      limit = 20
+    } = req.query;
+
+    console.log('Searching vendors with params:', {
+      lng, lat, radius, searchItem, category, minPrice, maxPrice, sortBy, page, limit
+    });
+
+    const result = await this.vendorSer.searchVendors({
+      longitude: lng,
+      latitude: lat,
+      radius: Number(radius),
+      searchItem,
+      category,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      sortBy,
+      page: Number(page),
+      limit: Number(limit)
+    });
+
+    sendResponse(res, 200, "Vendors search completed", result);
   });
 
   getVendor = asyncHandler(async (req, res, next) => {

@@ -162,6 +162,48 @@ async getVendorProductsByVendorId(vendorId, filters = {}) {
     return this.vendorRepo.findNearbyApproved(params);
   }
 
+  async searchVendors(params) {
+    const { 
+      longitude, 
+      latitude, 
+      radius = 3000, 
+      searchItem, 
+      category, 
+      minPrice, 
+      maxPrice,
+      sortBy = 'distance',
+      page = 1,
+      limit = 20
+    } = params;
+
+    // If coordinates are provided, use location-based search
+    if (longitude && latitude) {
+      return this.vendorRepo.searchNearbyVendorsWithItems({
+        longitude: Number(longitude),
+        latitude: Number(latitude),
+        radius: Number(radius),
+        searchItem,
+        category,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        sortBy,
+        page: Number(page),
+        limit: Number(limit)
+      });
+    } else {
+      // Fallback to general search without location
+      return this.vendorRepo.searchVendorsWithItems({
+        searchItem,
+        category,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        sortBy,
+        page: Number(page),
+        limit: Number(limit)
+      });
+    }
+  }
+
   async approveVendor(adminId, vendorId) {
     const vendor = await this.vendorRepo.findById(vendorId);
     if (!vendor) throw new ApiError(404, "Vendor not found");

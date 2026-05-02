@@ -13,8 +13,11 @@ const uploadsDir = path.join(process.cwd(), 'uploads', 'documents');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-// Rest of your code remains the same...
+//disk storage engine gives us full control on storing files to disk.
+// there are two options to determine where the file should be stored 
+// 1. destination: specifies the folder where the uploaded files will be stored.
+// 2. filename: specifies the name of the file in the destination folder.
+// useful because mutler does not append any file extension for us 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadsDir);

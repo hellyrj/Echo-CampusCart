@@ -8,6 +8,9 @@ export const vendorApi = {
     // Get nearby vendors (public)
     getNearbyVendors: (params) => axiosInstance.get('/vendors/nearby', { params }),
     
+    // Search vendors with location and item filtering (public)
+    searchVendors: (params) => axiosInstance.get('/vendors/search', { params }),
+    
     // Get approved vendors (public)
     getApprovedVendors: () => axiosInstance.get('/vendors'),
     

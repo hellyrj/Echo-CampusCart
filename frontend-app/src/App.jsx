@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Products from './pages/Products';
+import ProductDetails from './pages/ProductDetails';
 import MyProducts from './pages/MyProducts';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorApplication from './pages/VendorApplication';
@@ -25,6 +26,8 @@ import Orders from './pages/Orders';
 import OrderDetail from './pages/orderDetail';
 import VendorOrders from './pages/VendorOrders';
 import VendorOrderDetail from './pages/VendorOrderDetail';
+import VendorSearch from './pages/VendorSearch';
+import TestLocationPicker from './components/TestLocationPicker';
 
 
 const FallbackRoute = () => {
@@ -54,6 +57,11 @@ function App() {
                                     <Products />
                                 </ErrorBoundary>
                             } />
+                            <Route path="/products/:productId" element={
+                                <ErrorBoundary>
+                                    <ProductDetails />
+                                </ErrorBoundary>
+                            } />
                             <Route path="/register" element={<Register />} />
                             <Route path="/vendor/apply" element={
                                 <ErrorBoundary>
@@ -65,6 +73,10 @@ function App() {
                                     <VendorPublicPage />
                                 </ErrorBoundary>
                             } />
+                            
+                            {/* Public Routes */}
+                            <Route path="/search-vendors" element={<VendorSearch />} />
+                            <Route path="/test-location" element={<TestLocationPicker />} />
                             
                             {/* Protected Routes */}
                             <Route element={<PrivateRoute />}>

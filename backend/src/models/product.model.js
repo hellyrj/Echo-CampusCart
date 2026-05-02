@@ -173,12 +173,28 @@ productSchema.index({ isAvailable: 1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ vendorId: 1, isAvailable: 1 }); // Compound index for vendor filtering
 
-productSchema.pre('save', function(next) {
-  if (this.isModified('name') && !this.slug) {
-    this.slug = this.name
+productSchema.pre('save', async function(next) {
+  if (this.isModified('name') || !this.slug) {
+    let slug = this.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/^-+|-+$/g, '') || 'product';
+    
+    // Ensure uniqueness by adding a number if needed
+    const existingProduct = await this.constructor.findOne({ slug });
+    if (existingProduct && existingProduct._id.toString() !== this._id.toString()) {
+      let counter = 1;
+      let uniqueSlug = `${slug}-${counter}`;
+      
+      while (await this.constructor.findOne({ slug: uniqueSlug })) {
+        counter++;
+        uniqueSlug = `${slug}-${counter}`;
+      }
+      
+      slug = uniqueSlug;
+    }
+    
+    this.slug = slug;
   }
   //next();
 });

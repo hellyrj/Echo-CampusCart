@@ -2,10 +2,14 @@
 import multer from 'multer';
 
 // Configure multer with memory storage
+/**
+ * the memory storage engine stores the files in memory as a buffer objects. it does not have any options.
+ * the file info will contain a field clalled buffer that contain the entire file
+ */
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB per image (increased from 5MB)
+    fileSize: 20 * 1024 , // 10MB per image 
     files: 10
   },
   fileFilter: (req, file, cb) => {

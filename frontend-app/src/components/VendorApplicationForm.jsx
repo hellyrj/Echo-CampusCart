@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import LocationInput from './LocationInput';
+import LocationPicker from './LocationPicker';
 
 const VendorApplicationForm = ({ onSubmit, loading }) => {
     const { user } = useAuth();
@@ -27,7 +28,9 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         deliveryAvailable: true,
         pickupAvailable: true,
         deliveryRadius: 3000,
-        deliveryFee: 0
+        deliveryFee: 0,
+        // Map coordinates
+        selectedLocation: null
     });
     const [errors, setErrors] = useState({});
     const [universities, setUniversities] = useState([]);
@@ -181,9 +184,9 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             newErrors.storeName = 'Store name is required';
         }
         
-        // Check for location details (either new format or fallback to address)
-        if (!formData.locationDetails && !formData.address.trim()) {
-            newErrors.address = 'Business location is required';
+        // Check for location selection (map coordinates or fallback to location details)
+        if (!formData.selectedLocation && !formData.locationDetails && !formData.address.trim()) {
+            newErrors.address = 'Please select your business location on the map';
         }
         
         if (!formData.phone.trim()) {
@@ -262,14 +265,20 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             formDataToSend.append('state', formData.locationDetails.state);
             formDataToSend.append('postalCode', formData.locationDetails.postalCode || '');
             formDataToSend.append('country', formData.locationDetails.country);
-            
-            // Add coordinates as JSON string
-            if (formData.locationDetails.coordinates) {
-                formDataToSend.append('location', JSON.stringify({
-                    type: "Point",
-                    coordinates: formData.locationDetails.coordinates
-                }));
-            }
+        }
+        
+        // Add map coordinates if selected
+        if (formData.selectedLocation) {
+            formDataToSend.append('location', JSON.stringify({
+                type: "Point",
+                coordinates: [formData.selectedLocation.lng, formData.selectedLocation.lat] // GeoJSON format: [longitude, latitude]
+            }));
+        } else if (formData.locationDetails?.coordinates) {
+            // Fallback to old coordinates if available
+            formDataToSend.append('location', JSON.stringify({
+                type: "Point",
+                coordinates: formData.locationDetails.coordinates
+            }));
         }
         
         // Add document files
@@ -328,16 +337,33 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Business Location *
                     </label>
-                    <LocationInput
-                        value={formData.locationDetails}
-                        onChange={handleLocationChange}
+                    <LocationPicker
+                        initialLocation={formData.selectedLocation || { lat: 9.0092, lng: 38.7578 }}
+                        onLocationSelect={(location) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                selectedLocation: location,
+                                // Update main address field and locationDetails with place name if available
+                                address: location.placeName || prev.address,
+                                locationDetails: location.placeName ? {
+                                    ...prev.locationDetails,
+                                    placeName: location.placeName,
+                                    fullAddress: location.placeName
+                                } : prev.locationDetails
+                            }));
+                            // Clear any address errors when location is selected
+                            if (errors.address) {
+                                setErrors(prev => ({ ...prev, address: undefined }));
+                            }
+                        }}
+                        height="400px"
                         placeholder="Search for your business location..."
                     />
                     {errors.address && (
                         <p className="mt-1 text-sm text-red-600">{errors.address}</p>
                     )}
                     <p className="mt-1 text-xs text-gray-500">
-                        Start typing to search for your location. We'll use this to help customers find you.
+                        Click on the map or search to select your exact business location. This will help customers find you easily.
                     </p>
                 </div>
 

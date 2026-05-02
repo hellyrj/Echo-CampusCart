@@ -24,11 +24,22 @@ export class ProductService {
       this.validateImages(data.images);
     }
 
-    return this.productRepo.create(data);
+    const product = await this.productRepo.create(data);
+    console.log('Service: Product created:', product);
+
+    return product;
   }
 
   async getProductById(id) {
+    console.log('Service: Getting product by ID:', id);
+    console.log('Service: Product repo type:', typeof this.productRepo);
+    console.log('Service: Product repo findById method:', typeof this.productRepo.findById);
+    
     const product = await this.productRepo.findById(id);
+    
+    console.log('Service: Product returned from repo:', product);
+    console.log('Service: Product vendorId:', product?.vendorId);
+    console.log('Service: Product images:', product?.images);
 
     if (!product) {
       throw new ApiError(404, "Product not found");
@@ -38,6 +49,10 @@ export class ProductService {
   }
 
   async getAllProducts(filters = {}) {
+    console.log('Service: Getting all products with filters:', filters);
+    console.log('Service: Product repo type:', typeof this.productRepo);
+    console.log('Service: Product repo find method:', typeof this.productRepo.find);
+    
     const options = {
       populate: [
         { path: 'categories', model: Category, strictPopulate: false },

@@ -28,8 +28,12 @@ class ErrorBoundary extends React.Component {
                             <summary className="cursor-pointer font-semibold">Error Details</summary>
                             <pre className="mt-2 text-sm text-gray-600">
                                 {this.state.error && this.state.error.toString()}
-                                <br />
-                                {this.state.errorInfo.componentStack}
+                                {this.state.errorInfo && this.state.errorInfo.componentStack && (
+                                    <>
+                                        <br />
+                                        {this.state.errorInfo.componentStack}
+                                    </>
+                                )}
                             </pre>
                         </details>
                         <button 
