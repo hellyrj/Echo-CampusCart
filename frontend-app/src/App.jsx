@@ -12,7 +12,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
+import ServiceDetails from './pages/ServiceDetails';
 import MyProducts from './pages/MyProducts';
+import MyServices from './pages/MyServices';
 import VendorDashboard from './pages/VendorDashboard';
 import VendorApplication from './pages/VendorApplication';
 import VendorPublicPage from './pages/VendorPublicPage';
@@ -62,6 +64,11 @@ function App() {
                                     <ProductDetails />
                                 </ErrorBoundary>
                             } />
+                            <Route path="/services/:serviceId" element={
+                                <ErrorBoundary>
+                                    <ServiceDetails />
+                                </ErrorBoundary>
+                            } />
                             <Route path="/register" element={<Register />} />
                             <Route path="/vendor/apply" element={
                                 <ErrorBoundary>
@@ -82,6 +89,7 @@ function App() {
                             <Route element={<PrivateRoute />}>
                                 <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                                  <Route path="/my-products" element={<MyProducts />} />
+                                <Route path="/my-services" element={<MyServices />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/wishlist" element={<Wishlist />} />
                                 <Route path="/cart" element={<Cart />} />

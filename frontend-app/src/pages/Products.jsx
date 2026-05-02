@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
+import { useServiceApi } from '../hooks/useServiceApi';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
-import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight, Wrench, Package } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { vendorApi } from '../api/vendor.api';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
+    const [services, setServices] = useState([]);
     const [allProducts, setAllProducts] = useState([]); // Store all products for client-side filtering
+    const [allServices, setAllServices] = useState([]); // Store all services for client-side filtering
     const [categories, setCategories] = useState([]);
+    const [serviceCategories, setServiceCategories] = useState([]);
     const [universities, setUniversities] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedUniversity, setSelectedUniversity] = useState('');
+    const [contentType, setContentType] = useState('all'); // 'all', 'products', 'services'
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTimeout, setSearchTimeout] = useState(null);
@@ -36,7 +41,8 @@ const Products = () => {
     const [locationSearchTimeout, setLocationSearchTimeout] = useState(null);
     const [productImageIndexes, setProductImageIndexes] = useState({});
     
-    const { getProducts, searchProducts, loading: apiLoading } = useProductApi();
+    const { getProducts, searchProducts, loading: productLoading } = useProductApi();
+    const { getAllServices, searchServices, getServiceCategories, loading: serviceLoading } = useServiceApi();
     const { isAuthenticated, user } = useAuth();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
     const { addToCart } = useCart();
@@ -61,7 +67,9 @@ const Products = () => {
 
     useEffect(() => {
         loadProducts();
+        loadServices();
         loadCategories();
+        loadServiceCategories();
         loadUniversities();
         loadVendors();
     }, []);
@@ -428,6 +436,51 @@ const Products = () => {
         }
     };
 
+    const loadServices = async () => {
+        try {
+            console.log('Loading all services...');
+            const result = await getAllServices();
+            console.log('Services API Response:', result);
+            if (result.success) {
+                const servicesData = result.data?.services || result.data || [];
+                console.log('Services data:', servicesData);
+                
+                // Store all services for client-side filtering
+                setAllServices(Array.isArray(servicesData) ? servicesData : []);
+                setServices(Array.isArray(servicesData) ? servicesData : []);
+            } else {
+                console.error('Failed to load services:', result.message);
+                // Don't set error for services failing, just log it
+                setAllServices([]);
+                setServices([]);
+            }
+        } catch (error) {
+            console.error('Error loading services:', error);
+            // Don't set error for services failing, just log it
+            setAllServices([]);
+            setServices([]);
+        }
+    };
+
+    const loadServiceCategories = async () => {
+        try {
+            console.log('Loading service categories...');
+            const result = await getServiceCategories();
+            console.log('Service categories API Response:', result);
+            if (result.success) {
+                const categoriesData = result.data || [];
+                console.log('Service categories loaded:', categoriesData);
+                setServiceCategories(Array.isArray(categoriesData) ? categoriesData : []);
+            } else {
+                console.error('Failed to load service categories:', result.message);
+                setServiceCategories([]);
+            }
+        } catch (error) {
+            console.error('Error loading service categories:', error);
+            setServiceCategories([]);
+        }
+    };
+
     const clearFilters = () => {
         setSearchTerm('');
         setSelectedCategory('');
@@ -609,6 +662,54 @@ const Products = () => {
                                 </svg>
                             </div>
                         </div>
+                    </div>
+                    
+                    {/* Content Type Selector */}
+                    <div className="flex items-center space-x-1 mt-4">
+                        <button
+                            onClick={() => setContentType('all')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                contentType === 'all' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Package className="w-4 h-4 inline mr-2" />
+                            All
+                        </button>
+                        <button
+                            onClick={() => setContentType('products')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                contentType === 'products' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Package className="w-4 h-4 inline mr-2" />
+                            Products
+                        </button>
+                        <button
+                            onClick={() => setContentType('services')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                contentType === 'services' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Wrench className="w-4 h-4 inline mr-2" />
+                            Services
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div className="flex gap-6">
+                    {/* Sidebar Filters */}
+                    <div className={`fixed inset-y-0 left-0 z-50 w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:inset-auto lg:transform-none lg:shadow-none lg:w-64 ${
+                        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                    }`}>
                         
                         {/* Filter Toggle Button */}
                         <button
@@ -834,9 +935,10 @@ const Products = () => {
                             </button>
                         </div>
 
-                        {/* Products Grid */}
+                        {/* Content Grid - Products or Services */}
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {products.map((product) => (
+                            {/* Render Products */}
+                            {(contentType === 'all' || contentType === 'products') && products.map((product) => (
                                 <div 
     key={product._id}
     onClick={() => navigate(`/products/${product._id}`)}
@@ -1024,13 +1126,160 @@ const Products = () => {
                                     </div>
                                 </div>
                             ))}
+                            
+                            {/* Render Services */}
+                            {(contentType === 'all' || contentType === 'services') && services.map((service) => (
+                                <div 
+                                    key={service._id}
+                                    onClick={() => navigate(`/services/${service._id}`)}
+                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                                >
+                                    {/* Service Image */}
+                                    <div className="relative">
+                                        <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
+                                            {service.images && service.images.length > 0 ? (
+                                                <img
+                                                    src={service.images[0].startsWith('http') ? service.images[0] : `http://localhost:5000/uploads/${service.images[0]}`}
+                                                    alt={service.title}
+                                                    className="w-full h-full object-cover rounded-t-lg"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=Service';
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-blue-200">
+                                                    <Wrench className="w-12 h-12 text-blue-600" />
+                                                </div>
+                                            )}
+                                            
+                                            {/* Service Type Badge */}
+                                            <div className="absolute top-2 left-2">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    Service
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="p-4">
+                                        {/* Service Title */}
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                                            {service.title}
+                                        </h3>
+                                        
+                                        {/* Service Category */}
+                                        <div className="mb-2">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                {service.serviceCategory?.charAt(0).toUpperCase() + service.serviceCategory?.slice(1).replace('_', ' ') || 'General'}
+                                            </span>
+                                        </div>
+                                        
+                                        {/* Service Description */}
+                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                            {service.description}
+                                        </p>
+                                        
+                                        {/* Vendor Info */}
+                                        {service.vendorId ? (
+                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                                <div className="flex items-center space-x-2">
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-500">Offered by</p>
+                                                        {service.vendorId._id ? (
+                                                            <Link 
+                                                                to={`/vendor/${service.vendorId._id}`}
+                                                                className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                                            >
+                                                                {service.vendorId.storeName || 'Unknown Vendor'}
+                                                            </Link>
+                                                        ) : (
+                                                            <span className="text-sm font-medium text-gray-600">
+                                                                {service.vendorId.storeName || 'Unknown Vendor'}
+                                                            </span>
+                                                        )}
+                                                        {service.vendorId.universityNear && (
+                                                            <span className="text-xs text-gray-500 block">
+                                                                📍 {service.vendorId.universityNear}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                                <div className="flex items-center space-x-2">
+                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs text-gray-500">Offered by</p>
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            Vendor information loading...
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Service Location & Pricing */}
+                                        <div className="flex gap-2 mb-3">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                {service.serviceLocation === 'online' ? 'Online' : service.serviceLocation === 'in_person' ? 'In-person' : 'Both'}
+                                            </span>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.pricingModel === 'fixed' ? `Fixed: ${service.basePrice}` : service.pricingModel === 'package' ? `Package: ${service.basePrice}` : 'Contact for quote'}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <span className="text-2xl font-bold text-blue-600">
+                                                    {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}
+                                                </span>
+                                                {service.averageRating > 0 && (
+                                                    <div className="flex items-center mt-1">
+                                                        <span className="text-yellow-400 text-sm">★</span>
+                                                        <span className="text-sm text-gray-600 ml-1">
+                                                            {service.averageRating.toFixed(1)} ({service.reviewCount})
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    // Handle service booking/contact (future implementation)
+                                                    alert('Service booking feature coming soon!');
+                                                }}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center transition-colors"
+                                            >
+                                                <Wrench className="w-4 h-4 mr-1" />
+                                                Book Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
-                        {products.length === 0 && !loading && (
+                        {/* Empty State */}
+                        {((contentType === 'all' || contentType === 'products') && products.length === 0 && (contentType === 'all' || contentType === 'services') && services.length === 0) && !loading && (
                             <div className="text-center py-12">
-                                <p className="text-gray-600 text-lg">No products found matching your criteria.</p>
+                                <p className="text-gray-600 text-lg">
+                                    {contentType === 'services' ? 'No services found matching your criteria.' : 
+                                     contentType === 'products' ? 'No products found matching your criteria.' : 
+                                     'No products or services found matching your criteria.'}
+                                </p>
                                 <button
-                                    onClick={clearAllFilters}
+                                    onClick={clearFilters}
                                     className="mt-4 text-blue-600 hover:text-blue-700"
                                 >
                                     Clear filters and try again
