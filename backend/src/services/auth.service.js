@@ -10,30 +10,28 @@ export class AuthService {
        this.userRepo = userRepo;
      }
 
-     async register(name , email , password, university) {
-
-        if (!name || !email || !password ) {
+     async register(name, email, password, role) {
+        if (!name || !email || !password) {
             throw new ApiError(400, "All fields are required");
         }
 
         const existing = await this.userRepo.findByEmail(email);
 
-        if(existing) {
+        if (existing) {
             throw new ApiError(400, "Email already exists");
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const user = await this.userRepo.create ({
+        const user = await this.userRepo.create({
             name,
             email,
             password: hashedPassword,
-            university,
+            role: role || 'student' // Use provided role or default to student
         });
         const token = generateToken(user._id);
-
-        return { user , token};
-     }
+        return { user, token };
+    }
 
      async login (email , password) {
         const user = await this.userRepo.findByEmail(email);
@@ -45,6 +43,7 @@ export class AuthService {
             throw new ApiError(401 , "Invalid credential")
         }
 
+        console.log('Auth Service - JWT_SECRET during token generation:', process.env.JWT_SECRET);
         const token = generateToken(user._id);
 
         return { user , token };

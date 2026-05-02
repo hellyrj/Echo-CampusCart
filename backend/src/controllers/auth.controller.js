@@ -7,27 +7,35 @@ export class AuthController {
         this.authService = new AuthService();
     }
     
-    getProfile = asyncHandler(async(req , res) => {
+    getProfile = asyncHandler(async(req , res, next) => {
         const result = await this.authService.getProfile(req.user);
         sendResponse(res, 200, "Profile fetched successfully", result);
     });
 
-    register = asyncHandler(async(req , res) => {
+    register = asyncHandler(async(req, res, next) => {
+        console.log('Register request body:', req.body);
+        console.log('Register request headers:', req.headers);
+        
+        const { name, email, password, role } = req.body;
 
-        const { name , email , password , university } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields: name, email, password"
+            });
+        }
 
         const result = await this.authService.register(
             name, 
             email,
             password,
-            university
+            role
         );
 
         sendResponse(res, 201, "user registered successfully", result);
-
     });
 
-    login = asyncHandler(async(req , res) => {
+    login = asyncHandler(async(req , res, next) => {
         const { email , password} = req.body;
 
         const result = await this.authService.login(email, password);
@@ -35,7 +43,7 @@ export class AuthController {
         sendResponse(res, 200, "Login successful", result);
     });
 
-    logout = asyncHandler(async(req , res) => {
+    logout = asyncHandler(async(req , res, next) => {
         const result = await this.authService.logout();
         sendResponse(res, 200, "Logout successful", result);
     });

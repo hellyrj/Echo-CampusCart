@@ -1,43 +1,62 @@
+// app.js
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import Category from "./models/category.model.js"; // Import Category model for population
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 import authRoutes from "./routes/auth.routes.js";
 import vendorRouters from "./routes/vendor.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import productRoutes from "./routes/product.routes.js";
-import reviewRoutes from "./routes/review.routes.js"
+import reviewRoutes from "./routes/review.routes.js";
+import wishlistRoutes from './routes/wishlist.routes.js';
+import cartRoutes from './routes/cart.routes.js';
+import orderRoutes from './routes/order.routes.js';
+
 const app = express();
 
-/**
- * global middlewares
- */
+app.use('uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Global middlewares
 app.use(cors());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// IMPORTANT: Configure body parsers AFTER multer middleware in routes
+// For JSON requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/**
- * routes
- */
+// Note: Don't parse JSON for multipart/form-data - multer will handle it
+// The express.json() middleware will be skipped for multipart requests
 
+// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api", vendorRouters);
+app.use("/api/vendors", vendorRouters);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
 
-/**
- * Health check
- */
-
-app.get("/api/health", (req, res)=> {
+// Health check
+app.get("/api/health", (req, res) => {
     res.json({
         status: "server running"
     });
 });
 
-/**
- * Error middleware
- */
-
+// Error middleware
 app.use(errorHandler);
 
 export default app;
