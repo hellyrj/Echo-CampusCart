@@ -5,7 +5,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import FloatingVendorButton from './components/FloatingVendorButton';
 
-
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,8 +23,8 @@ import Checkout from './pages/Checkout';
 import CheckoutSuccess from './pages/CheckoutSuccess';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/orderDetail';
-import VendorOrders from './pages/VendorOrders';
-import VendorOrderDetail from './pages/VendorOrderDetail';
+import VendorOrders from './pages/vendorOrders';
+import VendorOrderDetail from './pages/vendorOrderDetail';
 import VendorSearch from './pages/VendorSearch';
 import TestLocationPicker from './components/TestLocationPicker';
 
