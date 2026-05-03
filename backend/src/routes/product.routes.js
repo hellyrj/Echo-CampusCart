@@ -13,11 +13,47 @@ router.get('/search', productController.searchProducts);
 router.get('/popular', productController.getPopularProducts);
 router.get('/:id', productController.getProduct);
 
-// Vendor routes (require authentication and vendor role)
-router.post('/', authenticate, authorize('vendor'), uploadProductImages, productController.createProduct);
-router.get('/vendor/my-products', authenticate, authorize('vendor'), productController.getVendorProducts);
+// Simple test endpoint (no auth)
+router.get('/test-simple', (req, res) => {
+    console.log(' SIMPLE TEST ENDPOINT REACHED!');
+    res.json({ message: 'Simple test works!', timestamp: new Date() });
+});
 
-// Product management routes (vendor only)
+// Vendor routes (must come BEFORE /:id)
+router.get('/vendor/my-products', authenticate, authorize('vendor'), productController.getVendorProducts);
+router.get('/vendor/test-auth', authenticate, authorize('vendor'), async (req, res) => {
+    console.log(' TEST ENDPOINT REACHED!');
+    console.log('=== VENDOR AUTH TEST ===');
+    console.log('User ID from token:', req.user._id);
+    console.log('User ID type:', typeof req.user._id);
+    
+    const vendorService = new (await import('../services/vendor.service.js')).default();
+    const vendor = await vendorService.getVendorByUserId(req.user._id);
+    console.log('Vendor found:', vendor);
+    console.log('Vendor ID:', vendor?._id);
+    console.log('Vendor ID type:', typeof vendor?._id);
+    
+    // Test with a sample product
+    const Product = (await import('../models/product.model.js')).default;
+    const sampleProduct = await Product.findOne({ vendorId: vendor?._id });
+    console.log('Sample product:', sampleProduct?._id);
+    console.log('Sample product vendorId:', sampleProduct?.vendorId);
+    console.log('Sample product vendorId type:', typeof sampleProduct?.vendorId);
+    
+    res.json({
+        userId: req.user._id,
+        vendorId: vendor?._id,
+        vendorExists: !!vendor,
+        sampleProduct: {
+            id: sampleProduct?._id,
+            vendorId: sampleProduct?.vendorId,
+            match: sampleProduct?.vendorId?.toString() === vendor?._id?.toString()
+        }
+    });
+});
+router.post('/', authenticate, authorize('vendor'), uploadProductImages, productController.createProduct);
+
+// Product management routes
 router.put('/:id', authenticate, authorize('vendor'), uploadProductImages, productController.updateProduct);
 router.delete('/:id', authenticate, authorize('vendor'), productController.deleteProduct);
 
@@ -29,7 +65,7 @@ router.delete('/:id/images/:imageIndex', authenticate, authorize('vendor'), prod
 router.patch('/:id/availability', authenticate, authorize('vendor'), productController.updateAvailability);
 router.patch('/:id/inventory', authenticate, authorize('vendor'), productController.updateInventory);
 
-// Admin routes (require admin role)
+// Admin routes
 router.patch('/:id/admin-approve', authenticate, authorize('admin'), productController.adminApprove);
 router.patch('/:id/admin-reject', authenticate, authorize('admin'), productController.adminReject);
 
