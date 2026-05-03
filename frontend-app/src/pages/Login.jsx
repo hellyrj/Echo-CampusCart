@@ -55,9 +55,29 @@ const Login = () => {
         
 
         if (result.success) {
-
-            navigate('/');
-
+            // Get user data from localStorage to determine role-based redirect
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    
+                    // Redirect based on user role
+                    if (user.role === 'admin') {
+                        navigate('/admin');
+                    } else if (user.role === 'vendor') {
+                        navigate('/vendor/dashboard');
+                    } else {
+                        // Default for students - go to home page
+                        navigate('/');
+                    }
+                } catch (e) {
+                    // Fallback to home page if user data is corrupted
+                    navigate('/');
+                }
+            } else {
+                // Fallback to home page if no user data
+                navigate('/');
+            }
         }
 
     };

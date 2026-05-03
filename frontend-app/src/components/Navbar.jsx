@@ -14,7 +14,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate('/');
     };
 
     // Role checks
@@ -55,8 +55,8 @@ const Navbar = () => {
                             {/* Vendor-only items */}
                             {isVendor && (
                                 <>
-                                    <NavIcon to="/vendor/dashboard" icon={<Store size={22} />} title="Vendor Dashboard" isActive={location.pathname === '/vendor/dashboard'} />
-                                    <NavIcon to="/vendor/orders" icon={<Package size={22} />} title="Vendor Orders" isActive={location.pathname === '/vendor/orders'} />
+                                    <NavLink to="/vendor/dashboard" label="Dashboard" isActive={location.pathname === '/vendor/dashboard'} />
+                                    <NavLink to="/vendor/orders" label="Orders" isActive={location.pathname === '/vendor/orders'} />
                                 </>
                             )}
                             
