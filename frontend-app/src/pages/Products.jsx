@@ -941,7 +941,11 @@ const Products = () => {
                             {(contentType === 'all' || contentType === 'products') && products.map((product) => (
                                 <div 
     key={product._id}
-    onClick={() => navigate(`/products/${product._id}`)}
+    onClick={() => {
+        console.log('Product clicked:', product._id);
+        console.log('Product data:', product);
+        navigate(`/products/${product._id}`);
+    }}
     className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
 >
                                     {/* Product Image Carousel */}

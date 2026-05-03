@@ -8,6 +8,8 @@ import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, Che
 
 const ProductDetails = () => {
     const { productId } = useParams();
+    console.log('ProductDetails component mounted with productId:', productId);
+    
     const { getProduct } = useProductApi();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
     const { addToCart } = useCart();

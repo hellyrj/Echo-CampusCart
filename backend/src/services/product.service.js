@@ -132,7 +132,8 @@ export class ProductService {
     }
 
     // Check ownership if vendorId is provided
-    if (vendorId && product.vendorId.toString() !== vendorId.toString()) {
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    if (vendorId && productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only delete your own products");
     }
 
@@ -158,7 +159,18 @@ export class ProductService {
     }
 
     // Check ownership if vendorId is provided
-    if (vendorId && product.vendorId.toString() !== vendorId.toString()) {
+    console.log('=== VENDOR ID COMPARISON ===');
+    console.log('Product vendorId:', product.vendorId);
+    console.log('Product vendorId type:', typeof product.vendorId);
+    console.log('Provided vendorId:', vendorId);
+    console.log('Provided vendorId type:', typeof vendorId);
+    
+    // Handle both populated vendor object and ObjectId
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    console.log('Extracted product vendorId:', productVendorId);
+    console.log('Comparison result:', productVendorId.toString() !== vendorId.toString());
+    
+    if (vendorId && productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only update your own products");
     }
 
@@ -178,7 +190,8 @@ export class ProductService {
     }
 
     // Check ownership
-    if (product.vendorId.toString() !== vendorId.toString()) {
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    if (productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only update your own products");
     }
 
@@ -199,7 +212,8 @@ export class ProductService {
     }
 
     // Check ownership
-    if (product.vendorId.toString() !== vendorId.toString()) {
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    if (productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only update your own products");
     }
 
@@ -233,7 +247,8 @@ export class ProductService {
     }
 
     // Check ownership
-    if (product.vendorId.toString() !== vendorId.toString()) {
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    if (productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only update your own products");
     }
 
@@ -248,7 +263,8 @@ export class ProductService {
     }
 
     // Check ownership
-    if (product.vendorId.toString() !== vendorId.toString()) {
+    const productVendorId = product.vendorId._id ? product.vendorId._id : product.vendorId;
+    if (productVendorId.toString() !== vendorId.toString()) {
       throw new ApiError(403, "You can only update your own products");
     }
 
