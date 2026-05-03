@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ShoppingCart, Store, Package, Heart, TrendingUp, Users } from 'lucide-react';
 
 const Home = () => {
     const { user, isAuthenticated } = useAuth();
@@ -11,56 +12,71 @@ const Home = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #283618 0%, #606C38 100%)' }}>
+                <div className="absolute inset-0 bg-black opacity-10"></div>
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                     <div className="text-center">
-                        <h1 className="text-4xl md:text-6xl font-bold mb-6">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 rounded-full" style={{ backgroundColor: '#DDA15E40' }}>
+                                <ShoppingCart className="w-16 h-16" style={{ color: '#DDA15E' }} />
+                            </div>
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ color: '#FEFAE0' }}>
                             Welcome to CampusCart
                         </h1>
-                        <p className="text-xl md:text-2xl mb-8 text-blue-100">
+                        <p className="text-xl md:text-2xl mb-8" style={{ color: '#FEFAE0', opacity: 0.9 }}>
                             Your one-stop shop for campus essentials
                         </p>
                         {isAuthenticated ? (
-                            <div className="space-x-4">
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Link 
                                     to="/products"
-                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block mr-4"
+                                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#FEFAE0', color: '#283618' }}
                                 >
+                                    <ShoppingCart className="w-5 h-5" />
                                     Browse Products
                                 </Link>
                                 {user?.role === 'vendor' ? (
                                     <>
                                         <Link 
-                                            to="/my-products"
-                                            className="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors inline-block mr-4"
-                                        >
-                                            My Products
-                                        </Link>
-                                        <Link 
                                             to="/vendor/dashboard"
-                                            className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors inline-block"
+                                            className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
+                                            style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
                                         >
+                                            <Store className="w-5 h-5" />
                                             Vendor Dashboard
                                         </Link>
                                     </>
                                 ) : (
                                     <button
                                         onClick={handleVendorApplication}
-                                        className="bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors inline-block"
+                                        className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
+                                        style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
                                     >
+                                        <Store className="w-5 h-5" />
                                         Become a Vendor
                                     </button>
                                 )}
                             </div>
                         ) : (
-                            <div className="space-x-4">
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Link 
                                     to="/products"
-                                    className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
+                                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#FEFAE0', color: '#283618' }}
                                 >
+                                    <ShoppingCart className="w-5 h-5" />
                                     Start Shopping
+                                </Link>
+                                <Link 
+                                    to="/register"
+                                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                >
+                                    Sign Up
                                 </Link>
                             </div>
                         )}
@@ -70,27 +86,36 @@ const Home = () => {
 
             {/* Vendor Application Section for Logged-in Users */}
             {isAuthenticated && user?.role !== 'vendor' && (
-                <div className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div className="py-16" style={{ backgroundColor: '#606C38' }}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
-                            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                            <div className="flex justify-center mb-6">
+                                <div className="p-3 rounded-full" style={{ backgroundColor: '#DDA15E40' }}>
+                                    <Store className="w-12 h-12" style={{ color: '#DDA15E' }} />
+                                </div>
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: '#FEFAE0' }}>
                                 Want to Sell on CampusCart?
                             </h2>
-                            <p className="text-xl mb-8 text-orange-100">
+                            <p className="text-xl mb-8" style={{ color: '#FEFAE0', opacity: 0.9 }}>
                                 Join our marketplace and reach thousands of campus students
                             </p>
-                            <div className="flex justify-center space-x-4">
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <button
                                     onClick={handleVendorApplication}
-                                    className="bg-white text-orange-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-lg"
+                                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 text-lg inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#FEFAE0', color: '#283618' }}
                                 >
+                                    <Store className="w-5 h-5" />
                                     Apply to Become a Vendor
                                 </button>
                                 <Link 
-                                    to="/vendors"
-                                    className="bg-orange-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-orange-700 transition-colors text-lg border-2 border-white"
+                                    to="/products"
+                                    className="px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 text-lg inline-flex items-center gap-2"
+                                    style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
                                 >
-                                    Browse Vendors
+                                    <ShoppingCart className="w-5 h-5" />
+                                    Browse Products
                                 </Link>
                             </div>
                         </div>
@@ -99,37 +124,33 @@ const Home = () => {
             )}
 
             {/* Features Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <h2 className="text-3xl font-bold text-center mb-12">Why Choose CampusCart?</h2>
-                <div className="grid md:grid-cols-3 gap-8">
-                    <div className="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+            <div className="py-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#283618' }}>Why Choose CampusCart?</h2>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="text-center p-8 rounded-lg shadow-lg transition-all duration-200 hover:scale-105" style={{ backgroundColor: '#FEFAE0' }}>
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#28361820' }}>
+                                <TrendingUp className="w-8 h-8" style={{ color: '#283618' }} />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-3" style={{ color: '#283618' }}>Fast Delivery</h3>
+                            <p className="text-gray-600">Quick and reliable delivery to your campus location</p>
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
-                        <p className="text-gray-600">Quick and reliable delivery to your campus location</p>
-                    </div>
-                    
-                    <div className="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2-1.343-2-3-2m0 8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        
+                        <div className="text-center p-8 rounded-lg shadow-lg transition-all duration-200 hover:scale-105" style={{ backgroundColor: '#FEFAE0' }}>
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#606C3820' }}>
+                                <Heart className="w-8 h-8" style={{ color: '#606C38' }} />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-3" style={{ color: '#283618' }}>Best Prices</h3>
+                            <p className="text-gray-600">Affordable prices with student discounts</p>
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-                        <p className="text-gray-600">Affordable prices with student discounts</p>
-                    </div>
-                    
-                    <div className="text-center p-6 bg-white rounded-lg shadow-md">
-                        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
+                        
+                        <div className="text-center p-8 rounded-lg shadow-lg transition-all duration-200 hover:scale-105" style={{ backgroundColor: '#FEFAE0' }}>
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#DDA15E20' }}>
+                                <Users className="w-8 h-8" style={{ color: '#DDA15E' }} />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-3" style={{ color: '#283618' }}>Student First</h3>
+                            <p className="text-gray-600">Designed specifically for campus life</p>
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">Student First</h3>
-                        <p className="text-gray-600">Designed specifically for campus life</p>
                     </div>
                 </div>
             </div>

@@ -60,9 +60,9 @@ const Orders = () => {
     if (!isAuthenticated) return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">My Orders</h1>
+                <h1 className="text-3xl font-bold mb-8" style={{ color: '#283618' }}>My Orders</h1>
 
                 {/* Filters */}
                 <div className="flex flex-wrap gap-2 mb-6">
@@ -78,9 +78,10 @@ const Orders = () => {
                             onClick={() => setFilter(f.key)}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                 filter === f.key
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'text-white'
                                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                             }`}
+                            style={filter === f.key ? { backgroundColor: '#606C38' } : {}}
                         >
                             {f.label}
                         </button>
@@ -90,7 +91,7 @@ const Orders = () => {
                 {/* Orders List */}
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
                     </div>
                 ) : orders.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
@@ -103,7 +104,8 @@ const Orders = () => {
                         </p>
                         <Link
                             to="/products"
-                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+                            className="inline-flex items-center px-6 py-3 text-white rounded-lg font-semibold"
+                            style={{ backgroundColor: '#606C38' }}
                         >
                             Start Shopping
                         </Link>

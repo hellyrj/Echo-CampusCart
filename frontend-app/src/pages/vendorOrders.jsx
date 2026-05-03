@@ -133,17 +133,18 @@ const VendorOrders = () => {
     if (!isAuthenticated || user?.role !== 'vendor') return null;
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
-                        <p className="text-gray-600 mt-1">Manage and track customer orders</p>
+                        <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>Order Management</h1>
+                        <p className="mt-1" style={{ color: '#606C38' }}>Manage and track customer orders</p>
                     </div>
                     <button
                         onClick={fetchOrders}
-                        className="mt-4 sm:mt-0 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="mt-4 sm:mt-0 flex items-center px-4 py-2 text-white rounded-lg"
+                        style={{ backgroundColor: '#606C38' }}
                     >
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Refresh
@@ -153,12 +154,12 @@ const VendorOrders = () => {
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {[
-                        { label: 'Total Orders', value: summary.total, color: 'bg-blue-500' },
-                        { label: 'Pending', value: summary.pending, color: 'bg-yellow-500' },
-                        { label: 'Processing', value: summary.processing, color: 'bg-purple-500' },
-                        { label: 'Completed', value: summary.completed, color: 'bg-green-500' },
+                        { label: 'Total Orders', value: summary.total, color: '#606C38' },
+                        { label: 'Pending', value: summary.pending, color: '#DDA15E' },
+                        { label: 'Processing', value: summary.processing, color: '#283618' },
+                        { label: 'Completed', value: summary.completed, color: '#606C38' },
                     ].map((card, index) => (
-                        <div key={index} className={`${card.color} rounded-lg p-4 text-white`}>
+                        <div key={index} className="rounded-lg p-4 text-white" style={{ backgroundColor: card.color }}>
                             <p className="text-2xl font-bold">{card.value}</p>
                             <p className="text-sm opacity-90">{card.label}</p>
                         </div>
@@ -175,7 +176,8 @@ const VendorOrders = () => {
                                 placeholder="Search by order number, customer name, phone..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2"
+                                style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
                             />
                         </div>
                         <div className="flex gap-2 flex-wrap">
@@ -194,9 +196,10 @@ const VendorOrders = () => {
                                     onClick={() => setFilter(f.key)}
                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                         filter === f.key
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
+                                    style={filter === f.key ? { backgroundColor: '#606C38' } : {}}
                                 >
                                     {f.label}
                                 </button>
@@ -209,7 +212,7 @@ const VendorOrders = () => {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                     {loading ? (
                         <div className="p-12 text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
                         </div>
                     ) : filteredOrders.length === 0 ? (
                         <div className="p-12 text-center">
@@ -275,7 +278,8 @@ const VendorOrders = () => {
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
                                                             to={`/vendor/orders/${order._id}`}
-                                                            className="text-blue-600 hover:text-blue-900"
+                                                            className="hover:text-gray-700"
+                                                            style={{ color: '#606C38' }}
                                                             title="View Details"
                                                         >
                                                             <Eye className="w-4 h-4" />

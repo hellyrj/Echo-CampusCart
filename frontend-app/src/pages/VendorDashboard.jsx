@@ -6,7 +6,7 @@ import { useProductApi } from '../hooks/useProductApi';
 import { useServiceApi } from '../hooks/useServiceApi';
 import { useCategoryApi } from '../hooks/useCategoryApi';
 import VendorApplicationForm from '../components/VendorApplicationForm';
-import ProductForm from '../components/ProductForm';
+import ProductWizard from '../components/ProductWizard';
 import ServiceCreationForm from '../components/ServiceCreationForm';
 import VendorProfile from '../components/VendorProfile';
 
@@ -427,7 +427,8 @@ const VendorDashboard = () => {
                     <h1 className="text-3xl font-bold text-gray-900 mb-8">Vendor Dashboard</h1>
                     <Link
     to="/vendor/orders"
-    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 inline-flex items-center"
+    className="text-white px-6 py-2 rounded-md inline-flex items-center"
+    style={{ backgroundColor: '#606C38' }}
 >
     <Package className="w-4 h-4 mr-2" />
     Manage Orders
@@ -453,7 +454,8 @@ const VendorDashboard = () => {
                         </p>
                         <button
                             onClick={() => setShowCreateForm(true)}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            className="px-6 py-3 rounded-md"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                         >
                             Apply to Become a Vendor
                         </button>
@@ -464,9 +466,9 @@ const VendorDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-8">Vendor Dashboard</h1>
+                <h1 className="text-3xl font-bold mb-8" style={{ color: '#283618' }}>Vendor Dashboard</h1>
                 
                 {applicationStatus === 'approved' && renderApplicationStatus()}
                 
@@ -491,8 +493,7 @@ const VendorDashboard = () => {
                                 initialData={editingService}
                             />
                         ) : showProductForm ? (
-                            /* Product Form */
-                            <ProductForm
+                            <ProductWizard
                                 product={editingProduct}
                                 onSubmit={handleProductSubmit}
                                 onCancel={handleCancelProductForm}
@@ -508,7 +509,8 @@ const VendorDashboard = () => {
                                             <h2 className="text-xl font-semibold text-gray-900">Your Products</h2>
                                             <button
                                                 onClick={() => setShowProductForm(true)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                className="px-4 py-2 text-white rounded-md"
+                                                style={{ backgroundColor: '#606C38' }}
                                             >
                                                 Add New Product
                                             </button>
@@ -519,7 +521,8 @@ const VendorDashboard = () => {
                                                 <p className="text-gray-600">You haven't added any products yet.</p>
                                                 <button
                                                     onClick={() => setShowProductForm(true)}
-                                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                    className="mt-4 px-4 py-2 text-white rounded-md"
+                                                    style={{ backgroundColor: '#606C38' }}
                                                 >
                                                     Add Your First Product
                                                 </button>
@@ -546,7 +549,8 @@ const VendorDashboard = () => {
                                                         <div className="p-4">
                                                             <div className="flex justify-between items-start mb-2">
                                                                 <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                <span className="text-xs px-2 py-1 rounded"
+                                                                    style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                                                     {getCategoryNames(product.categories)}
                                                                 </span>
                                                             </div>
@@ -587,7 +591,8 @@ const VendorDashboard = () => {
                                             <h2 className="text-xl font-semibold text-gray-900">Your Services</h2>
                                             <button
                                                 onClick={() => setShowServiceForm(true)}
-                                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                className="px-4 py-2 text-white rounded-md"
+                                                style={{ backgroundColor: '#606C38' }}
                                             >
                                                 Add New Service
                                             </button>
@@ -598,7 +603,8 @@ const VendorDashboard = () => {
                                                 <p className="text-gray-600">You haven't added any services yet.</p>
                                                 <button
                                                     onClick={() => setShowServiceForm(true)}
-                                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                    className="mt-4 px-4 py-2 text-white rounded-md"
+                                                    style={{ backgroundColor: '#606C38' }}
                                                 >
                                                     Add Your First Service
                                                 </button>
@@ -674,7 +680,8 @@ const VendorDashboard = () => {
                                             {(vendor.vendorType === 'products' || vendor.vendorType === 'both') && (
                                                 <button
                                                     onClick={() => setShowProductForm(true)}
-                                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                    className="px-4 py-2 text-white rounded-md"
+                                                    style={{ backgroundColor: '#606C38' }}
                                                 >
                                                     Add Product
                                                 </button>
@@ -682,7 +689,8 @@ const VendorDashboard = () => {
                                             {(vendor.vendorType === 'services' || vendor.vendorType === 'both') && (
                                                 <button
                                                     onClick={() => setShowServiceForm(true)}
-                                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                                    className="px-4 py-2 text-white rounded-md"
+                                                    style={{ backgroundColor: '#606C38' }}
                                                 >
                                                     Add Service
                                                 </button>
