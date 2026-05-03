@@ -314,7 +314,18 @@ export class ProductController {
     });
 
     getProduct = asyncHandler(async (req, res, next) => {
+        console.log('=== GET PRODUCT DEBUG ===');
+        console.log('Product ID requested:', req.params.id);
+        console.log('Product ID type:', typeof req.params.id);
+        
         const product = await this.productService.getProductById(req.params.id);
+        console.log('Product found:', product ? 'YES' : 'NO');
+        
+        if (!product) {
+            console.log('ERROR: Product not found in database');
+            return sendResponse(res, 404, "Product not found", null);
+        }
+        
         await this.productService.incrementViews(req.params.id);
         sendResponse(res, 200, "Product fetched successfully", product);
     });
@@ -369,15 +380,45 @@ export class ProductController {
     updateProduct = asyncHandler(async (req, res, next) => {
     const productId = req.params.id;
     
+    console.log('=== PRODUCT UPDATE DEBUG START ===');
+    console.log('Product ID to update:', productId);
+    console.log('User ID from token:', req.user._id);
+    console.log('User ID type:', typeof req.user._id);
+    
     // FIXED: Get actual vendor ID
     const vendor = await this.vendorService.getVendorByUserId(req.user._id);
+    console.log('Vendor found:', vendor);
+    console.log('Vendor _id:', vendor?._id);
+    console.log('Vendor _id type:', typeof vendor?._id);
+    
     if (!vendor) {
+        console.log('ERROR: Vendor not found for user:', req.user._id);
         return sendResponse(res, 404, "Vendor profile not found", null);
     }
     
+    console.log('=== IMAGE PROCESSING DEBUG ===');
+    console.log('req.files:', req.files);
+    console.log('req.files length:', req.files ? req.files.length : 'no files');
+    console.log('req.files array:', req.files ? Array.isArray(req.files) : 'not array');
+    
     let processedImages = [];
     if (req.files && req.files.length > 0) {
+        console.log('Processing uploaded images...');
+        console.log('Files to process:', req.files.map(f => ({ name: f.originalname, size: f.size })));
         processedImages = await processUploadedImages(req.files);
+        console.log('Processed images result:', processedImages.length);
+        console.log('Processed images:', processedImages.map(img => ({ url: img.url, publicId: img.publicId })));
+    }
+    
+    // Get existing product to preserve current images if new ones are uploaded
+    let existingImages = [];
+    if (processedImages.length > 0) {
+        console.log('Getting existing product for images...');
+        const existingProduct = await this.productService.getProductById(productId);
+        existingImages = existingProduct.images || [];
+        console.log('Existing images:', existingImages.length);
+        console.log('New images:', processedImages.length);
+        console.log('Final images array will have:', existingImages.length + processedImages.length);
     }
     
     // Build update data with proper parsing (same as create)
@@ -386,7 +427,9 @@ export class ProductController {
         ...(req.body.description && { description: req.body.description }),
         ...(req.body.basePrice && { basePrice: parseFloat(req.body.basePrice) }),
         ...(req.body.price && !req.body.basePrice && { basePrice: parseFloat(req.body.price) }),
-        ...(processedImages.length > 0 && { images: processedImages }),
+        ...(processedImages.length > 0 && { 
+            images: [...existingImages, ...processedImages] 
+        }),
         ...(req.body.isAvailable !== undefined && { 
             isAvailable: req.body.isAvailable === true || req.body.isAvailable === 'true' 
         }),
