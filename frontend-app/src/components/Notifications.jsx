@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../api/user.api';
+import { useLocation } from 'react-router-dom';
 
 const Notifications = () => {
     const { user } = useAuth();
+    const location = useLocation();
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -13,6 +15,11 @@ const Notifications = () => {
             loadNotifications();
         }
     }, [user]);
+    
+    // Close notifications when navigating to a different page
+    useEffect(() => {
+        setShowNotifications(false);
+    }, [location.pathname]);
 
     const loadNotifications = async () => {
         try {
