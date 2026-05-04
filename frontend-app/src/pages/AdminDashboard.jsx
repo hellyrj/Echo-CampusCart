@@ -18,6 +18,25 @@ import {
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
+    
+    // Debug: Check if user is logged in and has admin role
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    console.log('=== Admin Dashboard Debug ===');
+    console.log('Token exists:', !!token);
+    console.log('Token:', token ? token.substring(0, 50) + '...' : 'null');
+    console.log('User data:', userStr);
+    
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            console.log('User role:', user.role);
+            console.log('Is admin:', user.role === 'admin');
+        } catch (e) {
+            console.log('Failed to parse user data:', e);
+        }
+    }
+    
     const [stats, setStats] = useState(null);
     const [vendorApplications, setVendorApplications] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -77,10 +96,26 @@ const AdminDashboard = () => {
     };
 
     const handleApproveVendor = async (vendorId) => {
-        const result = await approveVendorApplication(vendorId);
-        if (result.success) {
-            loadDashboardData();
-            setSelectedVendor(null);
+        console.log('=== Approve Vendor Debug ===');
+        console.log('Approving vendor with ID:', vendorId);
+        
+        try {
+            const result = await approveVendorApplication(vendorId, { approvedBy: 'admin' });
+            console.log('Approve result:', result);
+            
+            if (result.success) {
+                loadDashboardData();
+                setSelectedVendor(null);
+                alert('Vendor application approved successfully!');
+            } else {
+                console.log('Approve failed:', result.message);
+                alert(`Failed to approve vendor: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('Error in handleApproveVendor:', error);
+            console.error('Error response:', error.response);
+            console.error('Error status:', error.response?.status);
+            alert(`Error approving vendor: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -125,7 +160,10 @@ const AdminDashboard = () => {
             }
         } catch (error) {
             console.error('Error in handleRejectVendor:', error);
-            alert(`Error rejecting vendor: ${error.message}`);
+            console.error('Error response:', error.response);
+            console.error('Error status:', error.response?.status);
+            console.error('Error data:', error.response?.data);
+            alert(`Error rejecting vendor: ${error.response?.data?.message || error.message}`);
         }
     };
 
@@ -257,6 +295,17 @@ const AdminDashboard = () => {
             )}
 
             <div className="flex gap-2">
+                <button
+                    onClick={() => {
+                        console.log('Test API connection...');
+                        console.log('Application ID:', application._id);
+                        console.log('Application data:', application);
+                    }}
+                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2"
+                >
+                    <AlertCircle className="w-4 h-4" />
+                    Test
+                </button>
                 <button
                     onClick={() => handleApproveVendor(application._id)}
                     className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"

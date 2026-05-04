@@ -31,14 +31,15 @@ const Cart = () => {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-gray-50 py-12">
+            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Log In</h1>
-                    <p className="text-gray-600 mb-8">You need to be logged in to view your cart.</p>
+                    <h1 className="text-2xl font-bold mb-4" style={{ color: '#283618' }}>Please Log In</h1>
+                    <p className="mb-8" style={{ color: '#606C38' }}>You need to be logged in to view your cart.</p>
                     <Link
                         to="/login"
-                        className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        className="inline-block text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                        style={{ backgroundColor: '#606C38' }}
                     >
                         Log In
                     </Link>
@@ -106,7 +107,7 @@ const Cart = () => {
 
     if (loading && items.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 py-12">
+            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="max-w-4xl mx-auto px-4">
                     <div className="animate-pulse space-y-4">
                         <div className="h-8 bg-gray-300 rounded w-1/4"></div>
@@ -121,14 +122,15 @@ const Cart = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-gray-50 py-12">
+            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Cart is Empty</h1>
-                    <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
+                    <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>Your Cart is Empty</h1>
+                    <p className="mb-8" style={{ color: '#606C38' }}>Looks like you haven't added anything to your cart yet.</p>
                     <Link
                         to="/products"
-                        className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        className="inline-flex items-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                        style={{ backgroundColor: '#606C38' }}
                     >
                         <ShoppingBag className="w-5 h-5 mr-2" />
                         Start Shopping
@@ -139,7 +141,7 @@ const Cart = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex items-center mb-8">
@@ -150,7 +152,7 @@ const Cart = () => {
                         <ArrowLeft className="w-5 h-5 mr-1" />
                         Continue Shopping
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                    <h1 className="text-2xl font-bold flex items-center" style={{ color: '#283618' }}>
                         <ShoppingCart className="w-6 h-6 mr-2" />
                         Shopping Cart
                         <span className="ml-2 text-sm font-normal text-gray-500">
@@ -248,7 +250,7 @@ const Cart = () => {
 
                                         {/* Price */}
                                         <div className="text-right">
-                                            <p className="text-lg font-bold text-blue-600">
+                                            <p className="text-lg font-bold" style={{ color: '#606C38' }}>
                                                 ETB {(item.price * item.quantity).toFixed(2)}
                                             </p>
                                             <p className="text-sm text-gray-500">
@@ -272,7 +274,7 @@ const Cart = () => {
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-4">
+                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
 
                             {/* Coupon Section */}
@@ -302,7 +304,8 @@ const Cart = () => {
                                                 setCouponError('');
                                             }}
                                             placeholder="Enter coupon code"
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 text-sm"
+                                            style={{ focusRingColor: '#606C38' }}
                                         />
                                         <button
                                             type="submit"
@@ -333,7 +336,7 @@ const Cart = () => {
                                 <div className="border-t border-gray-200 pt-3">
                                     <div className="flex justify-between items-center">
                                         <span className="text-lg font-bold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold text-blue-600">
+                                        <span className="text-2xl font-bold" style={{ color: '#606C38' }}>
                                             ETB {total.toFixed(2)}
                                         </span>
                                     </div>
@@ -344,7 +347,8 @@ const Cart = () => {
                             <button
                                 onClick={() => navigate('/checkout')}
                                 disabled={items.length === 0}
-                                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="w-full text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                style={{ backgroundColor: '#606C38' }}
                             >
                                 Proceed to Checkout
                             </button>

@@ -59,7 +59,7 @@ axiosInstance.interceptors.response.use(
             // Don't logout if it's a failed login/register attempt
             if (!isAuthEndpoint) {
                 localStorage.removeItem('token');
-                window.location.href = '/login';
+                window.location.href = '/';
             }
         }
         return Promise.reject(error);

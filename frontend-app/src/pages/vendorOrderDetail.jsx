@@ -113,7 +113,7 @@ const VendorOrderDetail = () => {
         return (
             <div className="min-h-screen bg-gray-50 py-12">
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
                 </div>
             </div>
         );
@@ -122,7 +122,7 @@ const VendorOrderDetail = () => {
     const statusSteps = vendorOrder ? getStatusSteps(vendorOrder.status) : [];
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
@@ -136,10 +136,10 @@ const VendorOrderDetail = () => {
                 </div>
 
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold" style={{ color: '#283618' }}>
                         Order #{order.orderNumber}
                     </h1>
-                    <p className="text-gray-500 mt-1">
+                    <p className="mt-1" style={{ color: '#606C38' }}>
                         Placed on {new Date(order.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         })}
@@ -159,9 +159,10 @@ const VendorOrderDetail = () => {
                                         <div key={step.key} className="flex flex-col items-center relative z-10">
                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                                                 step.cancelled ? 'bg-red-100 text-red-600' :
-                                                step.completed ? 'bg-blue-600 text-white' : 
+                                                step.completed ? 'text-white' : 
                                                 'bg-gray-200 text-gray-500'
-                                            }`}>
+                                            }`}
+                                            style={step.completed ? { backgroundColor: '#606C38' } : {}}>
                                                 <step.icon className="w-5 h-5" />
                                             </div>
                                             <span className="text-xs mt-2 text-center max-w-[80px] text-gray-600">
@@ -173,8 +174,9 @@ const VendorOrderDetail = () => {
                                 {/* Progress bar background */}
                                 <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-0">
                                     <div 
-                                        className="h-full bg-blue-600 transition-all duration-500"
+                                        className="h-full transition-all duration-500"
                                         style={{ 
+                                            backgroundColor: '#606C38',
                                             width: vendorOrder ? 
                                                 `${(statusSteps.filter(s => s.completed).length / Math.max(statusSteps.length - 1, 1)) * 100}%` 
                                                 : '0%' 
@@ -219,7 +221,7 @@ const VendorOrderDetail = () => {
                                 </div>
                                 <div className="flex justify-between font-bold text-lg border-t border-gray-200 pt-2">
                                     <span>Total</span>
-                                    <span className="text-blue-600">ETB {vendorOrder?.total?.toFixed(2)}</span>
+                                    <span className="font-semibold text-lg" style={{ color: '#606C38' }}>ETB {vendorOrder?.total?.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -233,8 +235,9 @@ const VendorOrderDetail = () => {
                                         <div key={idx} className="flex items-start">
                                             <div className={`w-2 h-2 rounded-full mt-2 mr-3 ${
                                                 history.status === 'cancelled' || history.status === 'rejected'
-                                                    ? 'bg-red-400' : 'bg-blue-400'
-                                            }`} />
+                                                    ? 'bg-red-400' : ''
+                                            }`}
+                                            style={!(history.status === 'cancelled' || history.status === 'rejected') ? { backgroundColor: '#606C38' } : {}} />
                                             <div className="flex-1">
                                                 <div className="flex justify-between">
                                                     <span className={`font-medium text-sm ${
@@ -269,13 +272,15 @@ const VendorOrderDetail = () => {
                                             onClick={() => setNewStatus(status)}
                                             className={`w-full flex items-center p-3 rounded-lg border-2 transition-colors ${
                                                 newStatus === status
-                                                    ? 'border-blue-500 bg-blue-50'
+                                                    ? 'bg-gray-50'
                                                     : 'border-gray-200 hover:border-gray-300'
                                             }`}
+                                            style={newStatus === status ? { borderColor: '#606C38' } : {}}
                                         >
                                             <span className={`font-medium ${
-                                                newStatus === status ? 'text-blue-700' : 'text-gray-700'
-                                            }`}>
+                                                newStatus === status ? '' : 'text-gray-700'
+                                            }`}
+                                            style={newStatus === status ? { color: '#606C38' } : {}}>
                                                 {status.replace('_', ' ')}
                                             </span>
                                         </button>
@@ -288,14 +293,16 @@ const VendorOrderDetail = () => {
                                         onChange={(e) => setStatusNote(e.target.value)}
                                         placeholder="Add a note (optional)..."
                                         rows="2"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2"
+                                        style={{ focusRingColor: '#606C38' }}
                                     />
                                 </div>
 
                                 <button
                                     onClick={handleStatusUpdate}
                                     disabled={!newStatus || updating}
-                                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                    className="w-full px-4 py-2 text-white rounded-lg disabled:opacity-50"
+                                    style={{ backgroundColor: '#606C38' }}
                                 >
                                     {updating ? 'Updating...' : 'Update Status'}
                                 </button>
@@ -317,7 +324,7 @@ const VendorOrderDetail = () => {
                         {/* Customer Information */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                             <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                                <User className="w-4 h-4 mr-1 text-blue-600" />
+                                <User className="w-4 h-4 mr-1" style={{ color: '#606C38' }} />
                                 Customer
                             </h3>
                             <div className="space-y-2 text-sm">
@@ -326,7 +333,7 @@ const VendorOrderDetail = () => {
                                 </p>
                                 <p className="text-gray-600">
                                     <span className="font-medium">Phone:</span> 
-                                    <a href={`tel:${order.customerInfo?.phone}`} className="text-blue-600 ml-1">
+                                    <a href={`tel:${order.customerInfo?.phone}`} className="ml-1" style={{ color: '#606C38' }}>
                                         {order.customerInfo?.phone}
                                     </a>
                                 </p>
@@ -339,7 +346,7 @@ const VendorOrderDetail = () => {
                         {/* Delivery Address */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                             <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                                <MapPin className="w-4 h-4 mr-1 text-blue-600" />
+                                <MapPin className="w-4 h-4 mr-1" style={{ color: '#606C38' }} />
                                 Delivery Address
                             </h3>
                             <div className="space-y-2 text-sm">

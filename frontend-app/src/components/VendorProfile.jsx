@@ -53,6 +53,7 @@ const VendorProfile = ({ vendor, onUpdate, loading }) => {
                     <button
                         onClick={() => setIsEditing(true)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                     >
                         Edit Profile
                     </button>
@@ -144,6 +145,7 @@ const VendorProfile = ({ vendor, onUpdate, loading }) => {
                             type="submit"
                             disabled={loading}
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                         >
                             {loading ? 'Saving...' : 'Save Changes'}
                         </button>
