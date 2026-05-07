@@ -5,7 +5,7 @@ import { useServiceApi } from '../hooks/useServiceApi';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
-import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight, Wrench, Package } from 'lucide-react';
+import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight, Wrench, Package, Store } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { vendorApi } from '../api/vendor.api';
 
@@ -26,7 +26,8 @@ const Products = () => {
     const [searchTimeout, setSearchTimeout] = useState(null);
     
     // New state for enhanced filtering
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true); // Changed to true by default for desktop
+    const [isFilterVisible, setIsFilterVisible] = useState(true); // New state for filter visibility
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [selectedVendors, setSelectedVendors] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -50,6 +51,11 @@ const Products = () => {
 
     const handleVendorApplication = () => {
         navigate('/vendor/apply');
+    };
+
+    // Toggle filter sidebar
+    const toggleFilterSidebar = () => {
+        setIsFilterVisible(!isFilterVisible);
     };
 
     // Debounced search function
@@ -320,9 +326,10 @@ const Products = () => {
         }
         
         // Set new timeout for debouncing
-        locationSearchTimeout.current = setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             searchLocations(query);
         }, 500);
+        setLocationSearchTimeout(timeoutId);
     };
 
     // Select a location from search results
@@ -616,10 +623,10 @@ const Products = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading products...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#606C38' }}></div>
+                    <p style={{ color: '#283618' }}>Loading products...</p>
                 </div>
             </div>
         );
@@ -627,12 +634,13 @@ const Products = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center">
                     <div className="text-red-600 text-lg mb-4">Error: {error}</div>
                     <button 
                         onClick={loadProducts}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                        className="px-6 py-2 rounded-md transition-all duration-200 hover:scale-105"
+                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                     >
                         Try Again
                     </button>
@@ -642,59 +650,94 @@ const Products = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
             {/* Header with Search Bar */}
             <div className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1 max-w-2xl">
-                            <h1 className="text-2xl font-bold text-gray-900 mb-4">Products</h1>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search products, vendors, or descriptions..."
-                                    value={searchTerm}
-                                    onChange={(e) => debouncedSearch(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="flex flex-col">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>Products</h1>
+                        </div>
+                        
+                        {/* Search Bar with Filter Icon */}
+                        <div className="relative mt-4">
+                            <div className="flex gap-3">
+                                <div className="relative flex-1">
+                                    <input
+                                        type="text"
+                                        placeholder="Search products, vendors, or descriptions..."
+                                        value={searchTerm}
+                                        onChange={(e) => debouncedSearch(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
+                                        style={{ focusRingColor: '#606C38', borderColor: '#DDA15E' }}
+                                    />
+                                    <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                
+                                {/* Filter Toggle Button */}
+                                <button
+                                    onClick={toggleFilterSidebar}
+                                    className={`px-4 py-3 rounded-lg transition-all duration-200 hover:scale-105 flex items-center gap-2 ${
+                                        isFilterVisible ? 'text-white' : 'text-gray-700'
+                                    }`}
+                                    style={{ 
+                                        backgroundColor: isFilterVisible ? '#606C38' : '#DDA15E20',
+                                        color: isFilterVisible ? '#FEFAE0' : '#283618'
+                                    }}
+                                    title={isFilterVisible ? "Hide Filters" : "Show Filters"}
+                                >
+                                    <Filter className="w-5 h-5" />
+                                    <span className="hidden sm:inline">Filters</span>
+                                </button>
                             </div>
                         </div>
                     </div>
                     
                     {/* Content Type Selector */}
-                    <div className="flex items-center space-x-1 mt-4">
+                    <div className="flex items-center space-x-2 mt-6">
                         <button
                             onClick={() => setContentType('all')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 ${
                                 contentType === 'all' 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'text-white' 
+                                    : 'text-gray-700 hover:bg-gray-100'
                             }`}
+                            style={{ 
+                                backgroundColor: contentType === 'all' ? '#606C38' : '#FEFAE0',
+                                color: contentType === 'all' ? '#FEFAE0' : '#283618'
+                            }}
                         >
                             <Package className="w-4 h-4 inline mr-2" />
                             All
                         </button>
                         <button
                             onClick={() => setContentType('products')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 ${
                                 contentType === 'products' 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'text-white' 
+                                    : 'text-gray-700 hover:bg-gray-100'
                             }`}
+                            style={{ 
+                                backgroundColor: contentType === 'products' ? '#606C38' : '#FEFAE0',
+                                color: contentType === 'products' ? '#FEFAE0' : '#283618'
+                            }}
                         >
                             <Package className="w-4 h-4 inline mr-2" />
                             Products
                         </button>
                         <button
                             onClick={() => setContentType('services')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 ${
                                 contentType === 'services' 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'text-white' 
+                                    : 'text-gray-700 hover:bg-gray-100'
                             }`}
+                            style={{ 
+                                backgroundColor: contentType === 'services' ? '#606C38' : '#FEFAE0',
+                                color: contentType === 'services' ? '#FEFAE0' : '#283618'
+                            }}
                         >
                             <Wrench className="w-4 h-4 inline mr-2" />
                             Services
@@ -706,229 +749,219 @@ const Products = () => {
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div className="flex gap-6">
-                    {/* Sidebar Filters */}
-                    <div className={`fixed inset-y-0 left-0 z-50 w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:inset-auto lg:transform-none lg:shadow-none lg:w-64 ${
-                        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-                    }`}>
-                        
-                        {/* Filter Toggle Button */}
-                        <button
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="ml-4 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        >
-                            <Filter className="w-5 h-5" />
-                            Filters
-                            {(selectedCategory || selectedUniversity || selectedVendors.length > 0 || priceRange.min || priceRange.max || locationEnabled) && (
-                                <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                                    {[selectedCategory, selectedUniversity, ...selectedVendors, priceRange.min, priceRange.max, locationEnabled].filter(Boolean).length}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="flex gap-6">
-                    {/* Sidebar Filters */}
-                    <div className={(sidebarOpen ? 'block' : 'hidden') + ' lg:block w-80 flex-shrink-0'}>
-                        <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-                                <button
-                                    onClick={clearAllFilters}
-                                    className="text-sm text-gray-500 hover:text-gray-700"
-                                >
-                                    Clear All
-                                </button>
-                            </div>
-
-                            {/* Location Filter */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center">
-                                    <MapPin className="w-4 h-4 mr-2" />
-                                    Location-Based
-                                </h3>
-                                
-                                {/* Location Search Input */}
-                                <div className="relative mb-3">
-                                    <input
-                                        type="text"
-                                        placeholder="Search for a location..."
-                                        value={locationSearchQuery}
-                                        onChange={handleLocationSearchChange}
-                                        className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                    />
-                                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                                    {locationSearchQuery && (
-                                        <button
-                                            onClick={() => {
-                                                setLocationSearchQuery('');
-                                                setLocationSearchResults([]);
-                                            }}
-                                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    )}
+                    {/* Sidebar Filters - Toggle based on isFilterVisible */}
+                    {isFilterVisible && (
+                        <div className="w-80 flex-shrink-0 transition-all duration-300 ease-in-out">
+                            <div className="rounded-lg shadow-md p-6 sticky top-6" style={{ backgroundColor: '#FEFAE0' }}>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-lg font-semibold" style={{ color: '#283618' }}>Filters</h2>
+                                    <button
+                                        onClick={clearAllFilters}
+                                        className="text-sm hover:opacity-70"
+                                        style={{ color: '#606C38' }}
+                                    >
+                                        Clear All
+                                    </button>
                                 </div>
 
-                                {/* Location Search Results */}
-                                {locationSearchResults.length > 0 && (
-                                    <div className="mb-3 bg-white border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto">
-                                        {locationSearchResults.map((place, index) => (
+                                {/* Location Filter */}
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-medium mb-3 flex items-center" style={{ color: '#283618' }}>
+                                        <MapPin className="w-4 h-4 mr-2" />
+                                        Location-Based
+                                    </h3>
+                                    
+                                    {/* Location Search Input */}
+                                    <div className="relative mb-3">
+                                        <input
+                                            type="text"
+                                            placeholder="Search for a location..."
+                                            value={locationSearchQuery}
+                                            onChange={handleLocationSearchChange}
+                                            className="w-full pl-9 pr-4 py-2 border rounded-md focus:ring-2 focus:border-transparent text-sm"
+                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        />
+                                        <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                                        {locationSearchQuery && (
                                             <button
-                                                key={index}
-                                                onClick={() => selectLocation(place)}
-                                                className="w-full px-3 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                                                onClick={() => {
+                                                    setLocationSearchQuery('');
+                                                    setLocationSearchResults([]);
+                                                }}
+                                                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                                             >
-                                                <div className="flex items-start gap-2">
-                                                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                                                            {place.display_name}
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Location Search Results */}
+                                    {locationSearchResults.length > 0 && (
+                                        <div className="mb-3 border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto" style={{ backgroundColor: '#FEFAE0' }}>
+                                            {locationSearchResults.map((place, index) => (
+                                                <button
+                                                    key={index}
+                                                    onClick={() => selectLocation(place)}
+                                                    className="w-full px-3 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                                                            style={{ hoverBackgroundColor: '#DDA15E20' }}
+                                                >
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                                                        <div className="flex-1">
+                                                            <div className="text-sm font-medium text-gray-900 line-clamp-2">
+                                                                {place.display_name}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {locationSearchLoading && (
-                                    <div className="mb-3 bg-white border border-gray-200 rounded-md shadow-sm p-3 text-center">
-                                        <div className="inline-block w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
-                                        <span className="text-sm text-gray-600">Searching...</span>
-                                    </div>
-                                )}
-
-                                {/* Use My Location Button */}
-                                <button
-                                    onClick={toggleLocationFilter}
-                                    disabled={locationLoading}
-                                    className={'w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ' + (
-                                        locationEnabled 
-                                            ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    ) + (locationLoading ? ' opacity-50 cursor-not-allowed' : '')}
-                                >
-                                    {locationLoading ? (
-                                        <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-                                    ) : locationEnabled ? (
-                                        <><Navigation className="w-4 h-4" />Location Enabled</>
-                                    ) : (
-                                        <><Navigation className="w-4 h-4" />Use My Location</>
+                                                </button>
+                                            ))}
+                                        </div>
                                     )}
-                                </button>
-                                
-                                {locationError && (
-                                    <p className="mt-2 text-sm text-red-600">{locationError}</p>
-                                )}
-                                {locationEnabled && userLocation && (
-                                    <p className="mt-2 text-sm text-green-600">
-                                        Showing nearby vendors within {searchRadius}m
-                                    </p>
-                                )}
-                            </div>
 
-                            {/* Category Filter */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Category</h3>
-                                <select
-                                    value={selectedCategory}
-                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All Categories</option>
-                                    {categories.map((category, idx) => {
-                                        const categoryValue = typeof category === 'string' ? category : category.name || category;
-                                        const categoryId = typeof category === 'string'
-                                            ? category
-                                            : (category._id || category.name || JSON.stringify(category) || 'cat-' + idx);
-                                        return (
-                                            <option key={`cat-${categoryId}`} value={categoryValue}>
-                                                {categoryValue}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </div>
+                                    {locationSearchLoading && (
+                                        <div className="mb-3 border border-gray-200 rounded-md shadow-sm p-3 text-center" style={{ backgroundColor: '#FEFAE0' }}>
+                                            <div className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2" style={{ borderColor: '#606C38', borderTopColor: 'transparent' }} />
+                                            <span className="text-sm text-gray-600">Searching...</span>
+                                        </div>
+                                    )}
 
-                            {/* University Filter */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">University</h3>
-                                <select
-                                    value={selectedUniversity}
-                                    onChange={(e) => setSelectedUniversity(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All Universities</option>
-                                    {universities.map((university) => (
-                                        <option key={university._id || university} value={university.name || university}>
-                                            {university.name || university}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Price Range Filter */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Price Range</h3>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        placeholder="Min"
-                                        value={priceRange.min}
-                                        onChange={(e) => handlePriceRangeChange('min', e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Max"
-                                        value={priceRange.max}
-                                        onChange={(e) => handlePriceRangeChange('max', e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                    />
+                                    {/* Use My Location Button */}
+                                    <button
+                                        onClick={toggleLocationFilter}
+                                        disabled={locationLoading}
+                                        className={'w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 ' + (
+                                            locationEnabled 
+                                                ? 'text-green-700' 
+                                                : 'text-gray-700'
+                                        ) + (locationLoading ? ' opacity-50 cursor-not-allowed' : '')}
+                                        style={{ 
+                                            backgroundColor: locationEnabled ? '#DDA15E40' : '#606C3820'
+                                        }}
+                                    >
+                                        {locationLoading ? (
+                                            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: '#606C38', borderTopColor: 'transparent' }} />
+                                        ) : locationEnabled ? (
+                                            <><Navigation className="w-4 h-4" />Location Enabled</>
+                                        ) : (
+                                            <><Navigation className="w-4 h-4" />Use My Location</>
+                                        )}
+                                    </button>
+                                    
+                                    {locationError && (
+                                        <p className="mt-2 text-sm text-red-600">{locationError}</p>
+                                    )}
+                                    {locationEnabled && userLocation && (
+                                        <p className="mt-2 text-sm text-green-600">
+                                            Showing nearby vendors within {searchRadius}m
+                                        </p>
+                                    )}
                                 </div>
-                            </div>
 
-                            {/* Vendors Filter */}
-                            {vendors.length > 0 && (
+                                {/* Category Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium text-gray-700 mb-3">Vendors</h3>
-                                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                                        {vendors.map((vendor) => (
-                                            <label key={vendor._id} className="flex items-center space-x-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedVendors.includes(vendor._id)}
-                                                    onChange={() => handleVendorToggle(vendor._id)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                                <span className="text-sm text-gray-700 truncate">
-                                                    {vendor.storeName}
-                                                </span>
-                                            </label>
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Category</h3>
+                                    <select
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
+                                        style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                    >
+                                        <option value="">All Categories</option>
+                                        {categories.map((category, idx) => {
+                                            const categoryValue = typeof category === 'string' ? category : category.name || category;
+                                            const categoryId = typeof category === 'string'
+                                                ? category
+                                                : (category._id || category.name || JSON.stringify(category) || 'cat-' + idx);
+                                            return (
+                                                <option key={`cat-${categoryId}`} value={categoryValue}>
+                                                    {categoryValue}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+                                </div>
+
+                                {/* University Filter */}
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>University</h3>
+                                    <select
+                                        value={selectedUniversity}
+                                        onChange={(e) => setSelectedUniversity(e.target.value)}
+                                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
+                                        style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                    >
+                                        <option value="">All Universities</option>
+                                        {universities.map((university) => (
+                                            <option key={university._id || university} value={university.name || university}>
+                                                {university.name || university}
+                                            </option>
                                         ))}
+                                    </select>
+                                </div>
+
+                                {/* Price Range Filter */}
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Price Range</h3>
+                                    <div className="flex gap-2 w-full">
+                                        <input
+                                            type="number"
+                                            placeholder="Min"
+                                            value={priceRange.min}
+                                            onChange={(e) => handlePriceRangeChange('min', e.target.value)}
+                                            className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
+                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Max"
+                                            value={priceRange.max}
+                                            onChange={(e) => handlePriceRangeChange('max', e.target.value)}
+                                            className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
+                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        />
                                     </div>
                                 </div>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* Main Content */}
-                    <div className="flex-1">
+                                {/* Vendors Filter */}
+                                {vendors.length > 0 && (
+                                    <div className="mb-6">
+                                        <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Vendors</h3>
+                                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                                            {vendors.map((vendor) => (
+                                                <label key={vendor._id} className="flex items-center space-x-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedVendors.includes(vendor._id)}
+                                                        onChange={() => handleVendorToggle(vendor._id)}
+                                                        className="rounded border-gray-300 focus:ring-2 focus:border-transparent"
+                                                        style={{ accentColor: '#606C38', focusRingColor: '#606C38' }}
+                                                    />
+                                                    <span className="text-sm truncate" style={{ color: '#283618' }}>
+                                                        {vendor.storeName}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Main Content - Adjust width based on filter visibility */}
+                    <div className={`flex-1 transition-all duration-300 ease-in-out ${isFilterVisible ? '' : 'w-full'}`}>
                         {/* Results Summary */}
                         <div className="mb-6 flex items-center justify-between">
-                            <p className="text-gray-600">
+                            <p style={{ color: '#283618' }}>
                                 Showing {products.length} products
                                 {locationEnabled && userLocation && ' nearby'}
                             </p>
                             
-                            {/* Mobile Filter Button */}
+                            {/* Mobile Filter Button - only show if filter is hidden on mobile */}
                             <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg"
+                                onClick={toggleFilterSidebar}
+                                className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
+                                style={{ backgroundColor: '#606C3820', color: '#283618' }}
                             >
                                 <Filter className="w-5 h-5" />
                                 Filters
@@ -940,14 +973,14 @@ const Products = () => {
                             {/* Render Products */}
                             {(contentType === 'all' || contentType === 'products') && products.map((product) => (
                                 <div 
-    key={product._id}
-    onClick={() => {
-        console.log('Product clicked:', product._id);
-        console.log('Product data:', product);
-        navigate(`/products/${product._id}`);
-    }}
-    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
->
+                                    key={product._id}
+                                    onClick={() => {
+                                        console.log('Product clicked:', product._id);
+                                        console.log('Product data:', product);
+                                        navigate(`/products/${product._id}`);
+                                    }}
+                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                                >
                                     {/* Product Image Carousel */}
                                     <div className="relative">
                                         <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
@@ -1026,7 +1059,7 @@ const Products = () => {
                                     </div>
                                     
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+                                        <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>{product.name}</h3>
                                         <p className="text-gray-600 text-sm mb-3">{product.description}</p>
                                         
                                         {/* Category Tags */}
@@ -1035,7 +1068,8 @@ const Products = () => {
                                                 {product.categories.map((category, index) => (
                                                     <span 
                                                         key={index} 
-                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                                        style={{ backgroundColor: '#606C3820', color: '#606C38' }}
                                                     >
                                                         {typeof category === 'string' ? category : category.name}
                                                     </span>
@@ -1045,29 +1079,28 @@ const Products = () => {
                                         
                                         {/* Vendor Information */}
                                         {product.vendorId ? (
-                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                        </svg>
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
+                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Sold by</p>
+                                                        <p className="text-xs" style={{ color: '#606C38' }}>Sold by</p>
                                                         {product.vendorId._id ? (
                                                             <Link 
                                                                 to={`/vendor/${product.vendorId._id}`}
-                                                                className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                                                className="text-sm font-medium hover:opacity-70"
+                                                                style={{ color: '#283618' }}
                                                             >
                                                                 {product.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
                                                         ) : (
-                                                            <span className="text-sm font-medium text-gray-600">
+                                                            <span className="text-sm font-medium" style={{ color: '#283618' }}>
                                                                 {product.vendorId.storeName || 'Unknown Vendor'}
                                                             </span>
                                                         )}
                                                         {product.vendorId.universityNear && (
-                                                            <span className="text-xs text-gray-500 block">
+                                                            <span className="text-xs block" style={{ color: '#606C38' }}>
                                                                 📍 {product.vendorId.universityNear}
                                                             </span>
                                                         )}
@@ -1077,28 +1110,26 @@ const Products = () => {
                                                 {/* Delivery Options */}
                                                 <div className="flex gap-2 mt-2">
                                                     {product.vendorId.deliveryAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
                                                             Delivery
                                                         </span>
                                                     )}
                                                     {product.vendorId.pickupAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                                             Pickup
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
+                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Sold by</p>
-                                                        <span className="text-sm font-medium text-gray-600">
+                                                        <p className="text-xs" style={{ color: '#606C38' }}>Sold by</p>
+                                                        <span className="text-sm font-medium" style={{ color: '#283618' }}>
                                                             Vendor information loading...
                                                         </span>
                                                     </div>
@@ -1118,10 +1149,14 @@ const Products = () => {
                                         )}
                                         
                                         <div className="flex items-center justify-between">
-                                            <span className="text-2xl font-bold text-blue-600">${product.basePrice || product.price}</span>
-                                            <button 
-                                                onClick={() => handleAddToCart(product)}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center transition-colors"
+                                            <span className="text-2xl font-bold" style={{ color: '#283618' }}>${product.basePrice || product.price}</span>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAddToCart(product);
+                                                }}
+                                                className="px-4 py-2 rounded-md transition-all duration-200 hover:scale-105 flex items-center"
+                                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                                             >
                                                 <ShoppingCart className="w-4 h-4 mr-1" />
                                                 Add to Cart
@@ -1136,7 +1171,8 @@ const Products = () => {
                                 <div 
                                     key={service._id}
                                     onClick={() => navigate(`/services/${service._id}`)}
-                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                                    className="rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer"
+                                    style={{ backgroundColor: '#FEFAE0' }}
                                 >
                                     {/* Service Image */}
                                     <div className="relative">
@@ -1152,14 +1188,14 @@ const Products = () => {
                                                     }}
                                                 />
                                             ) : (
-                                                <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-blue-200">
-                                                    <Wrench className="w-12 h-12 text-blue-600" />
+                                                <div className="flex items-center justify-center h-full" style={{ background: 'linear-gradient(135deg, #606C38 0%, #283618 100%)' }}>
+                                                    <Wrench className="w-12 h-12" style={{ color: '#FEFAE0' }} />
                                                 </div>
                                             )}
                                             
                                             {/* Service Type Badge */}
                                             <div className="absolute top-2 left-2">
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                                     Service
                                                 </span>
                                             </div>
@@ -1168,13 +1204,13 @@ const Products = () => {
                                     
                                     <div className="p-4">
                                         {/* Service Title */}
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                                        <h3 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: '#283618' }}>
                                             {service.title}
                                         </h3>
                                         
                                         {/* Service Category */}
                                         <div className="mb-2">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
                                                 {service.serviceCategory?.charAt(0).toUpperCase() + service.serviceCategory?.slice(1).replace('_', ' ') || 'General'}
                                             </span>
                                         </div>
@@ -1186,29 +1222,28 @@ const Products = () => {
                                         
                                         {/* Vendor Info */}
                                         {service.vendorId ? (
-                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
+                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Offered by</p>
+                                                        <p className="text-xs" style={{ color: '#606C38' }}>Offered by</p>
                                                         {service.vendorId._id ? (
                                                             <Link 
                                                                 to={`/vendor/${service.vendorId._id}`}
-                                                                className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                                                className="text-sm font-medium hover:opacity-70"
+                                                                style={{ color: '#283618' }}
                                                             >
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
                                                         ) : (
-                                                            <span className="text-sm font-medium text-gray-600">
+                                                            <span className="text-sm font-medium" style={{ color: '#283618' }}>
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </span>
                                                         )}
                                                         {service.vendorId.universityNear && (
-                                                            <span className="text-xs text-gray-500 block">
+                                                            <span className="text-xs block" style={{ color: '#606C38' }}>
                                                                 📍 {service.vendorId.universityNear}
                                                             </span>
                                                         )}
@@ -1216,16 +1251,14 @@ const Products = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="mb-3 p-2 bg-gray-50 rounded-md">
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                                        <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
+                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs text-gray-500">Offered by</p>
-                                                        <span className="text-sm font-medium text-gray-600">
+                                                        <p className="text-xs" style={{ color: '#606C38' }}>Offered by</p>
+                                                        <span className="text-sm font-medium" style={{ color: '#283618' }}>
                                                             Vendor information loading...
                                                         </span>
                                                     </div>
@@ -1263,7 +1296,8 @@ const Products = () => {
                                                     // Handle service booking/contact (future implementation)
                                                     alert('Service booking feature coming soon!');
                                                 }}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center transition-colors"
+                                                className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
+                                                style={{ backgroundColor: '#606C38' }}
                                             >
                                                 <Wrench className="w-4 h-4 mr-1" />
                                                 Book Now
@@ -1284,7 +1318,8 @@ const Products = () => {
                                 </p>
                                 <button
                                     onClick={clearFilters}
-                                    className="mt-4 text-blue-600 hover:text-blue-700"
+                                    className="mt-4"
+                                    style={{ color: '#606C38' }}
                                 >
                                     Clear filters and try again
                                 </button>

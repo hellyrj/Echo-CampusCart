@@ -1,0 +1,9 @@
+      PID    PPID    PGID     WINPID   TTY         UID    STIME COMMAND
+     2503       1    2503      18352  cons2     197609 00:07:11 /usr/bin/vim
+     2235       1    2235      19396  ?         197609 10:25:15 /c/Users/ST/AppData/Local/Programs/Windsurf/resources/app/extensions/windsurf/devin/bin/devin
+     2273       1    2273      14300  cons0     197609 10:33:05 /usr/bin/bash
+     2441       1    2441       2212  ?         197609 19:55:02 /c/Users/ST/AppData/Local/Programs/Windsurf/resources/app/extensions/windsurf/devin/bin/devin
+     2523    2273    2523      14276  cons0     197609 00:20:31 /usr/bin/PS
+     2363       1    2363      17840  cons1     197609 19:50:09 /usr/bin/bash
+     2254       1    2254       9804  ?         197609 10:31:21 /c/Users/ST/AppData/Local/Programs/Windsurf/resources/app/extensions/windsurf/devin/bin/devin
+     2318       1    2318       5840  ?         197609 10:33:43 /c/Users/ST/AppData/Local/Programs/Windsurf/resources/app/extensions/windsurf/devin/bin/devin

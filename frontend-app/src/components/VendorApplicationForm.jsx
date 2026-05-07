@@ -10,31 +10,21 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
     const [formData, setFormData] = useState({
         storeName: '',
         description: '',
-        address: '',
         phone: '',
         universityNear: '',
-        vendorType: 'products', // New field for vendor type
-        legalDocuments: [],
-        // New location fields
-        placeName: '',
-        fullAddress: '',
-        landmark: '',
-        area: '',
-        city: '',
-        state: '',
-        postalCode: '',
-        country: 'Ethiopia',
-        locationDetails: null,
-        // Delivery options
-        deliveryAvailable: true,
-        pickupAvailable: true,
+        vendorType: 'products',
+        sellingCategory: '',
+        customSellingCategory: '',
+        deliveryAvailable: false,
+        pickupAvailable: false,
         deliveryRadius: 3000,
         deliveryFee: 0,
-        // Map coordinates
         selectedLocation: null
     });
     const [errors, setErrors] = useState({});
     const [universities, setUniversities] = useState([]);
+    const [currentStep, setCurrentStep] = useState(1);
+    const totalSteps = 3;
 
     useEffect(() => {
         loadUniversities();
@@ -58,18 +48,59 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
         }
     };
 
-    const documentTypes = [
-        { value: 'business_license', label: 'Business License' },
-        { value: 'tax_certificate', label: 'Tax Certificate' },
-        { value: 'health_permit', label: 'Health Permit' },
-        { value: 'other', label: 'Other' }
-    ];
+    const nextStep = () => {
+        if (currentStep < totalSteps) {
+            // Validate current step before proceeding
+            let stepValid = true;
+            if (currentStep === 1) {
+                const storeNameError = !formData.storeName.trim() || formData.storeName.trim().length < 3 
+                    ? 'Store name must be at least 3 characters' 
+                    : '';
+                const sellingCategoryError = !formData.sellingCategory.trim() ? 'Please select what you are selling' : '';
+                const customSellingCategoryError = formData.sellingCategory === 'other' && !formData.customSellingCategory.trim() 
+                    ? 'Please specify what you are selling' 
+                    : '';
+                
+                if (storeNameError || sellingCategoryError || customSellingCategoryError) {
+                    setErrors({
+                        storeName: storeNameError,
+                        sellingCategory: sellingCategoryError,
+                        customSellingCategory: customSellingCategoryError
+                    });
+                    stepValid = false;
+                } else {
+                    setErrors({});
+                }
+            } else if (currentStep === 2) {
+                if (!formData.selectedLocation || !formData.phone.trim()) {
+                    setErrors({
+                        location: !formData.selectedLocation ? 'Please select your campus location' : '',
+                        phone: !formData.phone.trim() ? 'Phone number is required' : ''
+                    });
+                    stepValid = false;
+                } else {
+                    setErrors({});
+                }
+            }
+            
+            if (stepValid) {
+                setCurrentStep(currentStep + 1);
+            }
+        }
+    };
+
+    const prevStep = () => {
+        if (currentStep > 1) {
+            setCurrentStep(currentStep - 1);
+            setErrors({});
+        }
+    };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         }));
         
         // Clear error when user starts typing
@@ -181,13 +212,22 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
     const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.storeName.trim()) {
-            newErrors.storeName = 'Store name is required';
+        console.log('Validating form data:', formData);
+        
+        if (!formData.storeName.trim() || formData.storeName.trim().length < 3) {
+            newErrors.storeName = 'Store name must be at least 3 characters';
         }
         
-        // Check for location selection (map coordinates or fallback to location details)
-        if (!formData.selectedLocation && !formData.locationDetails && !formData.address.trim()) {
-            newErrors.address = 'Please select your business location on the map';
+        if (!formData.sellingCategory.trim()) {
+            newErrors.sellingCategory = 'Please select what you are selling';
+        }
+        
+        if (formData.sellingCategory === 'other' && !formData.customSellingCategory.trim()) {
+            newErrors.customSellingCategory = 'Please specify what you are selling';
+        }
+        
+        if (!formData.selectedLocation) {
+            newErrors.location = 'Please select your campus location';
         }
         
         if (!formData.phone.trim()) {
@@ -198,449 +238,452 @@ const VendorApplicationForm = ({ onSubmit, loading }) => {
             newErrors.universityNear = 'University selection is required';
         }
         
-        // Validate delivery options
+        // Validate at least one delivery option is selected
         if (!formData.deliveryAvailable && !formData.pickupAvailable) {
-            newErrors.deliveryOptions = 'At least one of delivery or pickup must be available';
+            newErrors.deliveryOptions = 'Please select at least one delivery option';
         }
         
-        if (formData.deliveryAvailable) {
-            if (!formData.deliveryRadius || formData.deliveryRadius < 100 || formData.deliveryRadius > 10000) {
-                newErrors.deliveryRadius = 'Delivery radius must be between 100 and 10000 meters';
-            }
-            
-            if (formData.deliveryFee < 0) {
-                newErrors.deliveryFee = 'Delivery fee cannot be negative';
-            }
+        // Validate phone format (more flexible - just check it has some digits)
+        if (formData.phone && formData.phone.trim().length < 3) {
+            newErrors.phone = 'Please enter a valid phone number';
         }
         
-        // Validate phone format (Ethiopian phone numbers)
-        const phoneRegex = /^(\+251|0)?[1-9]\d{8}$/;
-        if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
-            newErrors.phone = 'Please enter a valid Ethiopian phone number (e.g., +251911234567 or 0911234567)';
-        }
-        
-        if (formData.legalDocuments.length === 0) {
-            newErrors.legalDocuments = 'At least one legal document is required';
-        } else {
-            formData.legalDocuments.forEach((doc, index) => {
-                if (!doc.file && !doc.documentUrl.trim()) {
-                    newErrors[`document_${index}`] = 'Please upload a document file';
-                }
-            });
-        }
-        
+        console.log('Validation errors:', newErrors);
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         
-        if (!validateForm()) {
+        console.log('Form submission started', formData);
+        
+        // Manual validation check
+        const validationErrors = validateForm();
+        if (!validationErrors) {
+            console.log('Form validation failed');
+            // Show specific error messages
+            if (!formData.storeName.trim() || formData.storeName.trim().length < 3) alert('Store name must be at least 3 characters');
+            else if (!formData.description.trim()) alert('Store description is required');
+            else if (!formData.selectedLocation) alert('Please select your campus location');
+            else if (!formData.phone.trim()) alert('Phone number is required');
+            else if (!formData.universityNear.trim()) alert('University selection is required');
             return;
         }
         
-        // Create FormData for file upload
-        const formDataToSend = new FormData();
+        console.log('Form validation passed, submitting...');
         
-        // Add basic fields
-        formDataToSend.append('storeName', formData.storeName);
-        formDataToSend.append('description', formData.description);
-        formDataToSend.append('address', formData.address);
-        formDataToSend.append('phone', formData.phone);
-        formDataToSend.append('universityNear', formData.universityNear);
-        formDataToSend.append('vendorType', formData.vendorType);
-        
-        // Add delivery options
-        formDataToSend.append('deliveryAvailable', formData.deliveryAvailable);
-        formDataToSend.append('pickupAvailable', formData.pickupAvailable);
-        formDataToSend.append('deliveryRadius', formData.deliveryRadius);
-        formDataToSend.append('deliveryFee', formData.deliveryFee);
-        
-        // Add location details if available
-        if (formData.locationDetails) {
-            formDataToSend.append('placeName', formData.locationDetails.placeName);
-            formDataToSend.append('fullAddress', formData.locationDetails.fullAddress);
-            formDataToSend.append('landmark', formData.locationDetails.landmark || '');
-            formDataToSend.append('area', formData.locationDetails.area || '');
-            formDataToSend.append('city', formData.locationDetails.city);
-            formDataToSend.append('state', formData.locationDetails.state);
-            formDataToSend.append('postalCode', formData.locationDetails.postalCode || '');
-            formDataToSend.append('country', formData.locationDetails.country);
-        }
-        
-        // Add map coordinates if selected
-        if (formData.selectedLocation) {
-            formDataToSend.append('location', JSON.stringify({
-                type: "Point",
-                coordinates: [formData.selectedLocation.lng, formData.selectedLocation.lat] // GeoJSON format: [longitude, latitude]
-            }));
-        } else if (formData.locationDetails?.coordinates) {
-            // Fallback to old coordinates if available
-            formDataToSend.append('location', JSON.stringify({
-                type: "Point",
-                coordinates: formData.locationDetails.coordinates
-            }));
-        }
-        
-        // Add document files
-        formData.legalDocuments.forEach((doc, index) => {
-            if (doc.file) {
-                formDataToSend.append('documents', doc.file);
-                formDataToSend.append(`documentType_${index}`, doc.documentType);
+        try {
+            // Create FormData for submission
+            const formDataToSend = new FormData();
+            
+            // Add basic fields
+            formDataToSend.append('storeName', formData.storeName);
+            formDataToSend.append('description', formData.sellingCategory === 'other' ? formData.customSellingCategory : formData.sellingCategory);
+            formDataToSend.append('phone', formData.phone);
+            formDataToSend.append('universityNear', formData.universityNear);
+            formDataToSend.append('vendorType', formData.vendorType);
+            
+            // Add delivery options as booleans
+            formDataToSend.append('deliveryAvailable', formData.deliveryAvailable ? 'true' : 'false');
+            formDataToSend.append('pickupAvailable', formData.pickupAvailable ? 'true' : 'false');
+            formDataToSend.append('deliveryRadius', formData.deliveryRadius.toString());
+            formDataToSend.append('deliveryFee', formData.deliveryFee.toString());
+            
+            // Add address (required by backend)
+            formDataToSend.append('address', formData.selectedLocation?.placeName || 'Campus Location');
+            
+            // Add location
+            if (formData.selectedLocation) {
+                formDataToSend.append('location', JSON.stringify({
+                    type: "Point",
+                    coordinates: [formData.selectedLocation.lng, formData.selectedLocation.lat]
+                }));
             }
-        });
-
-        onSubmit(formDataToSend);
+            
+            console.log('Calling onSubmit with data:', formDataToSend);
+            await onSubmit(formDataToSend);
+            console.log('Form submission completed');
+        } catch (error) {
+            console.error('Form submission error:', error);
+            alert('Failed to submit application. Please try again.');
+        }
     };
 
     return (
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Apply to Become a Vendor</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Store Name */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Store Name *
-                    </label>
-                    <input
-                        type="text"
-                        name="storeName"
-                        value={formData.storeName}
-                        onChange={handleInputChange}
-                        placeholder="Enter your store name"
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.storeName ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                    />
-                    {errors.storeName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.storeName}</p>
-                    )}
-                </div>
-
-                {/* Vendor Type */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        What will you offer? *
-                    </label>
-                    <div className="space-y-3">
-                        <div className="flex items-center">
-                            <input
-                                type="radio"
-                                name="vendorType"
-                                value="products"
-                                checked={formData.vendorType === 'products'}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                            />
-                            <label htmlFor="products" className="ml-2 text-sm text-gray-700">
-                                <span className="font-medium">Products</span> - Physical items students can buy
-                            </label>
-                        </div>
-                        <div className="flex items-center">
-                            <input
-                                type="radio"
-                                name="vendorType"
-                                value="services"
-                                checked={formData.vendorType === 'services'}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                            />
-                            <label htmlFor="services" className="ml-2 text-sm text-gray-700">
-                                <span className="font-medium">Services</span> - Services like tutoring, repair, design, etc.
-                            </label>
-                        </div>
-                        <div className="flex items-center">
-                            <input
-                                type="radio"
-                                name="vendorType"
-                                value="both"
-                                checked={formData.vendorType === 'both'}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                            />
-                            <label htmlFor="both" className="ml-2 text-sm text-gray-700">
-                                <span className="font-medium">Both</span> - Both products and services
-                            </label>
-                        </div>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                        This helps us categorize your business and show you to the right students.
-                    </p>
-                </div>
-
-                {/* Description */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Store Description
-                    </label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        placeholder="Describe your store and what you offer"
-                        rows="3"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                {/* Business Location */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Business Location *
-                    </label>
-                    <LocationPicker
-                        initialLocation={formData.selectedLocation || { lat: 9.0092, lng: 38.7578 }}
-                        onLocationSelect={(location) => {
-                            setFormData(prev => ({
-                                ...prev,
-                                selectedLocation: location,
-                                // Update main address field and locationDetails with place name if available
-                                address: location.placeName || prev.address,
-                                locationDetails: location.placeName ? {
-                                    ...prev.locationDetails,
-                                    placeName: location.placeName,
-                                    fullAddress: location.placeName
-                                } : prev.locationDetails
-                            }));
-                            // Clear any address errors when location is selected
-                            if (errors.address) {
-                                setErrors(prev => ({ ...prev, address: undefined }));
-                            }
-                        }}
-                        height="400px"
-                        placeholder="Search for your business location..."
-                    />
-                    {errors.address && (
-                        <p className="mt-1 text-sm text-red-600">{errors.address}</p>
-                    )}
-                    <p className="mt-1 text-xs text-gray-500">
-                        Click on the map or search to select your exact business location. This will help customers find you easily.
-                    </p>
-                </div>
-
-                {/* Phone */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number *
-                    </label>
-                    <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="Enter phone number (e.g., +251911234567 or 0911234567)"
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.phone ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                    />
-                    {errors.phone && (
-                        <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                    )}
-                </div>
-
-                {/* University */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nearest University *
-                    </label>
-                    <select
-                        name="universityNear"
-                        value={formData.universityNear}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.universityNear ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                    >
-                        <option value="">Select a university</option>
-                        {console.log('Rendering universities:', universities)}
-                        {universities.map((university) => (
-                            <option key={university._id || university.name} value={university.name || university}>
-                                {university.name || university}
-                            </option>
-                        ))}
-                    </select>
-                    {errors.universityNear && (
-                        <p className="mt-1 text-sm text-red-600">{errors.universityNear}</p>
-                    )}
-                </div>
-
-                {/* Delivery Options */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Delivery Options
-                    </label>
-                    {errors.deliveryOptions && (
-                        <p className="mt-1 text-sm text-red-600">{errors.deliveryOptions}</p>
-                    )}
-                    <div className="space-y-3">
-                        {/* Delivery Available */}
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                name="deliveryAvailable"
-                                checked={formData.deliveryAvailable}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="deliveryAvailable" className="ml-2 text-sm text-gray-700">
-                                I offer delivery services
-                            </label>
-                        </div>
-
-                        {/* Pickup Available */}
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                name="pickupAvailable"
-                                checked={formData.pickupAvailable}
-                                onChange={handleInputChange}
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <label htmlFor="pickupAvailable" className="ml-2 text-sm text-gray-700">
-                                I offer pickup services
-                            </label>
-                        </div>
-
-                        {/* Delivery Radius */}
-                        {formData.deliveryAvailable && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Delivery Radius (meters)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="deliveryRadius"
-                                    value={formData.deliveryRadius}
-                                    onChange={handleInputChange}
-                                    min="100"
-                                    max="10000"
-                                    step="100"
-                                    placeholder="3000"
-                                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.deliveryRadius ? 'border-red-500' : 'border-gray-300'
+        <div className="max-w-2xl mx-auto rounded-lg shadow-lg p-6" style={{ backgroundColor: '#FEFAE0' }}>
+            {/* Progress Indicator */}
+            <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                    {[1, 2, 3].map((step) => (
+                        <div key={step} className="flex items-center">
+                            <div 
+                                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                                    step <= currentStep 
+                                        ? 'text-white' 
+                                        : 'text-gray-400'
+                                }`}
+                                style={{ 
+                                    backgroundColor: step <= currentStep ? '#606C38' : '#e5e7eb'
+                                }}
+                            >
+                                {step}
+                            </div>
+                            {step < 3 && (
+                                <div 
+                                    className={`flex-1 h-1 mx-2 ${
+                                        step < currentStep ? 'bg-green-500' : 'bg-gray-300'
                                     }`}
                                 />
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Maximum distance for delivery (100-10000 meters)
-                                </p>
-                                {errors.deliveryRadius && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.deliveryRadius}</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Delivery Fee */}
-                        {formData.deliveryAvailable && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Delivery Fee (ETB)
-                                </label>
-                                <input
-                                    type="number"
-                                    name="deliveryFee"
-                                    value={formData.deliveryFee}
-                                    onChange={handleInputChange}
-                                    min="0"
-                                    step="0.01"
-                                    placeholder="0"
-                                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.deliveryFee ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                />
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Leave 0 for free delivery
-                                </p>
-                                {errors.deliveryFee && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.deliveryFee}</p>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Legal Documents */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Legal Documents *
-                    </label>
-                    <p className="text-sm text-gray-600 mb-3">
-                        Please upload your legal documents (business license, tax certificate, etc.)
-                    </p>
-                    
-                    {formData.legalDocuments.map((doc, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4 mb-3">
-                            <div className="flex gap-3 items-start">
-                                <select
-                                    value={doc.documentType}
-                                    onChange={(e) => handleDocumentChange(index, 'documentType', e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    {documentTypes.map((type) => (
-                                        <option key={type.value} value={type.value}>
-                                            {type.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                
-                                <div className="flex-2">
-                                    <input
-                                        type="file"
-                                        onChange={(e) => handleFileChange(index, e.target.files[0])}
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                            errors[`document_${index}`] ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    />
-                                    {doc.fileName && (
-                                        <p className="mt-1 text-sm text-gray-600">
-                                            Selected: {doc.fileName} ({(doc.fileSize / 1024).toFixed(1)} KB)
-                                        </p>
-                                    )}
-                                </div>
-                                
-                                {formData.legalDocuments.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => removeDocument(index)}
-                                        className="px-3 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
-                                    >
-                                        Remove
-                                    </button>
-                                )}
-                            </div>
-                            
-                            {errors[`document_${index}`] && (
-                                <p className="mt-2 text-sm text-red-600">
-                                    {errors[`document_${index}`]}
-                                </p>
                             )}
                         </div>
                     ))}
-                    
-                    {errors.legalDocuments && (
-                        <p className="mt-1 text-sm text-red-600">{errors.legalDocuments}</p>
+                </div>
+                <div className="flex justify-between text-xs" style={{ color: '#606C38' }}>
+                    <span>Basic Info</span>
+                    <span>Location</span>
+                    <span>Delivery</span>
+                </div>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-6" style={{ color: '#283618' }}>Start Selling on Campus</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Step 1: Basic Information */}
+                {currentStep === 1 && (
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                Store Name *
+                            </label>
+                            <input
+                                type="text"
+                                name="storeName"
+                                value={formData.storeName}
+                                onChange={handleInputChange}
+                                placeholder="What's your store called?"
+                                className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 ${
+                                    errors.storeName ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                style={{ 
+                                    backgroundColor: '#FFFFFF',
+                                    borderColor: errors.storeName ? '#dc2626' : '#606C38',
+                                    focusRingColor: '#606C38'
+                                }}
+                            />
+                            {errors.storeName && (
+                                <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.storeName}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                What are you selling? *
+                            </label>
+                            <select
+                                name="sellingCategory"
+                                value={formData.sellingCategory}
+                                onChange={handleInputChange}
+                                className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 ${
+                                    errors.sellingCategory ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                style={{ 
+                                    backgroundColor: '#FFFFFF',
+                                    borderColor: errors.sellingCategory ? '#dc2626' : '#606C38',
+                                    focusRingColor: '#606C38'
+                                }}
+                            >
+                                <option value="">Select a category</option>
+                                <option value="textbooks">📚 Textbooks & Study Materials</option>
+                                <option value="food">🍔 Food & Snacks</option>
+                                <option value="electronics">💻 Electronics & Gadgets</option>
+                                <option value="clothing">👕 Clothing & Accessories</option>
+                                <option value="furniture">🪑 Furniture & Dorm Supplies</option>
+                                <option value="services">🔧 Services (Tutoring, Repair, etc.)</option>
+                                <option value="tickets">🎫 Event Tickets</option>
+                                <option value="other">🎯 Other (Specify below)</option>
+                            </select>
+                            {errors.sellingCategory && (
+                                <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.sellingCategory}</p>
+                            )}
+                            
+                            {formData.sellingCategory === 'other' && (
+                                <div className="mt-3">
+                                    <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                        Please specify what you sell *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="customSellingCategory"
+                                        value={formData.customSellingCategory}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Art supplies, Musical instruments, etc."
+                                        className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 ${
+                                            errors.customSellingCategory ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                        style={{ 
+                                            backgroundColor: '#FFFFFF',
+                                            borderColor: errors.customSellingCategory ? '#dc2626' : '#606C38',
+                                            focusRingColor: '#606C38'
+                                        }}
+                                    />
+                                    {errors.customSellingCategory && (
+                                        <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.customSellingCategory}</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                Type of Business *
+                            </label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {['products', 'services', 'both'].map((type) => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        onClick={() => setFormData(prev => ({ ...prev, vendorType: type }))}
+                                        className={`px-4 py-3 rounded-lg font-medium transition-all ${
+                                            formData.vendorType === type
+                                                ? 'text-white'
+                                                : 'border-2'
+                                        }`}
+                                        style={{ 
+                                            backgroundColor: formData.vendorType === type ? '#606C38' : 'transparent',
+                                            borderColor: '#606C38',
+                                            color: formData.vendorType === type ? '#FEFAE0' : '#606C38'
+                                        }}
+                                    >
+                                        {type === 'products' ? '📦 Products' : type === 'services' ? '🔧 Services' : '🎯 Both'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 2: Location & Contact */}
+                {currentStep === 2 && (
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                Your Campus Location *
+                            </label>
+                            <LocationPicker
+                                initialLocation={formData.selectedLocation || { lat: 9.0092, lng: 38.7578 }}
+                                onLocationSelect={(location) => {
+                                    setFormData(prev => ({ ...prev, selectedLocation: location }));
+                                    if (errors.location) {
+                                        setErrors(prev => ({ ...prev, location: undefined }));
+                                    }
+                                }}
+                                height="300px"
+                                placeholder="Find your spot on campus..."
+                            />
+                            {errors.location && (
+                                <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.location}</p>
+                            )}
+                            <p className="mt-1 text-xs" style={{ color: '#606C38', opacity: 0.7 }}>
+                                📍 Click on map or search to find your exact campus location
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                Phone Number *
+                            </label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                placeholder="Your contact number"
+                                className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 ${
+                                    errors.phone ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                style={{ 
+                                    backgroundColor: '#FFFFFF',
+                                    borderColor: errors.phone ? '#dc2626' : '#606C38',
+                                    focusRingColor: '#606C38'
+                                }}
+                            />
+                            {errors.phone && (
+                                <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.phone}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                Nearest University *
+                            </label>
+                            <select
+                                name="universityNear"
+                                value={formData.universityNear}
+                                onChange={handleInputChange}
+                                className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 ${
+                                    errors.universityNear ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                style={{ 
+                                    backgroundColor: '#FFFFFF',
+                                    borderColor: errors.universityNear ? '#dc2626' : '#606C38',
+                                    focusRingColor: '#606C38'
+                                }}
+                            >
+                                <option value="">Select your university</option>
+                                {universities.map((university) => (
+                                    <option key={university._id || university.name} value={university.name || university}>
+                                        {university.name || university}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.universityNear && (
+                                <p className="mt-1 text-sm" style={{ color: '#dc2626' }}>{errors.universityNear}</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: Delivery Options */}
+                {currentStep === 3 && (
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-4" style={{ color: '#283618' }}>
+                                How can students get your stuff?
+                            </label>
+                            {errors.deliveryOptions && (
+                                <p className="mb-3 text-sm" style={{ color: '#dc2626' }}>{errors.deliveryOptions}</p>
+                            )}
+                            <div className="space-y-4">
+                                <label className="flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105" 
+                                    style={{ 
+                                        borderColor: formData.deliveryAvailable ? '#606C38' : '#e5e7eb',
+                                        backgroundColor: formData.deliveryAvailable ? '#606C3810' : 'transparent'
+                                    }}>
+                                    <input
+                                        type="checkbox"
+                                        name="deliveryAvailable"
+                                        checked={formData.deliveryAvailable}
+                                        onChange={handleInputChange}
+                                        className="mr-3"
+                                        style={{ accentColor: '#606C38' }}
+                                    />
+                                    <div>
+                                        <div className="font-medium" style={{ color: '#283618' }}>🚚 I can deliver</div>
+                                        <div className="text-sm" style={{ color: '#606C38' }}>Bring items to students on campus</div>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center p-4 rounded-lg border-2 cursor-pointer transition-all hover:scale-105" 
+                                    style={{ 
+                                        borderColor: formData.pickupAvailable ? '#606C38' : '#e5e7eb',
+                                        backgroundColor: formData.pickupAvailable ? '#606C3810' : 'transparent'
+                                    }}>
+                                    <input
+                                        type="checkbox"
+                                        name="pickupAvailable"
+                                        checked={formData.pickupAvailable}
+                                        onChange={handleInputChange}
+                                        className="mr-3"
+                                        style={{ accentColor: '#606C38' }}
+                                    />
+                                    <div>
+                                        <div className="font-medium" style={{ color: '#283618' }}>📍 Students can pick up</div>
+                                        <div className="text-sm" style={{ color: '#606C38' }}>Students come to my location</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        {formData.deliveryAvailable && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                        Delivery Area
+                                    </label>
+                                    <select
+                                        name="deliveryRadius"
+                                        value={formData.deliveryRadius}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 border-gray-300"
+                                        style={{ 
+                                            backgroundColor: '#FFFFFF',
+                                            borderColor: '#606C38',
+                                            focusRingColor: '#606C38'
+                                        }}
+                                    >
+                                        <option value={1000}>My building only</option>
+                                        <option value={3000}>Campus area</option>
+                                        <option value={5000}>Near campus</option>
+                                        <option value={10000}>Whole city</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                        Delivery Fee
+                                    </label>
+                                    <select
+                                        name="deliveryFee"
+                                        value={formData.deliveryFee}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 border-2 border-gray-300"
+                                        style={{ 
+                                            backgroundColor: '#FFFFFF',
+                                            borderColor: '#606C38',
+                                            focusRingColor: '#606C38'
+                                        }}
+                                    >
+                                        <option value={0}>Free delivery</option>
+                                        <option value={10}>Small fee (10 ETB)</option>
+                                        <option value={25}>Medium fee (25 ETB)</option>
+                                        <option value={50}>Large fee (50 ETB)</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between pt-6">
+                    {currentStep > 1 && (
+                        <button
+                            type="button"
+                            onClick={prevStep}
+                            className="px-8 py-3 rounded-lg font-bold hover:scale-105 transition-transform border-2"
+                            style={{ 
+                                backgroundColor: 'transparent', 
+                                color: '#606C38', 
+                                borderColor: '#606C38'
+                            }}
+                        >
+                            ← Back
+                        </button>
                     )}
                     
-                    <button
-                        type="button"
-                        onClick={addDocument}
-                        className="mt-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                    >
-                        Add Another Document
-                    </button>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-end">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? 'Submitting...' : 'Submit Application'}
-                    </button>
+                    <div className="ml-auto">
+                        {currentStep < totalSteps ? (
+                            <button
+                                type="button"
+                                onClick={nextStep}
+                                className="px-8 py-3 rounded-lg font-bold hover:scale-105 transition-transform"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                            >
+                                Next →
+                            </button>
+                        ) : (
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-6 py-3 rounded-lg font-bold transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                            >
+                                {loading ? 'Submitting...' : '🚀 Start Selling'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </form>
         </div>

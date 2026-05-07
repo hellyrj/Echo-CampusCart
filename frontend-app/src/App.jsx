@@ -30,6 +30,22 @@ import VendorOrderDetail from './pages/vendorOrderDetail';
 import VendorSearch from './pages/VendorSearch';
 import TestLocationPicker from './components/TestLocationPicker';
 
+const ConditionalNavbar = () => {
+    const location = useLocation();
+    const hideNavbarRoutes = ['/login', '/register'];
+    const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
+    
+    return shouldHideNavbar ? null : <Navbar />;
+};
+
+const ConditionalFloatingButton = () => {
+    const location = useLocation();
+    const hideButtonRoutes = ['/login', '/register'];
+    const shouldHideButton = hideButtonRoutes.includes(location.pathname);
+    
+    return shouldHideButton ? null : <FloatingVendorButton />;
+};
+
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -47,7 +63,7 @@ function App() {
         <AuthProvider>
             <Router>
                 <div className="min-h-screen bg-gray-50">
-                    <Navbar />
+                    <ConditionalNavbar />
                     <div className="container mx-auto">
                         <Routes>
                             {/* Public Routes */}
@@ -117,7 +133,7 @@ function App() {
                             <Route path="*" element={<FallbackRoute />} />
                         </Routes>
                     </div>
-                    <FloatingVendorButton />
+                    <ConditionalFloatingButton />
                 </div>
             </Router>
         </AuthProvider>

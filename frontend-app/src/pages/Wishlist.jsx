@@ -37,24 +37,26 @@ const Wishlist = () => {
     // Redirect if not authenticated
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center max-w-md mx-auto p-8">
                     <div className="bg-white rounded-lg shadow-lg p-8">
                         <Heart className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                        <h2 className="text-2xl font-bold text-gray-900 mb-3">Please Login</h2>
-                        <p className="text-gray-600 mb-6">
+                        <h2 className="text-2xl font-bold mb-3" style={{ color: '#283618' }}>Please Login</h2>
+                        <p className="mb-6" style={{ color: '#606C38' }}>
                             You need to be logged in to view and manage your wishlist.
                         </p>
                         <div className="space-y-3">
                             <Link
                                 to="/login"
-                                className="block w-full bg-blue-600 text-white text-center px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
+                                className="block w-full text-white text-center px-6 py-3 rounded-md transition-colors"
+                                style={{ backgroundColor: '#606C38' }}
                             >
                                 Login
                             </Link>
                             <Link
                                 to="/register"
-                                className="block w-full bg-white text-blue-600 text-center px-6 py-3 rounded-md border border-blue-600 hover:bg-blue-50 transition-colors"
+                                className="block w-full text-white text-center px-6 py-3 rounded-md transition-colors"
+                                style={{ backgroundColor: '#606C38' }}
                             >
                                 Create Account
                             </Link>
@@ -67,9 +69,9 @@ const Wishlist = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex items-center justify-center py-8" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderBottomColor: '#606C38' }}></div>
                     <p className="text-gray-600">Loading your wishlist...</p>
                 </div>
             </div>
@@ -77,7 +79,7 @@ const Wishlist = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
@@ -85,13 +87,14 @@ const Wishlist = () => {
                         <div className="flex items-center space-x-4">
                             <Link
                                 to="/products"
-                                className="flex items-center text-gray-600 hover:text-gray-900"
+                                className="text-gray-600 hover:text-gray-900 font-bold"
+                                title="Back to Products"
+                                style={{ marginLeft: '-8px' }}
                             >
-                                <ArrowLeft className="w-5 h-5 mr-2" />
-                                Back to Products
+                                <ArrowLeft className="w-5 h-5" />
                             </Link>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900">
+                                <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>
                                     My Wishlist
                                     {wishlist.length > 0 && (
                                         <span className="ml-3 text-lg font-normal text-gray-500">
@@ -133,7 +136,8 @@ const Wishlist = () => {
                             </p>
                             <Link
                                 to="/products"
-                                className="inline-flex items-center justify-center bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors text-lg font-medium"
+                                className="inline-flex items-center justify-center text-white px-8 py-3 rounded-md transition-colors text-lg font-medium"
+                                style={{ backgroundColor: '#606C38' }}
                             >
                                 <ShoppingCart className="w-5 h-5 mr-2" />
                                 Browse Products
@@ -183,7 +187,7 @@ const Wishlist = () => {
                                     {/* Product Details */}
                                     <div className="p-4">
                                         <Link to={`/products/${product._id}`}>
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-2 transition-colors cursor-pointer" style={{ color: '#283618' }}>
                                                 {product.name}
                                             </h3>
                                         </Link>
@@ -207,12 +211,13 @@ const Wishlist = () => {
 
                                         {/* Price and Actions */}
                                         <div className="flex items-center justify-between">
-                                            <span className="text-2xl font-bold text-blue-600">
+                                            <span className="text-2xl font-bold" style={{ color: '#606C38' }}>
                                                 ${product.basePrice || product.price || 0}
                                             </span>
                                             <button 
                                                 onClick={() => handleAddToCart(product._id)}
-                                                className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                                                className="text-white px-3 py-2 rounded-md flex items-center"
+                                                style={{ backgroundColor: '#606C38' }}
                                             >
                                                 <ShoppingCart className="w-4 h-4 mr-1" />
                                                 Add to Cart
