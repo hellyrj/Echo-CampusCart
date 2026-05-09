@@ -317,18 +317,7 @@ orderSchema.methods.getVendorOrder = function(vendorId) {
 
 // Method to update vendor order status
 orderSchema.methods.updateVendorOrderStatus = async function(vendorId, status, note, userId) {
-  console.log('=== VENDOR ORDER STATUS UPDATE DEBUG ===');
-  console.log('Order ID:', this._id);
-  console.log('Order Number:', this.orderNumber);
-  console.log('Vendor ID:', vendorId);
-  console.log('New Status:', status);
-  console.log('Note:', note);
-  console.log('Updated By:', userId);
-  console.log('Current vendor orders:', this.vendorOrders.map(vo => ({ 
-    vendorId: vo.vendorId, 
-    status: vo.status,
-    vendorName: vo.vendorName 
-  })));
+ 
   
   const vendorOrder = this.vendorOrders.find(
     vo => vo.vendorId.toString() === vendorId.toString()
@@ -339,11 +328,6 @@ orderSchema.methods.updateVendorOrderStatus = async function(vendorId, status, n
     throw new Error('Vendor order not found');
   }
   
-  console.log('Found vendor order:', { 
-    vendorId: vendorOrder.vendorId, 
-    currentStatus: vendorOrder.status,
-    vendorName: vendorOrder.vendorName 
-  });
   
   vendorOrder.status = status;
   vendorOrder.statusHistory.push({
@@ -356,17 +340,12 @@ orderSchema.methods.updateVendorOrderStatus = async function(vendorId, status, n
   // Set actual delivery time if status is delivered or picked up
   if (['delivered', 'picked_up'].includes(status)) {
     vendorOrder.actualDeliveryTime = new Date();
-    console.log('Set actual delivery time:', vendorOrder.actualDeliveryTime);
   }
   
   // Update overall order status
-  console.log('Before update - Overall status:', this.overallStatus);
   this.updateOverallStatus();
-  console.log('After update - Overall status:', this.overallStatus);
   
   const savedOrder = await this.save();
-  console.log('Order saved successfully');
-  console.log('=== END VENDOR ORDER STATUS UPDATE DEBUG ===');
   
   return savedOrder;
 };

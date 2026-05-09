@@ -22,7 +22,7 @@ const Home = () => {
             {/* Hero Section */}
             <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #283618 0%, #606C38 100%)' }}>
                 <div className="absolute inset-0 bg-black opacity-10"></div>
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+                <div className="relative px-4 sm:px-6 lg:px-8 py-24">
                     <div className="text-center">
                         <div className="flex justify-center mb-6">
                             <div className="p-4 rounded-full animate-pulse" style={{ backgroundColor: '#DDA15E40' }}>
@@ -113,7 +113,7 @@ const Home = () => {
             {/* Vendor Application Section for Logged-in Users */}
             {isAuthenticated && user?.role !== 'vendor' && (
                 <div className="py-16" style={{ backgroundColor: '#606C38' }}>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="px-4 sm:px-6 lg:px-8">
                         <div className="text-center">
                             <div className="flex justify-center mb-6">
                                 <div className="p-3 rounded-full" style={{ backgroundColor: '#DDA15E40' }}>
@@ -151,7 +151,7 @@ const Home = () => {
 
             {/* Features Section */}
             <div className="py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="px-4 sm:px-6 lg:px-8">
                     <h2 className="text-4xl font-bold text-center mb-4" style={{ color: '#283618' }}>Why Choose CampusCart?</h2>
                     <p className="text-xl text-center mb-16" style={{ color: '#606C38', opacity: 0.8 }}>Everything you need for campus life, all in one place</p>
                     
