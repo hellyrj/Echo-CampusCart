@@ -465,8 +465,10 @@ const VendorPublicPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                    // CORRECT
+                            </div>
                         </div>
+                    </form>
                     )}
                     
                     {products.length === 0 && !loading && (

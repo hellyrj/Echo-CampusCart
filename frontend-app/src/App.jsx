@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -61,10 +62,11 @@ const FallbackRoute = () => {
 function App() {
     return (
         <AuthProvider>
-            <Router>
-                <div className="min-h-screen bg-gray-50">
-                    <ConditionalNavbar />
-                    <div className="container mx-auto">
+            <WishlistProvider>
+                <Router>
+                    <div className="min-h-screen bg-gray-50">
+                        <ConditionalNavbar />
+                        <div className="container mx-auto">
                         <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
@@ -136,6 +138,7 @@ function App() {
                     <ConditionalFloatingButton />
                 </div>
             </Router>
+            </WishlistProvider>
         </AuthProvider>
     );
 }
