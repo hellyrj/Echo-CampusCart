@@ -317,19 +317,17 @@ orderSchema.methods.getVendorOrder = function(vendorId) {
 
 // Method to update vendor order status
 orderSchema.methods.updateVendorOrderStatus = async function(vendorId, status, note, userId) {
-  console.log('Updating vendor order status:', {
-    vendorId,
-    status,
-    note
-  });
+ 
   
   const vendorOrder = this.vendorOrders.find(
     vo => vo.vendorId.toString() === vendorId.toString()
   );
   
   if (!vendorOrder) {
+    console.error('ERROR: Vendor order not found for vendor:', vendorId);
     throw new Error('Vendor order not found');
   }
+  
   
   vendorOrder.status = status;
   vendorOrder.statusHistory.push({
@@ -347,7 +345,9 @@ orderSchema.methods.updateVendorOrderStatus = async function(vendorId, status, n
   // Update overall order status
   this.updateOverallStatus();
   
-  return this.save();
+  const savedOrder = await this.save();
+  
+  return savedOrder;
 };
 
 // Method to update overall order status based on vendor orders
