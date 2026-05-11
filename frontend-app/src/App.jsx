@@ -64,7 +64,7 @@ function App() {
             <Router>
                 <div className="min-h-screen bg-gray-50">
                     <ConditionalNavbar />
-                    <div className="container mx-auto">
+                    <div>
                         <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
