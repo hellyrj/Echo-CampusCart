@@ -66,7 +66,7 @@ function App() {
                 <Router>
                     <div className="min-h-screen bg-gray-50">
                         <ConditionalNavbar />
-                        <div className="container mx-auto">
+                        <div>
                         <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
@@ -134,7 +134,7 @@ function App() {
                             {/* Fallback */}
                             <Route path="*" element={<FallbackRoute />} />
                         </Routes>
-                    </div>
+                        </div>
                     <ConditionalFloatingButton />
                 </div>
             </Router>
