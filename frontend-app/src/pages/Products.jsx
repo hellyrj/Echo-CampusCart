@@ -27,7 +27,7 @@ const Products = () => {
     
     // New state for enhanced filtering
     const [sidebarOpen, setSidebarOpen] = useState(true); // Changed to true by default for desktop
-    const [isFilterVisible, setIsFilterVisible] = useState(true); // New state for filter visibility
+    const [isFilterVisible, setIsFilterVisible] = useState(false); // Changed to false by default - filters hidden initially
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [selectedVendors, setSelectedVendors] = useState([]);
     const [vendors, setVendors] = useState([]);
@@ -1047,7 +1047,10 @@ const Products = () => {
                                         
                                         {/* Wishlist Button Overlay */}
                                         <button
-                                            onClick={() => handleWishlistToggle(product)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleWishlistToggle(product);
+                                            }}
                                             className={'absolute top-2 right-2 p-2 rounded-full transition-colors ' + (
                                                 isProductInWishlist(product._id) 
                                                     ? 'bg-red-100 text-red-600 hover:bg-red-200' 
@@ -1091,6 +1094,7 @@ const Products = () => {
                                                                 to={`/vendor/${product.vendorId._id}`}
                                                                 className="text-sm font-medium hover:opacity-70"
                                                                 style={{ color: '#283618' }}
+                                                                onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {product.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
@@ -1138,13 +1142,25 @@ const Products = () => {
                                         )}
                                         
                                         {/* Stock Status */}
-                                        {product.stock !== undefined && (
+                                        {product.inventory && (
                                             <div className="mb-3">
-                                                <span className={'text-sm font-medium ' + (
-                                                    product.stock > 0 ? 'text-green-600' : 'text-red-600'
+                                                <div className={'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ' + (
+                                                    product.inventory.totalStock > 0 
+                                                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                                                        : 'bg-red-50 text-red-700 border border-red-200'
                                                 )}>
-                                                    {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                                                </span>
+                                                    {product.inventory.totalStock > 0 ? (
+                                                        <>
+                                                            <Package className="w-4 h-4" />
+                                                            <span>{product.inventory.totalStock} in stock</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <X className="w-4 h-4" />
+                                                            <span>Out of stock</span>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                         
@@ -1234,6 +1250,7 @@ const Products = () => {
                                                                 to={`/vendor/${service.vendorId._id}`}
                                                                 className="text-sm font-medium hover:opacity-70"
                                                                 style={{ color: '#283618' }}
+                                                                onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
@@ -1265,6 +1282,14 @@ const Products = () => {
                                                 </div>
                                             </div>
                                         )}
+                                        
+                                        {/* Service Availability Status */}
+                                        <div className="mb-3">
+                                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                                                <Package className="w-4 h-4" />
+                                                <span>Available</span>
+                                            </div>
+                                        </div>
                                         
                                         {/* Service Location & Pricing */}
                                         <div className="flex gap-2 mb-3">

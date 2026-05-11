@@ -368,12 +368,18 @@ const VendorSearch = () => {
                 <div
                   key={vendor._id}
                   className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/vendors/${vendor._id}`)}
+                  onClick={() => navigate(`/vendor/${vendor._id}`)}
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        <h3 
+                          className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-blue-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/vendor/${vendor._id}`);
+                          }}
+                        >
                           {vendor.storeName}
                         </h3>
                         <div className="flex items-center text-sm text-gray-600">

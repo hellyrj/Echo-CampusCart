@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuthApi } from '../hooks/useAuthApi';
 
-import { ShoppingCart, Eye, EyeOff } from 'lucide-react';
+import { ShoppingCart, Eye, EyeOff, Home } from 'lucide-react';
 
 
 
@@ -144,6 +144,18 @@ const Login = () => {
 
                         </div>
 
+                    </div>
+
+                    {/* Go to Home Button */}
+                    <div className="mt-8">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center text-white px-6 py-3 rounded-lg font-semibold transition-colors hover:scale-105"
+                            style={{ backgroundColor: '#606C38' }}
+                        >
+                            <Home className="w-5 h-5 mr-2" />
+                            Go to Home
+                        </Link>
                     </div>
 
                 </div>

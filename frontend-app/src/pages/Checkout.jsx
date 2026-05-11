@@ -16,7 +16,7 @@ import {
 
 const Checkout = () => {
     const { user, isAuthenticated } = useAuth();
-    const { items, totalQuantity, subtotal, discountAmount, total, coupon, loadCart } = useCart();
+    const { items, totalQuantity, subtotal, discountAmount, total, coupon, loadCart, clearCart } = useCart();
     const { createOrder, validateCart, loading } = useOrder();
     const navigate = useNavigate();
 
@@ -34,6 +34,8 @@ const Checkout = () => {
     const [errors, setErrors] = useState({});
     const [cartValidation, setCartValidation] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [orderSuccess, setOrderSuccess] = useState(false);
+    const [orderData, setOrderData] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -113,6 +115,7 @@ const Checkout = () => {
         if (!validateForm()) return;
 
         setSubmitting(true);
+        setErrors({});
         try {
             const result = await createOrder({
                 name: user?.name,
@@ -121,18 +124,55 @@ const Checkout = () => {
             });
 
             if (result.success) {
-                navigate(`/checkout/success?orderId=${result.data._id}&orderNumber=${result.data.orderNumber}`);
+                // Show immediate success feedback
+                setOrderSuccess(true);
+                setOrderData(result.data);
+                
+                // Clear the cart locally after successful order
+                await clearCart();
+                
+                // Navigate to success page after a brief delay to show the success message
+                setTimeout(() => {
+                    navigate(`/checkout/success?orderId=${result.data._id}&orderNumber=${result.data.orderNumber}`);
+                }, 1500);
             } else {
                 setErrors({ submit: result.message });
             }
-        } catch (err) {
-            setErrors({ submit: 'Failed to place order. Please try again.' });
+        } catch (error) {
+            console.error('Order submission error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to place order. Please try again.';
+            setErrors({ submit: errorMessage });
         } finally {
             setSubmitting(false);
         }
     };
 
     if (items.length === 0) return null;
+
+    // Show loading overlay when order is successful but before navigation
+    if (orderSuccess) {
+        return (
+            <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
+                <div className="max-w-2xl mx-auto px-4 text-center">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4">Order Confirmed!</h1>
+                        <p className="text-gray-600 mb-4">
+                            {orderData?.orderNumber ? `Order #${orderData.orderNumber} has been placed successfully!` : 'Your order has been placed successfully!'}
+                        </p>
+                        <p className="text-sm text-gray-500">Redirecting to order details...</p>
+                        <div className="mt-6">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
@@ -403,6 +443,23 @@ const Checkout = () => {
                                         <span className="font-bold" style={{ color: '#606C38' }}>ETB {total.toFixed(2)}</span>
                                     </div>
                                 </div>
+
+                                {/* Success Message */}
+                                {orderSuccess && (
+                                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                        <div className="flex items-center">
+                                            <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            <div>
+                                                <h3 className="text-green-800 font-semibold">Order Placed Successfully!</h3>
+                                                <p className="text-green-700 text-sm">
+                                                    {orderData?.orderNumber ? `Order #${orderData.orderNumber}` : 'Your order has been confirmed'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <button
                                     type="submit"
