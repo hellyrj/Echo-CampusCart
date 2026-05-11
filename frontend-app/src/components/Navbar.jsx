@@ -14,7 +14,7 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate('/');
     };
 
     // Role checks
@@ -24,240 +24,121 @@ const Navbar = () => {
 
     return (
         <nav style={{ backgroundColor: '#FEFAE0', borderBottom: '1px solid #E5E5E5' }}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo and Navigation */}
+                    
+                    {/* LEFT SECTION - Logo and Navigation */}
                     <div className="flex items-center space-x-8">
                         {/* Logo */}
-                        <div className="flex items-center">
-                            <Link 
-                                to="/" 
-                                className="flex items-center space-x-2 text-xl font-bold transition-opacity hover:opacity-80"
-                                style={{ color: '#283618' }}
-                            >
-                                <ShoppingCart className="w-6 h-6" style={{ color: '#606C38' }} />
-                                <span>CampusCart</span>
-                            </Link>
-                        </div>
+                        <Link 
+                            to="/" 
+                            className="flex items-center space-x-2 text-xl font-bold transition-opacity hover:opacity-80 shrink-0"
+                            style={{ color: '#283618' }}
+                        >
+                            <ShoppingCart className="w-6 h-6" style={{ color: '#606C38' }} />
+                            <span>CampusCart</span>
+                        </Link>
 
-                        {/* Navigation - Icons Only with Hierarchy */}
-                        <div className="hidden md:flex items-center">
-                            {/* Primary Navigation */}
-                            <div className="flex items-center space-x-3">
-                                <Link 
-                                    to="/" 
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                        location.pathname === '/' ? 'bg-blue-100 text-blue-700' : ''
-                                    }`}
-                                    style={{ 
-                                        color: location.pathname === '/' ? '#ffffff' : '#283618',
-                                        backgroundColor: location.pathname === '/' ? '#606C38' : 'transparent'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (location.pathname !== '/') {
-                                            e.currentTarget.style.backgroundColor = '#DDA15E20';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (location.pathname !== '/') {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }
-                                    }}
-                                >
-                                    Home
-                                </Link>
-                                <Link 
-                                    to="/products" 
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                        location.pathname === '/products' ? 'bg-blue-100 text-blue-700' : ''
-                                    }`}
-                                    style={{ 
-                                        color: location.pathname === '/products' ? '#ffffff' : '#283618',
-                                        backgroundColor: location.pathname === '/products' ? '#606C38' : 'transparent'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (location.pathname !== '/products') {
-                                            e.currentTarget.style.backgroundColor = '#DDA15E20';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (location.pathname !== '/products') {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }
-                                    }}
-                                >
-                                    Products
-                                </Link>
-                            </div>
+                        {/* Navigation Links */}
+                        <div className="hidden md:flex items-center space-x-2">
+                            <NavLink to="/" label="Home" isActive={location.pathname === '/'} />
+                            <NavLink to="/products" label="Products" isActive={location.pathname === '/products'} />
                             
                             {/* Divider */}
-                            <div className="mx-2 h-6 w-px bg-gray-300" />
+                            <div className="mx-1 h-6 w-px bg-gray-300" />
                             
-                            {/* Role-specific Navigation */}
-                            <div className="flex items-center space-x-3">
-                                {/* Student-only items */}
-                                {isStudent && (
-                                    <>
-                                        <NavIcon to="/orders" icon={<Package size={26} />} priority="secondary" title="My Orders" />
-                                    </>
-                                )}
-                                
-                                {/* Center Navigation - Vendor and Profile items */}
-                                <div className="flex items-center space-x-3">
-                                    {/* Vendor-only items */}
-                                    {isVendor && (
-                                        <>
-                                            <NavIcon to="/vendor/dashboard" icon={<Store size={26} />} priority="secondary" title="Vendor Dashboard" />
-                                            <NavIcon to="/vendor/orders" icon={<Package size={26} />} priority="secondary" title="Vendor Orders" />
-                                        </>
-                                    )}
-                                    
-                                    {/* Admin-only items */}
-                                    {isAdmin && (
-                                        <Link
-                                            to="/admin/dashboard"
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                                location.pathname === '/admin/dashboard' ? 'bg-blue-100 text-blue-700' : ''
-                                            }`}
-                                            style={{ 
-                                                color: location.pathname === '/admin/dashboard' ? '#ffffff' : '#283618',
-                                                backgroundColor: location.pathname === '/admin/dashboard' ? '#606C38' : 'transparent'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (location.pathname !== '/admin/dashboard') {
-                                                    e.currentTarget.style.backgroundColor = '#DDA15E20';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (location.pathname !== '/admin/dashboard') {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                }
-                                            }}
-                                        >
-                                            Admin Dashboard
-                                        </Link>
-                                    )}
-                                    
-                                    {/* Conditional items */}
-                                    {isStudent && !isVendor && (
-                                        <Link
-                                            to="/vendor/apply"
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                                location.pathname === '/vendor/apply' ? 'bg-blue-100 text-blue-700' : ''
-                                            }`}
-                                            style={{ 
-                                                color: location.pathname === '/vendor/apply' ? '#ffffff' : '#283618',
-                                                backgroundColor: location.pathname === '/vendor/apply' ? '#606C38' : 'transparent'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (location.pathname !== '/vendor/apply') {
-                                                    e.currentTarget.style.backgroundColor = '#DDA15E20';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (location.pathname !== '/vendor/apply') {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                }
-                                            }}
-                                        >
-                                            Become a Vendor
-                                        </Link>
-                                    )}
-                                    
-                                    {/* Profile - always show for authenticated users */}
-                                    {isAuthenticated && (
-                                        <Link
-                                            to="/profile"
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                                                location.pathname === '/profile' ? 'bg-blue-100 text-blue-700' : ''
-                                            }`}
-                                            style={{ 
-                                                color: location.pathname === '/profile' ? '#ffffff' : '#283618',
-                                                backgroundColor: location.pathname === '/profile' ? '#606C38' : 'transparent'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (location.pathname !== '/profile') {
-                                                    e.currentTarget.style.backgroundColor = '#DDA15E20';
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (location.pathname !== '/profile') {
-                                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                                }
-                                            }}
-                                        >
-                                            Profile
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
+                            {/* Student-only items */}
+                            {isStudent && (
+                                <NavIcon to="/orders" icon={<Package size={22} />} title="My Orders" isActive={location.pathname === '/orders'} />
+                            )}
+                            
+                            {/* Vendor-only items */}
+                            {isVendor && (
+                                <>
+                                    <NavLink to="/vendor/dashboard" label="Dashboard" isActive={location.pathname === '/vendor/dashboard'} />
+                                    <NavLink to="/vendor/orders" label="Orders" isActive={location.pathname === '/vendor/orders'} />
+                                </>
+                            )}
+                            
+                            {/* Admin-only items */}
+                            {isAdmin && (
+                                <NavLink to="/admin/dashboard" label="Admin" isActive={location.pathname === '/admin/dashboard'} />
+                            )}
+                            
+                            {/* Become Vendor */}
+                            {isStudent && !isVendor && (
+                                <NavLink to="/vendor/apply" label="Become a Vendor" isActive={location.pathname === '/vendor/apply'} />
+                            )}
+                            
+                            {/* Profile */}
+                            {isAuthenticated && (
+                                <NavLink to="/profile" label="Profile" isActive={location.pathname === '/profile'} />
+                            )}
                         </div>
                     </div>
 
-                    {/* Right Side - Auth with Responsive Design */}
-                    <div className="flex items-center gap-3">
+                    {/* RIGHT SECTION - Pushed to far right corner */}
+                    <div className="flex items-center gap-2">
                         {isAuthenticated ? (
                             <>
-                                {/* Mobile Menu Button */}
-                                <button className="md:hidden p-2 rounded-lg hover:bg-gray-100" style={{ color: '#283618' }}>
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                    </svg>
-                                </button>
+                                {/* Cart and Wishlist */}
+                                <NavIcon 
+                                    to="/cart" 
+                                    icon={<ShoppingCart size={22} />} 
+                                    badge={totalQuantity}
+                                    title="Cart"
+                                    isActive={location.pathname === '/cart'}
+                                />
+                                <NavIcon 
+                                    to="/wishlist" 
+                                    icon={<Heart size={22} />} 
+                                    badge={wishlistCount}
+                                    title="Wishlist"
+                                    isActive={location.pathname === '/wishlist'}
+                                />
                                 
-                                {/* Desktop Auth */}
-                                <div className="hidden md:flex items-center gap-3">
-                                    {/* Cart and Wishlist for authenticated users */}
-                                    {isAuthenticated && (
-                                        <>
-                                            <NavIcon 
-                                                to="/cart" 
-                                                icon={<ShoppingCart size={22} />} 
-                                                badge={totalQuantity > 0 ? totalQuantity : null}
-                                                priority="secondary"
-                                                title="Cart"
-                                            />
-                                            <NavIcon 
-                                                to="/wishlist" 
-                                                icon={location.pathname === '/wishlist' ? <Heart size={22} fill="#ef4444" /> : <Heart size={22} />} 
-                                                badge={wishlistCount > 0 ? wishlistCount : null}
-                                                priority="secondary"
-                                                title="Wishlist"
-                                                isWishlist={true}
-                                            />
-                                        </>
-                                    )}
-                                    <Notifications />
-                                    <div className="hidden lg:flex items-center gap-4">
+                                <Notifications />
+                                
+                                {/* User greeting */}
+                                <div className="hidden lg:flex items-center gap-2">
                                     <span className="text-sm" style={{ color: '#283618' }}>
-                                        Welcome,
+                                        Hi,
                                     </span>
                                     <span className="text-sm font-medium" style={{ color: '#606C38' }}>
                                         {user?.name?.split(' ')[0]}
                                     </span>
                                 </div>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="p-2.5 rounded-lg transition-all duration-200 hover:scale-105"
-                                        style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
-                                        title="Logout"
-                                    >
-                                        <LogOut size={22} />
-                                    </button>
-                                </div>
+                                
+                                {/* Logout Button */}
+                                <button
+                                    onClick={handleLogout}
+                                    className="p-2 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                                    style={{ backgroundColor: '#DDA15E', color: '#FEFAE0', width: '38px', height: '38px' }}
+                                    title="Logout"
+                                >
+                                    <LogOut size={18} />
+                                </button>
+                                
+                                {/* Mobile Menu Button */}
+                                <button className="md:hidden p-2 rounded-lg" style={{ color: '#283618' }}>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
                             </>
                         ) : (
-                            <div className="flex items-center gap-3">
+                            /* Login/Register - Pushed to far right corner */
+                            <div className="flex items-center gap-2">
                                 <Link
                                     to="/login"
-                                    className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
                                     style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     to="/register"
-                                    className="px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                                    className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
                                     style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
                                 >
                                     Register
@@ -265,64 +146,26 @@ const Navbar = () => {
                             </div>
                         )}
                     </div>
+                    
                 </div>
             </div>
         </nav>
     );
 };
 
-// Reusable NavIcon component with badge support and visual hierarchy
-const NavIcon = ({ to, icon, badge, priority = 'primary', title = '', isWishlist = false }) => {
-    const location = useLocation();
-    const isActive = location.pathname === to;
-    
-    const priorityStyles = {
-        primary: {
-            color: isActive ? '#ffffff' : '#283618',
-            hoverBg: isActive ? '#606C38' : '#DDA15E20',
-            size: isActive ? 'w-10 h-10' : 'w-9 h-9',
-            iconSize: isActive ? 28 : 26
-        },
-        secondary: {
-            color: isActive && isWishlist ? '#ef4444' : (isActive ? '#ffffff' : '#606C38'),
-            hoverBg: isActive ? 'transparent' : '#606C3820',
-            size: isActive ? 'w-10 h-10' : 'w-9 h-9',
-            iconSize: isActive ? 28 : 26
-        },
-        admin: {
-            color: isActive ? '#ffffff' : '#606C38',
-            hoverBg: isActive ? '#606C38' : '#606C3820',
-            size: isActive ? 'w-10 h-10' : 'w-9 h-9',
-            iconSize: isActive ? 28 : 26
-        },
-        action: {
-            color: isActive ? '#ffffff' : '#DDA15E',
-            hoverBg: isActive ? '#606C38' : '#DDA15E20',
-            size: isActive ? 'w-10 h-10' : 'w-9 h-9',
-            iconSize: isActive ? 28 : 26
-        },
-        tertiary: {
-            color: isActive ? '#ffffff' : '#606C38',
-            hoverBg: isActive ? '#606C38' : '#606C3820',
-            size: isActive ? 'w-9 h-9' : 'w-8 h-8',
-            iconSize: isActive ? 26 : 24
-        }
-    };
-    
-    const currentStyle = priorityStyles[priority] || priorityStyles.primary;
-    
+// Text Navigation Link Component
+const NavLink = ({ to, label, isActive = false }) => {
     return (
         <Link
             to={to}
-            className={`relative flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 hover:scale-105 ${currentStyle.size}`}
+            className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
             style={{ 
-                color: currentStyle.color,
-                backgroundColor: isActive && !isWishlist ? '#606C38' : 'transparent'
+                color: isActive ? '#ffffff' : '#283618',
+                backgroundColor: isActive ? '#606C38' : 'transparent'
             }}
-            title={title}
             onMouseEnter={(e) => {
                 if (!isActive) {
-                    e.currentTarget.style.backgroundColor = currentStyle.hoverBg;
+                    e.currentTarget.style.backgroundColor = '#DDA15E20';
                 }
             }}
             onMouseLeave={(e) => {
@@ -331,10 +174,37 @@ const NavIcon = ({ to, icon, badge, priority = 'primary', title = '', isWishlist
                 }
             }}
         >
-            <div style={{ fontSize: `${currentStyle.iconSize}px`, color: isWishlist && isActive ? '#ef4444' : currentStyle.color }}>
-                {icon}
-            </div>
-            {badge && (
+            {label}
+        </Link>
+    );
+};
+
+// Icon Navigation Component
+const NavIcon = ({ to, icon, badge, title = '', isActive = false }) => {
+    return (
+        <Link
+            to={to}
+            className="relative p-2 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center"
+            style={{ 
+                color: isActive ? '#ffffff' : '#283618',
+                backgroundColor: isActive ? '#606C38' : 'transparent',
+                width: '38px',
+                height: '38px'
+            }}
+            title={title}
+            onMouseEnter={(e) => {
+                if (!isActive) {
+                    e.currentTarget.style.backgroundColor = '#DDA15E20';
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                }
+            }}
+        >
+            {icon}
+            {badge > 0 && (
                 <span 
                     className="absolute -top-1 -right-1 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center font-bold shadow-sm"
                     style={{ 

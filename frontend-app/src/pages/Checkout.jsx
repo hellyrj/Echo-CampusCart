@@ -16,7 +16,7 @@ import {
 
 const Checkout = () => {
     const { user, isAuthenticated } = useAuth();
-    const { items, totalQuantity, subtotal, discountAmount, total, coupon, loadCart } = useCart();
+    const { items, totalQuantity, subtotal, discountAmount, total, coupon, loadCart, clearCart } = useCart();
     const { createOrder, validateCart, loading } = useOrder();
     const navigate = useNavigate();
 
@@ -28,11 +28,14 @@ const Checkout = () => {
         state: 'Addis Ababa',
         deliveryInstructions: '',
         paymentMethod: 'cash_on_delivery',
-        notes: ''
+        notes: '',
+        otherCity: ''
     });
     const [errors, setErrors] = useState({});
     const [cartValidation, setCartValidation] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [orderSuccess, setOrderSuccess] = useState(false);
+    const [orderData, setOrderData] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -95,7 +98,14 @@ const Checkout = () => {
         const newErrors = {};
         if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
         if (!formData.deliveryAddress.trim()) newErrors.deliveryAddress = 'Delivery address is required';
-        if (!formData.city.trim()) newErrors.city = 'City is required';
+        
+        // City validation - if Other is selected, otherCity is required
+        if (!formData.city.trim()) {
+            newErrors.city = 'City is required';
+        } else if (formData.city === 'Other' && !formData.otherCity.trim()) {
+            newErrors.otherCity = 'City name is required when Other is selected';
+        }
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -105,6 +115,7 @@ const Checkout = () => {
         if (!validateForm()) return;
 
         setSubmitting(true);
+        setErrors({});
         try {
             const result = await createOrder({
                 name: user?.name,
@@ -113,12 +124,24 @@ const Checkout = () => {
             });
 
             if (result.success) {
-                navigate(`/checkout/success?orderId=${result.data._id}&orderNumber=${result.data.orderNumber}`);
+                // Show immediate success feedback
+                setOrderSuccess(true);
+                setOrderData(result.data);
+                
+                // Clear the cart locally after successful order
+                await clearCart();
+                
+                // Navigate to success page after a brief delay to show the success message
+                setTimeout(() => {
+                    navigate(`/checkout/success?orderId=${result.data._id}&orderNumber=${result.data.orderNumber}`);
+                }, 1500);
             } else {
                 setErrors({ submit: result.message });
             }
-        } catch (err) {
-            setErrors({ submit: 'Failed to place order. Please try again.' });
+        } catch (error) {
+            console.error('Order submission error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to place order. Please try again.';
+            setErrors({ submit: errorMessage });
         } finally {
             setSubmitting(false);
         }
@@ -126,16 +149,40 @@ const Checkout = () => {
 
     if (items.length === 0) return null;
 
+    // Show loading overlay when order is successful but before navigation
+    if (orderSuccess) {
+        return (
+            <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
+                <div className="max-w-2xl mx-auto px-4 text-center">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4">Order Confirmed!</h1>
+                        <p className="text-gray-600 mb-4">
+                            {orderData?.orderNumber ? `Order #${orderData.orderNumber} has been placed successfully!` : 'Your order has been placed successfully!'}
+                        </p>
+                        <p className="text-sm text-gray-500">Redirecting to order details...</p>
+                        <div className="mt-6">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <Link to="/cart" className="flex items-center text-gray-600 hover:text-gray-900 mb-4">
-                        <ArrowLeft className="w-5 h-5 mr-1" />
-                        Back to Cart
+                <div className="mb-8 flex items-center">
+                    <Link to="/cart" className="text-gray-600 hover:text-gray-900 mr-4" title="Back to Cart">
+                        <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
+                    <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>Checkout</h1>
                 </div>
 
                 {/* Cart Validation Warning */}
@@ -169,7 +216,7 @@ const Checkout = () => {
                             {/* Delivery Information */}
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                    <MapPin className="w-5 h-5 mr-2 text-blue-600" />
+                                    <MapPin className="w-5 h-5 mr-2" style={{ color: '#606C38' }} />
                                     Delivery Information
                                 </h2>
                                 
@@ -186,7 +233,7 @@ const Checkout = () => {
                                                 value={formData.phone}
                                                 onChange={handleInputChange}
                                                 placeholder="+251 91 234 5678"
-                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
                                             />
                                         </div>
                                         {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -202,7 +249,7 @@ const Checkout = () => {
                                             onChange={handleInputChange}
                                             rows="2"
                                             placeholder="Dormitory Block A, Room 123, AAU Main Campus"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
                                         />
                                         {errors.deliveryAddress && <p className="text-red-500 text-sm mt-1">{errors.deliveryAddress}</p>}
                                     </div>
@@ -217,7 +264,7 @@ const Checkout = () => {
                                             value={formData.landmark}
                                             onChange={handleInputChange}
                                             placeholder="Near the main cafeteria"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                                         />
                                     </div>
 
@@ -226,14 +273,42 @@ const Checkout = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 City *
                                             </label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 name="city"
                                                 value={formData.city}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+                                            >
+                                                <option value="">Select City</option>
+                                                <option value="Addis Ababa">Addis Ababa</option>
+                                                <option value="Dire Dawa">Dire Dawa</option>
+                                                <option value="Mekelle">Mekelle</option>
+                                                <option value="Gondar">Gondar</option>
+                                                <option value="Bahir Dar">Bahir Dar</option>
+                                                <option value="Hawassa">Hawassa</option>
+                                                <option value="Jimma">Jimma</option>
+                                                <option value="Adama">Adama</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                             {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                                            
+                                            {/* Show text input when Other is selected */}
+                                            {formData.city === 'Other' && (
+                                                <div className="mt-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Enter City Name *
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="otherCity"
+                                                        value={formData.otherCity}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Enter your city name"
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+                                                    />
+                                                    {errors.otherCity && <p className="text-red-500 text-sm mt-1">{errors.otherCity}</p>}
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -244,7 +319,7 @@ const Checkout = () => {
                                                 name="state"
                                                 value={formData.state}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
                                             />
                                         </div>
                                     </div>
@@ -259,7 +334,7 @@ const Checkout = () => {
                                             onChange={handleInputChange}
                                             rows="2"
                                             placeholder="Call when you arrive, 2nd floor, leave at reception..."
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
                                         />
                                     </div>
                                 </div>
@@ -268,7 +343,7 @@ const Checkout = () => {
                             {/* Payment Method */}
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                    <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+                                    <CreditCard className="w-5 h-5 mr-2" style={{ color: '#606C38' }} />
                                     Payment Method
                                 </h2>
                                 
@@ -281,7 +356,7 @@ const Checkout = () => {
                                             key={method.value}
                                             className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
                                                 formData.paymentMethod === method.value
-                                                    ? 'border-blue-500 bg-blue-50'
+                                                    ? 'border-green-500 bg-green-50'
                                                     : 'border-gray-300 hover:border-gray-400'
                                             }`}
                                         >
@@ -306,7 +381,7 @@ const Checkout = () => {
                             {/* Additional Notes */}
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                                    <ShoppingBag className="w-5 h-5 mr-2 text-blue-600" />
+                                    <ShoppingBag className="w-5 h-5 mr-2" style={{ color: '#606C38' }} />
                                     Additional Notes (Optional)
                                 </h2>
                                 <textarea
@@ -315,7 +390,7 @@ const Checkout = () => {
                                     onChange={handleInputChange}
                                     rows="2"
                                     placeholder="Any special instructions for your order..."
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
                                 />
                             </div>
                         </div>
@@ -365,14 +440,32 @@ const Checkout = () => {
                                     </div>
                                     <div className="flex justify-between font-bold text-lg border-t border-gray-200 pt-2">
                                         <span>Total</span>
-                                        <span className="text-blue-600">ETB {total.toFixed(2)}</span>
+                                        <span className="font-bold" style={{ color: '#606C38' }}>ETB {total.toFixed(2)}</span>
                                     </div>
                                 </div>
+
+                                {/* Success Message */}
+                                {orderSuccess && (
+                                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                        <div className="flex items-center">
+                                            <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            <div>
+                                                <h3 className="text-green-800 font-semibold">Order Placed Successfully!</h3>
+                                                <p className="text-green-700 text-sm">
+                                                    {orderData?.orderNumber ? `Order #${orderData.orderNumber}` : 'Your order has been confirmed'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <button
                                     type="submit"
                                     disabled={submitting || (cartValidation && !cartValidation.valid)}
-                                    className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full mt-6 text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    style={{ backgroundColor: '#606C38' }}
                                 >
                                     {submitting ? (
                                         <span className="flex items-center justify-center">

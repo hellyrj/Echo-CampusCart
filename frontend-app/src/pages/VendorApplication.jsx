@@ -23,12 +23,17 @@ const VendorApplication = () => {
     }, [isAuthenticated, user, navigate]);
 
     const handleSubmit = async (applicationData) => {
+        console.log('VendorApplication handleSubmit called with data:', applicationData);
         try {
+            console.log('Calling submitVendorApplication...');
             const result = await submitVendorApplication(applicationData);
+            console.log('Submit result:', result);
             if (result.success) {
+                console.log('Application submitted successfully');
                 setApplicationSubmitted(true);
                 resetError();
             } else {
+                console.log('Application submission failed:', result.message);
                 alert(`Failed to submit application: ${result.message}`);
             }
         } catch (error) {
@@ -39,28 +44,30 @@ const VendorApplication = () => {
 
     if (applicationSubmitted) {
         return (
-            <div className="min-h-screen bg-gray-50 py-8">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="rounded-lg shadow-lg p-8 text-center" style={{ backgroundColor: '#FEFAE0' }}>
+                        <div className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#DDA15E40' }}>
+                            <svg className="w-8 h-8" style={{ color: '#DDA15E' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Application Submitted!</h2>
-                        <p className="text-gray-600 mb-6">
+                        <h2 className="text-2xl font-bold mb-4" style={{ color: '#283618' }}>Application Submitted!</h2>
+                        <p className="mb-6" style={{ color: '#606C38' }}>
                             Your vendor application has been submitted successfully. Our admin team will review your application and get back to you soon.
                         </p>
                         <div className="space-y-4">
                             <button
                                 onClick={() => navigate('/')}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700"
+                                className="px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                             >
                                 Back to Home
                             </button>
                             <button
                                 onClick={() => navigate('/products')}
-                                className="bg-gray-200 text-gray-700 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 ml-4"
+                                className="px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-transform border-2"
+                                style={{ backgroundColor: '#FEFAE0', color: '#283618', borderColor: '#606C38' }}
                             >
                                 Browse Products
                             </button>
@@ -72,31 +79,19 @@ const VendorApplication = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Become a Vendor</h1>
-                    <p className="text-gray-600">
+                    <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>Become a Vendor</h1>
+                    <p style={{ color: '#606C38' }}>
                         Join our marketplace and start selling your products to thousands of campus students. 
                         Fill out the application form below to get started.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                                <div className="mt-2 text-sm text-red-700">
-                                    <p>{error}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                        {error}
                     </div>
                 )}
 

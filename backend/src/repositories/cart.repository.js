@@ -151,6 +151,11 @@ class CartRepository extends BaseRepository {
       { 
         $set: { 
           items: [], 
+          itemCount: 0,
+          totalQuantity: 0,
+          subtotal: 0,
+          discountAmount: 0,
+          total: 0,
           coupon: null,
           notes: null 
         } 

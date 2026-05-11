@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -30,6 +31,22 @@ import VendorOrderDetail from './pages/vendorOrderDetail';
 import VendorSearch from './pages/VendorSearch';
 import TestLocationPicker from './components/TestLocationPicker';
 
+const ConditionalNavbar = () => {
+    const location = useLocation();
+    const hideNavbarRoutes = ['/login', '/register'];
+    const shouldHideNavbar = hideNavbarRoutes.includes(location.pathname);
+    
+    return shouldHideNavbar ? null : <Navbar />;
+};
+
+const ConditionalFloatingButton = () => {
+    const location = useLocation();
+    const hideButtonRoutes = ['/login', '/register'];
+    const shouldHideButton = hideButtonRoutes.includes(location.pathname);
+    
+    return shouldHideButton ? null : <FloatingVendorButton />;
+};
+
 
 const FallbackRoute = () => {
     const location = useLocation();
@@ -45,10 +62,11 @@ const FallbackRoute = () => {
 function App() {
     return (
         <AuthProvider>
-            <Router>
-                <div className="min-h-screen bg-gray-50">
-                    <Navbar />
-                    <div className="container mx-auto">
+            <WishlistProvider>
+                <Router>
+                    <div className="min-h-screen bg-gray-50">
+                        <ConditionalNavbar />
+                        <div className="container mx-auto">
                         <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
@@ -117,9 +135,10 @@ function App() {
                             <Route path="*" element={<FallbackRoute />} />
                         </Routes>
                     </div>
-                    <FloatingVendorButton />
+                    <ConditionalFloatingButton />
                 </div>
             </Router>
+            </WishlistProvider>
         </AuthProvider>
     );
 }
