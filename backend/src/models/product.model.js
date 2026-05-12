@@ -196,8 +196,23 @@ productSchema.pre('save', async function(next) {
     
     this.slug = slug;
   }
-  //next();
+  next();
 });
+
+// Method to update average rating
+productSchema.methods.updateAverageRating = async function() {
+  const Review = mongoose.model('Review');
+  const reviews = await Review.find({ productId: this._id });
+  
+  if (reviews.length === 0) {
+    this.averageRating = 0;
+  } else {
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    this.averageRating = totalRating / reviews.length;
+  }
+  
+  await this.save();
+};
 
 const Product = mongoose.model("Product", productSchema);
 
