@@ -821,42 +821,8 @@ try {
 - Clear intervals/timeouts
 - Unsubscribe from observables
 
----
 
-## 🚀 Deployment
-
-### Frontend Deployment (Vercel/Netlify)
-
-1. **Build the application**
-```bash
-npm run build
-```
-
-2. **Deploy to platform**
-- Connect repository
-- Set build command: `npm run build`
-- Set output directory: `dist`
-
-### Backend Deployment (Heroku/Railway)
-
-1. **Prepare for deployment**
-```bash
-# Add production dependencies
-npm install --production
-```
-
-2. **Environment variables**
-- Set all required environment variables
-- Update database URI for production
-
-3. **Deploy**
-- Connect repository
-- Set start command: `npm start`
-- Configure port binding
-
----
-
-## 📞 Support
+##  Support
 
 ### Getting Help
 
@@ -909,17 +875,5 @@ Any other relevant information
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- Tailwind CSS for the utility-first CSS framework
-- MongoDB for the flexible database solution
-- All contributors who help improve this project
-
----
-
-**Happy Coding! 🎉**
 
 For any questions or support, please don't hesitate to reach out or create an issue.
