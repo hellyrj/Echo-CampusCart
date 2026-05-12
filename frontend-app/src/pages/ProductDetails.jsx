@@ -5,6 +5,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import RatingComponent from '../components/RatingComponent';
 
 const ProductDetails = () => {
     const { productId } = useParams();
@@ -100,6 +101,15 @@ const ProductDetails = () => {
         }
     };
 
+    const handleRatingUpdate = (newRating) => {
+        // Update the product state with new rating
+        setProduct(prev => ({
+            ...prev,
+            averageRating: newRating.averageRating,
+            reviewCount: newRating.reviewCount
+        }));
+    };
+
     const nextImage = () => {
         if (product.images && product.images.length > 0) {
             setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
@@ -157,12 +167,13 @@ const ProductDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-6 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    className="mb-6 flex items-center hover:opacity-70 transition-colors"
+                    style={{ color: '#283618' }}
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back to Products
@@ -278,21 +289,24 @@ const ProductDetails = () => {
                         <div className="p-6">
                             <div className="mb-6">
                                 {/* Product Name */}
-                                <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+                                <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>{product.name}</h1>
                                 
-                                {/* Price and Rating */}
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="text-3xl font-bold text-blue-600">
+                                {/* Interactive Rating Display */}
+                                <div className="mb-4">
+                                    <RatingComponent
+                                        productId={product._id}
+                                        currentRating={product.averageRating}
+                                        reviewCount={product.reviewCount}
+                                        onRatingUpdate={handleRatingUpdate}
+                                        size="medium"
+                                    />
+                                </div>
+                                
+                                {/* Price */}
+                                <div className="mb-4">
+                                    <span className="text-3xl font-bold" style={{ color: '#283618' }}>
                                         ${product.basePrice || product.price}
-                                    </div>
-                                    {product.averageRating > 0 && (
-                                        <div className="flex items-center">
-                                            <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                                            <span className="ml-1 text-gray-600">
-                                                {product.averageRating.toFixed(1)} ({product.reviewCount})
-                                            </span>
-                                        </div>
-                                    )}
+                                    </span>
                                 </div>
 
                                 {/* Category Tags */}
@@ -301,7 +315,8 @@ const ProductDetails = () => {
                                         {product.categories.map((category, index) => (
                                             <span 
                                                 key={index} 
-                                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                                                style={{ backgroundColor: '#606C3820', color: '#606C38' }}
                                             >
                                                 {typeof category === 'string' ? category : category.name}
                                             </span>
@@ -324,7 +339,7 @@ const ProductDetails = () => {
 
                                 {/* Description */}
                                 <div className="mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                                    <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>Description</h3>
                                     <p className="text-gray-600 leading-relaxed">
                                         {product.description || 'No description available'}
                                     </p>
@@ -332,36 +347,37 @@ const ProductDetails = () => {
 
                                 {/* Vendor Information */}
                                 {product.vendorId && (
-                                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Vendor Information</h3>
+                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#FEFAE0' }}>
+                                        <h3 className="text-lg font-semibold mb-3" style={{ color: '#283618' }}>Vendor Information</h3>
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 {product.vendorId._id ? (
                                                     <Link 
                                                         to={`/vendor/${product.vendorId._id}`}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                                                        className="font-medium hover:opacity-70"
+                                                        style={{ color: '#283618' }}
                                                     >
                                                         {product.vendorId.storeName || 'Unknown Vendor'}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-blue-600 font-medium">
+                                                    <span className="font-medium" style={{ color: '#283618' }}>
                                                         {product.vendorId.storeName || 'Unknown Vendor'}
                                                     </span>
                                                 )}
                                                 {product.vendorId.universityNear && (
-                                                    <div className="flex items-center mt-1 text-sm text-gray-600">
+                                                    <div className="flex items-center mt-1 text-sm" style={{ color: '#606C38' }}>
                                                         <MapPin className="w-4 h-4 mr-1" />
                                                         {product.vendorId.universityNear}
                                                     </div>
                                                 )}
                                                 <div className="flex gap-2 mt-2">
                                                     {product.vendorId.deliveryAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
                                                             Delivery Available
                                                         </span>
                                                     )}
                                                     {product.vendorId.pickupAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                                             Pickup Available
                                                         </span>
                                                     )}
@@ -374,13 +390,14 @@ const ProductDetails = () => {
                                 {/* Quantity and Add to Cart */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label htmlFor="quantity" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
                                             Quantity
                                         </label>
                                         <div className="flex items-center space-x-3">
                                             <button
                                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                                                className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
+                                                style={{ borderColor: '#DDA15E', color: '#283618' }}
                                             >
                                                 -
                                             </button>
@@ -390,21 +407,22 @@ const ProductDetails = () => {
                                                 min="1"
                                                 value={quantity}
                                                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                                className="w-20 px-3 py-2 border border-gray-300 rounded-md text-center"
+                                                className="w-20 text-center border rounded-md px-3 py-2"
+                                                style={{ borderColor: '#DDA15E' }}
                                             />
                                             <button
                                                 onClick={() => setQuantity(quantity + 1)}
-                                                className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                                                className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
+                                                style={{ borderColor: '#DDA15E', color: '#283618' }}
                                             >
                                                 +
                                             </button>
                                         </div>
                                     </div>
-
                                     <button
                                         onClick={handleAddToCart}
                                         disabled={product.inventory && product.inventory.totalStock <= 0}
-                                        className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                                        className="w-full bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                                     >
                                         <ShoppingCart className="w-5 h-5 mr-2" />
                                         Add to Cart

@@ -8,6 +8,7 @@ import { useCart } from '../hooks/useCart';
 import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight, Wrench, Package, Store } from 'lucide-react';
 import axiosInstance from '../api/axios';
 import { vendorApi } from '../api/vendor.api';
+import RatingComponent from '../components/RatingComponent';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -41,6 +42,8 @@ const Products = () => {
     const [locationSearchLoading, setLocationSearchLoading] = useState(false);
     const [locationSearchTimeout, setLocationSearchTimeout] = useState(null);
     const [productImageIndexes, setProductImageIndexes] = useState({});
+    const [sortBy, setSortBy] = useState('createdAt'); // Default sort
+    const [sortOrder, setSortOrder] = useState('desc'); // Default order
     
     const { getProducts, searchProducts, loading: productLoading } = useProductApi();
     const { getAllServices, searchServices, getServiceCategories, loading: serviceLoading } = useServiceApi();
@@ -83,7 +86,7 @@ const Products = () => {
     // Trigger client-side filtering when any filter changes
     useEffect(() => {
         applyClientSideFilters();
-    }, [searchTerm, selectedCategory, selectedUniversity, selectedVendors, priceRange, locationEnabled, userLocation, allProducts]);
+    }, [searchTerm, selectedCategory, selectedUniversity, selectedVendors, priceRange, locationEnabled, userLocation, allProducts, sortBy, sortOrder]);
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -165,6 +168,20 @@ const Products = () => {
         } catch (error) {
             console.error('Error toggling wishlist:', error);
         }
+    };
+
+    const handleRatingUpdate = (productId, newRating) => {
+        // Update the product in both allProducts and products arrays
+        setAllProducts(prev => prev.map(product => 
+            product._id === productId 
+                ? { ...product, averageRating: newRating.averageRating, reviewCount: newRating.reviewCount }
+                : product
+        ));
+        setProducts(prev => prev.map(product => 
+            product._id === productId 
+                ? { ...product, averageRating: newRating.averageRating, reviewCount: newRating.reviewCount }
+                : product
+        ));
     };
 
     // Load vendors for filtering
@@ -617,6 +634,39 @@ const Products = () => {
             console.log(`Location filter: enabled - ${beforeLocation} → ${filteredProducts.length} products`);
         }
         
+        // Apply sorting
+        filteredProducts.sort((a, b) => {
+            let aValue, bValue;
+            
+            switch (sortBy) {
+                case 'averageRating':
+                    aValue = a.averageRating || 0;
+                    bValue = b.averageRating || 0;
+                    break;
+                case 'basePrice':
+                    aValue = a.basePrice || a.price || 0;
+                    bValue = b.basePrice || b.price || 0;
+                    break;
+                case 'name':
+                    aValue = a.name || '';
+                    bValue = b.name || '';
+                    break;
+                case 'createdAt':
+                    aValue = new Date(a.createdAt || 0);
+                    bValue = new Date(b.createdAt || 0);
+                    break;
+                default:
+                    aValue = a.createdAt || 0;
+                    bValue = b.createdAt || 0;
+            }
+            
+            if (sortOrder === 'asc') {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+        
         console.log('Final filtered products:', filteredProducts.length);
         setProducts(filteredProducts);
     };
@@ -922,6 +972,33 @@ const Products = () => {
                                     </div>
                                 </div>
 
+                                {/* Sort Filter */}
+                                <div className="mb-6">
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Sort By</h3>
+                                    <div className="space-y-2">
+                                        <select
+                                            value={sortBy}
+                                            onChange={(e) => setSortBy(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
+                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        >
+                                            <option value="averageRating">Rating (High to Low)</option>
+                                            <option value="basePrice">Price</option>
+                                            <option value="name">Name</option>
+                                            <option value="createdAt">Date Added</option>
+                                        </select>
+                                        <select
+                                            value={sortOrder}
+                                            onChange={(e) => setSortOrder(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
+                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        >
+                                            <option value="desc">Descending</option>
+                                            <option value="asc">Ascending</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {/* Vendors Filter */}
                                 {vendors.length > 0 && (
                                     <div className="mb-6">
@@ -1163,6 +1240,17 @@ const Products = () => {
                                                 </div>
                                             </div>
                                         )}
+                                        
+                                        {/* Interactive Rating Display */}
+                                        <div className="mb-3" onClick={(e) => e.stopPropagation()}>
+                                            <RatingComponent
+                                                productId={product._id}
+                                                currentRating={product.averageRating}
+                                                reviewCount={product.reviewCount}
+                                                onRatingUpdate={(newRating) => handleRatingUpdate(product._id, newRating)}
+                                                size="small"
+                                            />
+                                        </div>
                                         
                                         <div className="flex items-center justify-between">
                                             <span className="text-2xl font-bold" style={{ color: '#283618' }}>${product.basePrice || product.price}</span>
