@@ -74,7 +74,7 @@ const RatingComponent = ({ productId, currentRating, reviewCount, onRatingUpdate
                 </div>
                 <span className="text-sm text-gray-600">
                     {currentRating ? currentRating.toFixed(1) : '0.0'}
-                    {reviewCount ? ` (${reviewCount} reviews)` : ' (No reviews yet)'}
+                    {reviewCount ? ` (${reviewCount})` : ' '}
                 </span>
             </div>
 
