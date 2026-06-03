@@ -4,12 +4,14 @@ import { useProductApi } from '../hooks/useProductApi';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import RatingComponent from '../components/RatingComponent';
 
 const ProductDetails = () => {
     const { productId } = useParams();
     console.log('ProductDetails component mounted with productId:', productId);
+    const { theme } = useTheme();
     
     const { getProduct } = useProductApi();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
@@ -128,8 +130,8 @@ const ProductDetails = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: theme.secondary }}></div>
             </div>
         );
     }
@@ -141,7 +143,8 @@ const ProductDetails = () => {
                     <div className="text-red-600 text-lg mb-4">Error: {error}</div>
                     <button 
                         onClick={loadProduct}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                        className="px-6 py-2 rounded-md transition-colors"
+                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                     >
                         Try Again
                     </button>
@@ -157,7 +160,8 @@ const ProductDetails = () => {
                     <div className="text-gray-600 text-lg mb-4">Product not found</div>
                     <Link 
                         to="/products"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 inline-block"
+                        className="px-6 py-2 rounded-md transition-colors inline-block"
+                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                     >
                         Back to Products
                     </Link>
@@ -167,13 +171,13 @@ const ProductDetails = () => {
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen bg-white">
             <div className="px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(-1)}
                     className="mb-6 flex items-center hover:opacity-70 transition-colors"
-                    style={{ color: '#283618' }}
+                    style={{ color: theme.text.primary }}
                 >
                     <ArrowLeft className="w-5 h-5 mr-2" />
                     Back to Products
@@ -289,7 +293,7 @@ const ProductDetails = () => {
                         <div className="p-6">
                             <div className="mb-6">
                                 {/* Product Name */}
-                                <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>{product.name}</h1>
+                                <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text.primary }}>{product.name}</h1>
                                 
                                 {/* Interactive Rating Display */}
                                 <div className="mb-4">
@@ -304,7 +308,7 @@ const ProductDetails = () => {
                                 
                                 {/* Price */}
                                 <div className="mb-4">
-                                    <span className="text-3xl font-bold" style={{ color: '#283618' }}>
+                                    <span className="text-3xl font-bold" style={{ color: theme.text.primary }}>
                                         ${product.basePrice || product.price}
                                     </span>
                                 </div>
@@ -316,7 +320,7 @@ const ProductDetails = () => {
                                             <span 
                                                 key={index} 
                                                 className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                                                style={{ backgroundColor: '#606C3820', color: '#606C38' }}
+                                                style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}
                                             >
                                                 {typeof category === 'string' ? category : category.name}
                                             </span>
@@ -339,7 +343,7 @@ const ProductDetails = () => {
 
                                 {/* Description */}
                                 <div className="mb-6">
-                                    <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>Description</h3>
+                                    <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text.primary }}>Description</h3>
                                     <p className="text-gray-600 leading-relaxed">
                                         {product.description || 'No description available'}
                                     </p>
@@ -347,37 +351,37 @@ const ProductDetails = () => {
 
                                 {/* Vendor Information */}
                                 {product.vendorId && (
-                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#FEFAE0' }}>
-                                        <h3 className="text-lg font-semibold mb-3" style={{ color: '#283618' }}>Vendor Information</h3>
+                                    <div className="mb-6 p-4 rounded-lg border" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+                                        <h3 className="text-lg font-semibold mb-3" style={{ color: theme.text.primary }}>Vendor Information</h3>
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 {product.vendorId._id ? (
                                                     <Link 
                                                         to={`/vendor/${product.vendorId._id}`}
                                                         className="font-medium hover:opacity-70"
-                                                        style={{ color: '#283618' }}
+                                                        style={{ color: theme.text.primary }}
                                                     >
                                                         {product.vendorId.storeName || 'Unknown Vendor'}
                                                     </Link>
                                                 ) : (
-                                                    <span className="font-medium" style={{ color: '#283618' }}>
+                                                    <span className="font-medium" style={{ color: theme.text.primary }}>
                                                         {product.vendorId.storeName || 'Unknown Vendor'}
                                                     </span>
                                                 )}
                                                 {product.vendorId.universityNear && (
-                                                    <div className="flex items-center mt-1 text-sm" style={{ color: '#606C38' }}>
+                                                    <div className="flex items-center mt-1 text-sm" style={{ color: theme.text.secondary }}>
                                                         <MapPin className="w-4 h-4 mr-1" />
                                                         {product.vendorId.universityNear}
                                                     </div>
                                                 )}
                                                 <div className="flex gap-2 mt-2">
                                                     {product.vendorId.deliveryAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.primary}20`, color: theme.primary }}>
                                                             Delivery Available
                                                         </span>
                                                     )}
                                                     {product.vendorId.pickupAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                                                             Pickup Available
                                                         </span>
                                                     )}
@@ -390,14 +394,14 @@ const ProductDetails = () => {
                                 {/* Quantity and Add to Cart */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label htmlFor="quantity" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                        <label htmlFor="quantity" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                                             Quantity
                                         </label>
                                         <div className="flex items-center space-x-3">
                                             <button
                                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                                 className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
-                                                style={{ borderColor: '#DDA15E', color: '#283618' }}
+                                                style={{ borderColor: theme.accent, color: theme.text.primary }}
                                             >
                                                 -
                                             </button>
@@ -408,12 +412,12 @@ const ProductDetails = () => {
                                                 value={quantity}
                                                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
                                                 className="w-20 text-center border rounded-md px-3 py-2"
-                                                style={{ borderColor: '#DDA15E' }}
+                                                style={{ borderColor: theme.accent }}
                                             />
                                             <button
                                                 onClick={() => setQuantity(quantity + 1)}
                                                 className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
-                                                style={{ borderColor: '#DDA15E', color: '#283618' }}
+                                                style={{ borderColor: theme.accent, color: theme.text.primary }}
                                             >
                                                 +
                                             </button>

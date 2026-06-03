@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -61,13 +62,26 @@ const FallbackRoute = () => {
 
 function App() {
     return (
-        <AuthProvider>
-            <WishlistProvider>
-                <Router>
-                    <div className="min-h-screen bg-gray-50">
-                        <ConditionalNavbar />
-                        <div>
-                        <Routes>
+        <ThemeProvider>
+            <AuthProvider>
+                <WishlistProvider>
+                    <Router>
+                        <AppContent />
+                    </Router>
+                </WishlistProvider>
+            </AuthProvider>
+        </ThemeProvider>
+    );
+}
+
+const AppContent = () => {
+    const { theme } = useTheme();
+    
+    return (
+        <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
+            <ConditionalNavbar />
+            <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
+            <Routes>
                             {/* Public Routes */}
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
@@ -137,10 +151,7 @@ function App() {
                         </div>
                     <ConditionalFloatingButton />
                 </div>
-            </Router>
-            </WishlistProvider>
-        </AuthProvider>
     );
-}
+};
 
 export default App;

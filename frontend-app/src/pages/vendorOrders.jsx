@@ -40,7 +40,7 @@ const VendorOrders = () => {
     const getStatusBadge = (status) => {
         const statusMap = {
             'pending': { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-            'confirmed': { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+            'confirmed': { color: 'bg-[#606C3820] text-[#606C38]', icon: CheckCircle },
             'preparing': { color: 'bg-purple-100 text-purple-800', icon: Package },
             'ready_for_pickup': { color: 'bg-green-100 text-green-800', icon: Package },
             'out_for_delivery': { color: 'bg-orange-100 text-orange-800', icon: Truck },
@@ -339,16 +339,17 @@ const VendorOrders = () => {
                                             onClick={() => setNewStatus(status)}
                                             className={`w-full flex items-center p-3 rounded-lg border-2 transition-colors ${
                                                 newStatus === status
-                                                    ? 'border-blue-500 bg-blue-50'
+                                                    ? 'border-[#606C38]'
                                                     : 'border-gray-200 hover:border-gray-300'
                                             }`}
+                                            style={newStatus === status ? { backgroundColor: '#606C3820' } : {}}
                                         >
                                             <Icon className={`w-5 h-5 mr-3 ${
-                                                newStatus === status ? 'text-blue-600' : 'text-gray-400'
-                                            }`} />
+                                                newStatus === status ? '' : 'text-gray-400'
+                                            }`} style={newStatus === status ? { color: '#606C38' } : {}} />
                                             <span className={`font-medium ${
-                                                newStatus === status ? 'text-blue-700' : 'text-gray-700'
-                                            }`}>
+                                                newStatus === status ? '' : 'text-gray-700'
+                                            }`} style={newStatus === status ? { color: '#606C38' } : {}}>
                                                 {status.replace('_', ' ')}
                                             </span>
                                         </button>
@@ -366,7 +367,7 @@ const VendorOrders = () => {
                                 onChange={(e) => setStatusNote(e.target.value)}
                                 placeholder="Add a note about this status update..."
                                 rows="2"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#606C38]"
                             />
                         </div>
 
@@ -385,7 +386,8 @@ const VendorOrders = () => {
                             <button
                                 onClick={handleStatusUpdate}
                                 disabled={!newStatus || updating}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                className="px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                             >
                                 {updating ? 'Updating...' : 'Update Status'}
                             </button>

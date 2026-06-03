@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useProductApi } from '../hooks/useProductApi';
 import { useServiceApi } from '../hooks/useServiceApi';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { Heart, ShoppingCart, Filter, MapPin, Navigation, X, ChevronLeft, ChevronRight, Wrench, Package, Store } from 'lucide-react';
@@ -11,6 +12,7 @@ import { vendorApi } from '../api/vendor.api';
 import RatingComponent from '../components/RatingComponent';
 
 const Products = () => {
+    const { theme } = useTheme();
     const [products, setProducts] = useState([]);
     const [services, setServices] = useState([]);
     const [allProducts, setAllProducts] = useState([]); // Store all products for client-side filtering
@@ -77,10 +79,12 @@ const Products = () => {
     useEffect(() => {
         loadProducts();
         loadServices();
-        loadCategories();
-        loadServiceCategories();
-        loadUniversities();
-        loadVendors();
+        // Load other data after products are loaded to improve initial render
+        setTimeout(() => {
+            loadCategories();
+            loadUniversities();
+        }, 100);
+        // Load vendors only when needed
     }, []);
 
     // Trigger client-side filtering when any filter changes
@@ -99,21 +103,14 @@ const Products = () => {
 
     const loadCategories = async () => {
         try {
-            console.log('Loading categories from API...');
-            // Fetch categories from API instead of hardcoded
             const response = await axiosInstance.get('/vendors/categories');
-            console.log('Categories API response:', response.data);
             if (response.data.success) {
                 const categoriesData = response.data.data || [];
-                console.log('Categories loaded:', categoriesData);
-                console.log('Categories length:', categoriesData.length);
                 setCategories(categoriesData);
             } else {
-                console.error('Failed to load categories:', response.data.message);
                 setCategories([]);
             }
         } catch (error) {
-            console.error('Error loading categories:', error);
             // Fallback to hardcoded categories if API fails
             const fallbackCategories = [
                 "Stationery",
@@ -123,7 +120,6 @@ const Products = () => {
                 "Dorm Supplies",
                 "Books"
             ];
-            console.log('Using fallback categories:', fallbackCategories);
             setCategories(fallbackCategories);
         }
     };
@@ -131,16 +127,12 @@ const Products = () => {
     const loadUniversities = async () => {
         try {
             const response = await axiosInstance.get('/vendors/universities');
-            console.log('Universities API response:', response.data); // Debug log
             if (response.data.success) {
-                console.log('Universities data:', response.data.data); // Debug log
                 setUniversities(response.data.data || []);
             } else {
-                console.error('Failed to load universities:', response.data.message);
                 setUniversities([]);
             }
         } catch (error) {
-            console.error('Error loading universities:', error);
             setUniversities([]);
         }
     };
@@ -210,8 +202,6 @@ const Products = () => {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 const location = { lat: latitude, lng: longitude };
-                
-                console.log('User location obtained:', location);
                 setUserLocation(location);
                 setLocationEnabled(true);
                 setLocationLoading(false);
@@ -256,7 +246,6 @@ const Products = () => {
             if (response.data.success) {
                 const nearbyVendors = response.data.data.vendors || [];
                 setVendors(nearbyVendors);
-                console.log('Nearby vendors loaded:', nearbyVendors.length);
             }
         } catch (error) {
             console.error('Error loading nearby vendors:', error);
@@ -352,8 +341,6 @@ const Products = () => {
     // Select a location from search results
     const selectLocation = (place) => {
         const location = { lat: place.lat, lng: place.lng };
-        console.log('Location selected:', place);
-        
         setUserLocation(location);
         setLocationEnabled(true);
         setLocationSearchQuery(place.display_name);
@@ -414,31 +401,19 @@ const Products = () => {
     const loadProducts = async () => {
         try {
             setError(null);
-            console.log('Loading all products...');
             const result = await getProducts();
-            console.log('API Response:', result);
             if (result.success) {
                 const productsData = result.data?.data || result.data || [];
-                console.log('Products data:', productsData);
-                console.log('First product structure:', productsData[0]);
-                console.log('First product vendorId:', productsData[0]?.vendorId);
-                console.log('First product vendorId universityNear:', productsData[0]?.vendorId?.universityNear);
-                console.log('First product categories:', productsData[0]?.categories);
-                console.log('First product category:', productsData[0]?.category);
-                
                 // Store all products for client-side filtering
                 setAllProducts(Array.isArray(productsData) ? productsData : []);
                 setProducts(Array.isArray(productsData) ? productsData : []);
             } else {
-                console.error('Failed to load products:', result.message);
                 setError(result.message || 'Failed to load products');
                 setAllProducts([]);
                 setProducts([]);
             }
         } catch (error) {
-            console.error('Error loading products:', error);
             if (error.response) {
-                console.error('Error response:', error.response.status, error.response.data);
                 if (error.response.status === 401) {
                     setError('Authentication required. The backend may require authentication for this endpoint.');
                 } else if (error.response.status === 404) {
@@ -447,10 +422,8 @@ const Products = () => {
                     setError(error.response.data?.message || `Server error: ${error.response.status}`);
                 }
             } else if (error.request) {
-                console.error('Error request:', error.request);
                 setError('Network error. Cannot connect to backend server. Is it running on http://localhost:5000?');
             } else {
-                console.error('General error:', error.message);
                 setError(error.message || 'Failed to load products');
             }
             setAllProducts([]);
@@ -462,25 +435,16 @@ const Products = () => {
 
     const loadServices = async () => {
         try {
-            console.log('Loading all services...');
             const result = await getAllServices();
-            console.log('Services API Response:', result);
             if (result.success) {
                 const servicesData = result.data?.services || result.data || [];
-                console.log('Services data:', servicesData);
-                
-                // Store all services for client-side filtering
                 setAllServices(Array.isArray(servicesData) ? servicesData : []);
                 setServices(Array.isArray(servicesData) ? servicesData : []);
             } else {
-                console.error('Failed to load services:', result.message);
-                // Don't set error for services failing, just log it
                 setAllServices([]);
                 setServices([]);
             }
         } catch (error) {
-            console.error('Error loading services:', error);
-            // Don't set error for services failing, just log it
             setAllServices([]);
             setServices([]);
         }
@@ -488,19 +452,14 @@ const Products = () => {
 
     const loadServiceCategories = async () => {
         try {
-            console.log('Loading service categories...');
             const result = await getServiceCategories();
-            console.log('Service categories API Response:', result);
             if (result.success) {
                 const categoriesData = result.data || [];
-                console.log('Service categories loaded:', categoriesData);
                 setServiceCategories(Array.isArray(categoriesData) ? categoriesData : []);
             } else {
-                console.error('Failed to load service categories:', result.message);
                 setServiceCategories([]);
             }
         } catch (error) {
-            console.error('Error loading service categories:', error);
             setServiceCategories([]);
         }
     };
@@ -512,23 +471,12 @@ const Products = () => {
         debouncedSearch('');
     };
 
-    const applyClientSideFilters = () => {
-        console.log('Applying client-side filters:', {
-            searchTerm: searchTerm,
-            selectedCategory,
-            selectedUniversity,
-            selectedVendors,
-            priceRange,
-            locationEnabled,
-            totalProducts: allProducts.length
-        });
-        
+    const applyClientSideFilters = useCallback(() => {
         let filteredProducts = [...allProducts];
         
         // If no filters, show all products
         if (!searchTerm.trim() && !selectedCategory && !selectedUniversity && 
             selectedVendors.length === 0 && !priceRange.min && !priceRange.max && !locationEnabled) {
-            console.log('No filters applied, showing all products');
             setProducts(filteredProducts);
             return;
         }
@@ -536,30 +484,22 @@ const Products = () => {
         // Filter by search term
         if (searchTerm.trim()) {
             const searchLower = searchTerm.toLowerCase();
-            const beforeSearch = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
-                // Search in product name and description
                 const nameMatch = product.name && product.name.toLowerCase().includes(searchLower);
                 const descriptionMatch = product.description && product.description.toLowerCase().includes(searchLower);
-                
-                // Also search in vendor information if available
                 let vendorMatch = false;
                 if (product.vendorId) {
                     const vendorNameMatch = product.vendorId.storeName && product.vendorId.storeName.toLowerCase().includes(searchLower);
                     const vendorDescMatch = product.vendorId.description && product.vendorId.description.toLowerCase().includes(searchLower);
                     vendorMatch = vendorNameMatch || vendorDescMatch;
                 }
-                
                 return nameMatch || descriptionMatch || vendorMatch;
             });
-            console.log(`Search filter: "${searchTerm}" - ${beforeSearch} → ${filteredProducts.length} products`);
         }
         
         // Filter by category
         if (selectedCategory) {
-            const beforeCategory = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
-                // Handle different category structures
                 if (Array.isArray(product.categories)) {
                     return product.categories.some(cat => 
                         (typeof cat === 'string' ? cat : cat.name) === selectedCategory
@@ -569,69 +509,48 @@ const Products = () => {
                 }
                 return false;
             });
-            console.log(`Category filter: "${selectedCategory}" - ${beforeCategory} → ${filteredProducts.length} products`);
         }
         
         // Filter by university
         if (selectedUniversity) {
-            const beforeUniversity = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
-                // Check if product has vendor with universityNear
                 if (product.vendorId && product.vendorId.universityNear) {
-                    console.log(`Checking university: ${product.vendorId.universityNear} === ${selectedUniversity}`);
                     return product.vendorId.universityNear === selectedUniversity;
+                } else if (typeof product.vendorId === 'string') {
+                    return false;
                 }
-                // Also check if vendorId is just a string (not populated)
-                else if (typeof product.vendorId === 'string') {
-                    console.log('Product vendorId is not populated, skipping university filter for this product');
-                    return false; // Can't filter if vendor not populated
-                }
-                console.log('Product has no vendorId or universityNear field');
                 return false;
             });
-            console.log(`University filter: "${selectedUniversity}" - ${beforeUniversity} → ${filteredProducts.length} products`);
         }
         
         // Filter by selected vendors
         if (selectedVendors.length > 0) {
-            const beforeVendors = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
                 if (product.vendorId && product.vendorId._id) {
                     return selectedVendors.includes(product.vendorId._id.toString());
                 }
                 return false;
             });
-            console.log(`Vendor filter: ${selectedVendors.length} vendors - ${beforeVendors} → ${filteredProducts.length} products`);
         }
         
         // Filter by price range
         if (priceRange.min || priceRange.max) {
-            const beforePrice = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
-                // Handle different price field names
                 const price = parseFloat(product.basePrice || product.price || 0);
                 const minPrice = priceRange.min ? parseFloat(priceRange.min) : 0;
                 const maxPrice = priceRange.max ? parseFloat(priceRange.max) : Infinity;
-                
-                // Debug logging
-                console.log(`Price check - Product: ${product.name}, Price: ${price}, Min: ${minPrice}, Max: ${maxPrice}`);
-                
                 return price >= minPrice && price <= maxPrice;
             });
-            console.log(`Price filter: ${priceRange.min} - ${priceRange.max} - ${beforePrice} → ${filteredProducts.length} products`);
         }
         
         // Filter by location (if enabled, only show products from nearby vendors)
         if (locationEnabled && userLocation) {
-            const beforeLocation = filteredProducts.length;
             filteredProducts = filteredProducts.filter(product => {
                 if (product.vendorId && product.vendorId.location) {
-                    // Simple distance check (you could implement more sophisticated distance calculation)
-                    return true; // For now, assume all vendors in the vendors list are nearby
+                    return true;
                 }
                 return false;
             });
-            console.log(`Location filter: enabled - ${beforeLocation} → ${filteredProducts.length} products`);
         }
         
         // Apply sorting
@@ -667,16 +586,15 @@ const Products = () => {
             }
         });
         
-        console.log('Final filtered products:', filteredProducts.length);
         setProducts(filteredProducts);
-    };
+    }, [searchTerm, selectedCategory, selectedUniversity, selectedVendors, priceRange, locationEnabled, userLocation, allProducts, sortBy, sortOrder]);
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: '#606C38' }}></div>
-                    <p style={{ color: '#283618' }}>Loading products...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: theme.secondary }}></div>
+                    <p style={{ color: theme.text.primary }}>Loading products...</p>
                 </div>
             </div>
         );
@@ -684,13 +602,13 @@ const Products = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
                 <div className="text-center">
-                    <div className="text-red-600 text-lg mb-4">Error: {error}</div>
+                    <div className="text-lg mb-4" style={{ color: theme.error }}>Error: {error}</div>
                     <button 
                         onClick={loadProducts}
                         className="px-6 py-2 rounded-md transition-all duration-200 hover:scale-105"
-                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                     >
                         Try Again
                     </button>
@@ -700,26 +618,26 @@ const Products = () => {
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
             {/* Header with Search Bar */}
-            <div className="bg-white shadow-sm border-b">
+            <div className="shadow-sm border-b" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>Products</h1>
+                            <h1 className="text-3xl font-bold" style={{ color: theme.text.primary }}>Products</h1>
                         </div>
                         
                         {/* Search Bar with Filter Icon */}
                         <div className="relative mt-4">
                             <div className="flex gap-3">
-                                <div className="relative flex-1">
+                                <div className="relative flex-1 ">
                                     <input
                                         type="text"
                                         placeholder="Search products, vendors, or descriptions..."
                                         value={searchTerm}
                                         onChange={(e) => debouncedSearch(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent"
-                                        style={{ focusRingColor: '#606C38', borderColor: '#DDA15E' }}
+                                        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
                                     />
                                     <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -729,12 +647,12 @@ const Products = () => {
                                 {/* Filter Toggle Button */}
                                 <button
                                     onClick={toggleFilterSidebar}
-                                    className={`px-4 py-3 rounded-lg transition-all duration-200 hover:scale-105 flex items-center gap-2 ${
+                                    className={`px-4 py-3 rounded-lg border border-gray-300 transition-all duration-200 hover:scale-105 flex items-center gap-2 ${
                                         isFilterVisible ? 'text-white' : 'text-gray-700'
                                     }`}
                                     style={{ 
-                                        backgroundColor: isFilterVisible ? '#606C38' : '#DDA15E20',
-                                        color: isFilterVisible ? '#FEFAE0' : '#283618'
+                                        backgroundColor: isFilterVisible ? theme.secondary : 'transparent',
+                                        color: isFilterVisible ? theme.text.inverse : theme.text.primary
                                     }}
                                     title={isFilterVisible ? "Hide Filters" : "Show Filters"}
                                 >
@@ -755,8 +673,8 @@ const Products = () => {
                                     : 'text-gray-700 hover:bg-gray-100'
                             }`}
                             style={{ 
-                                backgroundColor: contentType === 'all' ? '#606C38' : '#FEFAE0',
-                                color: contentType === 'all' ? '#FEFAE0' : '#283618'
+                                backgroundColor: contentType === 'all' ? theme.secondary : 'transparent',
+                                color: contentType === 'all' ? theme.text.inverse : theme.text.primary
                             }}
                         >
                             <Package className="w-4 h-4 inline mr-2" />
@@ -770,8 +688,8 @@ const Products = () => {
                                     : 'text-gray-700 hover:bg-gray-100'
                             }`}
                             style={{ 
-                                backgroundColor: contentType === 'products' ? '#606C38' : '#FEFAE0',
-                                color: contentType === 'products' ? '#FEFAE0' : '#283618'
+                                backgroundColor: contentType === 'products' ? theme.secondary : 'transparent',
+                                color: contentType === 'products' ? theme.text.inverse : theme.text.primary
                             }}
                         >
                             <Package className="w-4 h-4 inline mr-2" />
@@ -785,8 +703,8 @@ const Products = () => {
                                     : 'text-gray-700 hover:bg-gray-100'
                             }`}
                             style={{ 
-                                backgroundColor: contentType === 'services' ? '#606C38' : '#FEFAE0',
-                                color: contentType === 'services' ? '#FEFAE0' : '#283618'
+                                backgroundColor: contentType === 'services' ? theme.secondary : 'transparent',
+                                color: contentType === 'services' ? theme.text.inverse : theme.text.primary
                             }}
                         >
                             <Wrench className="w-4 h-4 inline mr-2" />
@@ -802,13 +720,13 @@ const Products = () => {
                     {/* Sidebar Filters - Toggle based on isFilterVisible */}
                     {isFilterVisible && (
                         <div className="w-80 flex-shrink-0 transition-all duration-300 ease-in-out">
-                            <div className="rounded-lg shadow-md p-6 sticky top-6" style={{ backgroundColor: '#FEFAE0' }}>
+                            <div className="rounded-lg shadow-md p-6 sticky top-6 border" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
                                 <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-semibold" style={{ color: '#283618' }}>Filters</h2>
+                                    <h2 className="text-lg font-semibold" style={{ color: theme.text.primary }}>Filters</h2>
                                     <button
                                         onClick={clearAllFilters}
                                         className="text-sm hover:opacity-70"
-                                        style={{ color: '#606C38' }}
+                                        style={{ color: theme.text.secondary }}
                                     >
                                         Clear All
                                     </button>
@@ -816,7 +734,7 @@ const Products = () => {
 
                                 {/* Location Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium mb-3 flex items-center" style={{ color: '#283618' }}>
+                                    <h3 className="text-sm font-medium mb-3 flex items-center" style={{ color: theme.text.primary }}>
                                         <MapPin className="w-4 h-4 mr-2" />
                                         Location-Based
                                     </h3>
@@ -829,7 +747,7 @@ const Products = () => {
                                             value={locationSearchQuery}
                                             onChange={handleLocationSearchChange}
                                             className="w-full pl-9 pr-4 py-2 border rounded-md focus:ring-2 focus:border-transparent text-sm"
-                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                         />
                                         <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                                         {locationSearchQuery && (
@@ -847,13 +765,13 @@ const Products = () => {
 
                                     {/* Location Search Results */}
                                     {locationSearchResults.length > 0 && (
-                                        <div className="mb-3 border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto" style={{ backgroundColor: '#FEFAE0' }}>
+                                        <div className="mb-3 border rounded-md shadow-sm max-h-40 overflow-y-auto" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
                                             {locationSearchResults.map((place, index) => (
                                                 <button
                                                     key={index}
                                                     onClick={() => selectLocation(place)}
-                                                    className="w-full px-3 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                                                            style={{ hoverBackgroundColor: '#DDA15E20' }}
+                                                    className="w-full px-3 py-2 text-left border-b transition-colors hover:opacity-80"
+                                                            style={{ borderColor: theme.border }}
                                                 >
                                                     <div className="flex items-start gap-2">
                                                         <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -869,8 +787,8 @@ const Products = () => {
                                     )}
 
                                     {locationSearchLoading && (
-                                        <div className="mb-3 border border-gray-200 rounded-md shadow-sm p-3 text-center" style={{ backgroundColor: '#FEFAE0' }}>
-                                            <div className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2" style={{ borderColor: '#606C38', borderTopColor: 'transparent' }} />
+                                        <div className="mb-3 border rounded-md shadow-sm p-3 text-center" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
+                                            <div className="inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2" style={{ borderColor: theme.secondary, borderTopColor: 'transparent' }} />
                                             <span className="text-sm text-gray-600">Searching...</span>
                                         </div>
                                     )}
@@ -885,11 +803,11 @@ const Products = () => {
                                                 : 'text-gray-700'
                                         ) + (locationLoading ? ' opacity-50 cursor-not-allowed' : '')}
                                         style={{ 
-                                            backgroundColor: locationEnabled ? '#DDA15E40' : '#606C3820'
+                                            backgroundColor: locationEnabled ? `${theme.accent}40` : `${theme.secondary}20`
                                         }}
                                     >
                                         {locationLoading ? (
-                                            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: '#606C38', borderTopColor: 'transparent' }} />
+                                            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: theme.secondary, borderTopColor: 'transparent' }} />
                                         ) : locationEnabled ? (
                                             <><Navigation className="w-4 h-4" />Location Enabled</>
                                         ) : (
@@ -898,10 +816,10 @@ const Products = () => {
                                     </button>
                                     
                                     {locationError && (
-                                        <p className="mt-2 text-sm text-red-600">{locationError}</p>
+                                        <p className="mt-2 text-sm" style={{ color: theme.error }}>{locationError}</p>
                                     )}
                                     {locationEnabled && userLocation && (
-                                        <p className="mt-2 text-sm text-green-600">
+                                        <p className="mt-2 text-sm" style={{ color: theme.success }}>
                                             Showing nearby vendors within {searchRadius}m
                                         </p>
                                     )}
@@ -909,12 +827,12 @@ const Products = () => {
 
                                 {/* Category Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Category</h3>
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: theme.text.primary }}>Category</h3>
                                     <select
                                         value={selectedCategory}
                                         onChange={(e) => setSelectedCategory(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                     >
                                         <option value="">All Categories</option>
                                         {categories.map((category, idx) => {
@@ -933,12 +851,12 @@ const Products = () => {
 
                                 {/* University Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>University</h3>
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: theme.text.primary }}>University</h3>
                                     <select
                                         value={selectedUniversity}
                                         onChange={(e) => setSelectedUniversity(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                     >
                                         <option value="">All Universities</option>
                                         {universities.map((university) => (
@@ -951,7 +869,7 @@ const Products = () => {
 
                                 {/* Price Range Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Price Range</h3>
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: theme.text.primary }}>Price Range</h3>
                                     <div className="flex gap-2 w-full">
                                         <input
                                             type="number"
@@ -959,7 +877,7 @@ const Products = () => {
                                             value={priceRange.min}
                                             onChange={(e) => handlePriceRangeChange('min', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                         />
                                         <input
                                             type="number"
@@ -967,20 +885,20 @@ const Products = () => {
                                             value={priceRange.max}
                                             onChange={(e) => handlePriceRangeChange('max', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Sort Filter */}
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Sort By</h3>
+                                    <h3 className="text-sm font-medium mb-3" style={{ color: theme.text.primary }}>Sort By</h3>
                                     <div className="space-y-2">
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                         >
                                             <option value="averageRating">Rating (High to Low)</option>
                                             <option value="basePrice">Price</option>
@@ -991,7 +909,7 @@ const Products = () => {
                                             value={sortOrder}
                                             onChange={(e) => setSortOrder(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
                                         >
                                             <option value="desc">Descending</option>
                                             <option value="asc">Ascending</option>
@@ -1002,7 +920,7 @@ const Products = () => {
                                 {/* Vendors Filter */}
                                 {vendors.length > 0 && (
                                     <div className="mb-6">
-                                        <h3 className="text-sm font-medium mb-3" style={{ color: '#283618' }}>Vendors</h3>
+                                        <h3 className="text-sm font-medium mb-3" style={{ color: theme.text.primary }}>Vendors</h3>
                                         <div className="space-y-2 max-h-48 overflow-y-auto">
                                             {vendors.map((vendor) => (
                                                 <label key={vendor._id} className="flex items-center space-x-2 cursor-pointer">
@@ -1011,9 +929,9 @@ const Products = () => {
                                                         checked={selectedVendors.includes(vendor._id)}
                                                         onChange={() => handleVendorToggle(vendor._id)}
                                                         className="rounded border-gray-300 focus:ring-2 focus:border-transparent"
-                                                        style={{ accentColor: '#606C38', focusRingColor: '#606C38' }}
+                                                        style={{ accentColor: theme.secondary, focusRingColor: theme.secondary }}
                                                     />
-                                                    <span className="text-sm truncate" style={{ color: '#283618' }}>
+                                                    <span className="text-sm truncate" style={{ color: theme.text.primary }}>
                                                         {vendor.storeName}
                                                     </span>
                                                 </label>
@@ -1029,7 +947,7 @@ const Products = () => {
                     <div className={`flex-1 transition-all duration-300 ease-in-out ${isFilterVisible ? '' : 'w-full'}`}>
                         {/* Results Summary */}
                         <div className="mb-6 flex items-center justify-between">
-                            <p style={{ color: '#283618' }}>
+                            <p style={{ color: theme.text.primary }}>
                                 Showing {products.length} products
                                 {locationEnabled && userLocation && ' nearby'}
                             </p>
@@ -1038,7 +956,7 @@ const Products = () => {
                             <button
                                 onClick={toggleFilterSidebar}
                                 className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
-                                style={{ backgroundColor: '#606C3820', color: '#283618' }}
+                                style={{ backgroundColor: `${theme.secondary}20`, color: theme.text.primary }}
                             >
                                 <Filter className="w-5 h-5" />
                                 Filters
@@ -1056,18 +974,18 @@ const Products = () => {
                                         console.log('Product data:', product);
                                         navigate(`/products/${product._id}`);
                                     }}
-                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                                    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
                                 >
                                     {/* Product Image Carousel */}
                                     <div className="relative">
-                                        <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
+                                        <div className="aspect-square bg-gray-200">
                                             {product.images && product.images.length > 0 ? (
                                                 <>
                                                     {/* Main Image */}
                                                     <img
                                                         src={getImageUrl(product.images[productImageIndexes[product._id] || 0])}
                                                         alt={product.name}
-                                                        className="w-full h-full object-cover rounded-t-lg"
+                                                        className="w-full h-full object-contain rounded-t-2xl p-2"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
                                                             e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=No+Image';
@@ -1139,78 +1057,51 @@ const Products = () => {
                                     </div>
                                     
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>{product.name}</h3>
-                                        <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                                        <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text.primary }}>{product.name}</h3>
                                         
-                                        {/* Category Tags */}
-                                        {product.categories && product.categories.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mb-3">
-                                                {product.categories.map((category, index) => (
-                                                    <span 
-                                                        key={index} 
-                                                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                                        style={{ backgroundColor: '#606C3820', color: '#606C38' }}
-                                                    >
-                                                        {typeof category === 'string' ? category : category.name}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                  
                                         
                                         {/* Vendor Information */}
                                         {product.vendorId ? (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
-                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs" style={{ color: '#606C38' }}>Sold by</p>
+                                                        <p className="text-xs" style={{ color: theme.text.muted }}></p>
                                                         {product.vendorId._id ? (
                                                             <Link 
                                                                 to={`/vendor/${product.vendorId._id}`}
                                                                 className="text-sm font-medium hover:opacity-70"
-                                                                style={{ color: '#283618' }}
+                                                                style={{ color: theme.text.primary }}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {product.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
                                                         ) : (
-                                                            <span className="text-sm font-medium" style={{ color: '#283618' }}>
+                                                            <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
                                                                 {product.vendorId.storeName || 'Unknown Vendor'}
                                                             </span>
                                                         )}
                                                         {product.vendorId.universityNear && (
-                                                            <span className="text-xs block" style={{ color: '#606C38' }}>
+                                                            <span className="text-xs block" style={{ color: theme.text.secondary }}>
                                                                 📍 {product.vendorId.universityNear}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
                                                 
-                                                {/* Delivery Options */}
-                                                <div className="flex gap-2 mt-2">
-                                                    {product.vendorId.deliveryAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
-                                                            Delivery
-                                                        </span>
-                                                    )}
-                                                    {product.vendorId.pickupAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
-                                                            Pickup
-                                                        </span>
-                                                    )}
-                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
-                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs" style={{ color: '#606C38' }}>Sold by</p>
-                                                        <span className="text-sm font-medium" style={{ color: '#283618' }}>
+                                                        <p className="text-xs" style={{ color: theme.text.muted }}></p>
+                                                        <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
                                                             Vendor information loading...
                                                         </span>
                                                     </div>
@@ -1223,13 +1114,13 @@ const Products = () => {
                                             <div className="mb-3">
                                                 <div className={'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ' + (
                                                     product.inventory.totalStock > 0 
-                                                        ? 'bg-green-50 text-green-700 border border-green-200' 
-                                                        : 'bg-red-50 text-red-700 border border-red-200'
+                                                        ? 'sm-green-50 text-green-700 border border-green-50' 
+                                                        : 'bg-red-50 text-red-700 border border-red-50'
                                                 )}>
                                                     {product.inventory.totalStock > 0 ? (
                                                         <>
-                                                            <Package className="w-4 h-4" />
-                                                            <span>{product.inventory.totalStock} in stock</span>
+                                                            <Package className="w-5 h-4" />
+                                                            <span>{product.inventory.totalStock} </span>
                                                         </>
                                                     ) : (
                                                         <>
@@ -1253,14 +1144,14 @@ const Products = () => {
                                         </div>
                                         
                                         <div className="flex items-center justify-between">
-                                            <span className="text-2xl font-bold" style={{ color: '#283618' }}>${product.basePrice || product.price}</span>
+                                            <span className="text-2xl font-bold" style={{ color: theme.text.primary }}>${product.basePrice || product.price}</span>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleAddToCart(product);
                                                 }}
                                                 className="px-4 py-2 rounded-md transition-all duration-200 hover:scale-105 flex items-center"
-                                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                                style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                                             >
                                                 <ShoppingCart className="w-4 h-4 mr-1" />
                                                 Add to Cart
@@ -1275,31 +1166,31 @@ const Products = () => {
                                 <div 
                                     key={service._id}
                                     onClick={() => navigate(`/services/${service._id}`)}
-                                    className="rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer"
-                                    style={{ backgroundColor: '#FEFAE0' }}
+                                    className="rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                                    style={{ backgroundColor: theme.background }}
                                 >
                                     {/* Service Image */}
                                     <div className="relative">
-                                        <div className="aspect-w-16 aspect-h-9 bg-gray-200 h-48">
+                                        <div className="aspect-square bg-gray-200">
                                             {service.images && service.images.length > 0 ? (
                                                 <img
                                                     src={service.images[0].startsWith('http') ? service.images[0] : `http://localhost:5000/uploads/${service.images[0]}`}
                                                     alt={service.title}
-                                                    className="w-full h-full object-cover rounded-t-lg"
+                                                    className="w-full h-full object-contain rounded-t-2xl p-2"
                                                     onError={(e) => {
                                                         e.target.onerror = null;
                                                         e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=Service';
                                                     }}
                                                 />
                                             ) : (
-                                                <div className="flex items-center justify-center h-full" style={{ background: 'linear-gradient(135deg, #606C38 0%, #283618 100%)' }}>
-                                                    <Wrench className="w-12 h-12" style={{ color: '#FEFAE0' }} />
+                                                <div className="flex items-center justify-center h-full" style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)` }}>
+                                                    <Wrench className="w-12 h-12" style={{ color: theme.text.inverse }} />
                                                 </div>
                                             )}
                                             
                                             {/* Service Type Badge */}
                                             <div className="absolute top-2 left-2">
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                                                     Service
                                                 </span>
                                             </div>
@@ -1308,47 +1199,43 @@ const Products = () => {
                                     
                                     <div className="p-4">
                                         {/* Service Title */}
-                                        <h3 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: '#283618' }}>
+                                        <h3 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: theme.text.primary }}>
                                             {service.title}
                                         </h3>
                                         
                                         {/* Service Category */}
                                         <div className="mb-2">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}>
                                                 {service.serviceCategory?.charAt(0).toUpperCase() + service.serviceCategory?.slice(1).replace('_', ' ') || 'General'}
                                             </span>
                                         </div>
                                         
-                                        {/* Service Description */}
-                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                                            {service.description}
-                                        </p>
                                         
                                         {/* Vendor Info */}
                                         {service.vendorId ? (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
-                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs" style={{ color: '#606C38' }}>Offered by</p>
+                                                        <p className="text-xs" style={{ color: theme.text.secondary }}>Offered by</p>
                                                         {service.vendorId._id ? (
                                                             <Link 
                                                                 to={`/vendor/${service.vendorId._id}`}
                                                                 className="text-sm font-medium hover:opacity-70"
-                                                                style={{ color: '#283618' }}
+                                                                style={{ color: theme.text.primary }}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
                                                         ) : (
-                                                            <span className="text-sm font-medium" style={{ color: '#283618' }}>
+                                                            <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </span>
                                                         )}
                                                         {service.vendorId.universityNear && (
-                                                            <span className="text-xs block" style={{ color: '#606C38' }}>
+                                                            <span className="text-xs block" style={{ color: theme.text.secondary }}>
                                                                 📍 {service.vendorId.universityNear}
                                                             </span>
                                                         )}
@@ -1356,14 +1243,14 @@ const Products = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: '#FEFAE0' }}>
+                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
                                                 <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#606C3820' }}>
-                                                        <Store className="w-4 h-4" style={{ color: '#606C38' }} />
+                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs" style={{ color: '#606C38' }}>Offered by</p>
-                                                        <span className="text-sm font-medium" style={{ color: '#283618' }}>
+                                                        <p className="text-xs" style={{ color: theme.text.secondary }}>Offered by</p>
+                                                        <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
                                                             Vendor information loading...
                                                         </span>
                                                     </div>
@@ -1391,7 +1278,7 @@ const Products = () => {
                                         
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <span className="text-2xl font-bold text-blue-600">
+                                                <span className="text-2xl font-bold" style={{ color: theme.text.secondary }}>
                                                     {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}
                                                 </span>
                                                 {service.averageRating > 0 && (
@@ -1410,7 +1297,7 @@ const Products = () => {
                                                     alert('Service booking feature coming soon!');
                                                 }}
                                                 className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
-                                                style={{ backgroundColor: '#606C38' }}
+                                                style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                                             >
                                                 <Wrench className="w-4 h-4 mr-1" />
                                                 Book Now
@@ -1432,7 +1319,7 @@ const Products = () => {
                                 <button
                                     onClick={clearFilters}
                                     className="mt-4"
-                                    style={{ color: '#606C38' }}
+                                    style={{ color: theme.text.secondary }}
                                 >
                                     Clear filters and try again
                                 </button>

@@ -173,6 +173,7 @@ productSchema.index({ isAvailable: 1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ vendorId: 1, isAvailable: 1 }); // Compound index for vendor filtering
 
+// Pre-save hook to generate unique slug from product name
 productSchema.pre('save', async function(next) {
   if (this.isModified('name') || !this.slug) {
     let slug = this.name

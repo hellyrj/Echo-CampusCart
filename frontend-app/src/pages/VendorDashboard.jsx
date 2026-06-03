@@ -625,8 +625,8 @@ const VendorDashboard = () => {
                                                                     }}
                                                                 />
                                                             ) : (
-                                                                <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-blue-200">
-                                                                    <span className="text-blue-600 text-lg font-medium">Service</span>
+                                                                <div className="flex items-center justify-center h-full" style={{ background: 'linear-gradient(to bottom right, #606C3810, #606C3820)' }}>
+                                                                    <span className="text-lg font-medium" style={{ color: '#606C38' }}>Service</span>
                                                                 </div>
                                                             )}
                                                         </div>
