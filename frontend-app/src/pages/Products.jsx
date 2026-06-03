@@ -700,7 +700,7 @@ const Products = () => {
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen bg-white">
             {/* Header with Search Bar */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -802,7 +802,7 @@ const Products = () => {
                     {/* Sidebar Filters - Toggle based on isFilterVisible */}
                     {isFilterVisible && (
                         <div className="w-80 flex-shrink-0 transition-all duration-300 ease-in-out">
-                            <div className="rounded-lg shadow-md p-6 sticky top-6" style={{ backgroundColor: '#FEFAE0' }}>
+                            <div className="rounded-lg shadow-md p-6 sticky top-6 bg-white border" style={{ borderColor: '#E8F5E8' }}>
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-lg font-semibold" style={{ color: '#283618' }}>Filters</h2>
                                     <button

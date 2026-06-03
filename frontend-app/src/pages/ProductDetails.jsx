@@ -167,7 +167,7 @@ const ProductDetails = () => {
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen bg-white">
             <div className="px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
                 <button
@@ -347,7 +347,7 @@ const ProductDetails = () => {
 
                                 {/* Vendor Information */}
                                 {product.vendorId && (
-                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#FEFAE0' }}>
+                                    <div className="mb-6 p-4 rounded-lg bg-gray-50 border" style={{ borderColor: '#E8F5E8' }}>
                                         <h3 className="text-lg font-semibold mb-3" style={{ color: '#283618' }}>Vendor Information</h3>
                                         <div className="flex items-center justify-between">
                                             <div>

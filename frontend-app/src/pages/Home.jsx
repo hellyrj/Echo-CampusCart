@@ -18,7 +18,7 @@ const Home = () => {
     };
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen bg-white">
             {/* Hero Section */}
             <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #283618 0%, #606C38 100%)' }}>
                 <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -150,13 +150,13 @@ const Home = () => {
             )}
 
             {/* Features Section */}
-            <div className="py-20">
-                <div className="px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-4xl font-bold text-center mb-4" style={{ color: '#283618' }}>Why Choose CampusCart?</h2>
+            <div className="px-4 sm:px-6 lg:px-8 py-16">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-3xl font-bold text-center mb-12" style={{ color: '#283618' }}>Why Choose CampusCart?</h2>
                     <p className="text-xl text-center mb-16" style={{ color: '#606C38', opacity: 0.8 }}>Everything you need for campus life, all in one place</p>
                     
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="text-center p-8 rounded-xl shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl" style={{ backgroundColor: '#FEFAE0' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="text-center p-6 rounded-lg shadow-md bg-white border" style={{ borderColor: '#E8F5E8' }}>
                             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-300 hover:scale-110" style={{ backgroundColor: '#28361820' }}>
                                 <Clock className="w-10 h-10" style={{ color: '#283618' }} />
                             </div>
