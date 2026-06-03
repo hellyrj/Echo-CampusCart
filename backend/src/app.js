@@ -23,6 +23,7 @@ import serviceRoutes from './routes/service.routes.js';
 
 const app = express();
 
+// Serve static files from uploads directory
 app.use('uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global middlewares
@@ -39,6 +40,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 // IMPORTANT: Configure body parsers AFTER multer middleware in routes
 // For JSON requests
 app.use(express.json());
+// For URL-encoded form submissions
 app.use(express.urlencoded({ extended: true }));
 
 // Note: Don't parse JSON for multipart/form-data - multer will handle it
