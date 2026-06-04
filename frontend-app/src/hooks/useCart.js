@@ -48,6 +48,7 @@ async function addItem(productId, quantity = 1) {
         const cart = response.data?.data || response.data || emptyCart();
         console.log('Updated cart:', cart);
         updateState(cart, false, null);
+        return cart;
     } catch (err) {
         console.error('Add to cart error:', err);
         updateState(sharedCart, false, err.response?.data?.message || 'Failed to add to cart');
@@ -60,6 +61,7 @@ async function updateQuantity(itemId, quantity) {
         const response = await cartApi.updateItemQuantity(itemId, quantity);
         const cart = response.data?.data || response.data || emptyCart();
         updateState(cart, false, null);
+        return cart;
     } catch (err) {
         updateState(sharedCart, false, err.response?.data?.message || 'Failed to update quantity');
         throw err;
@@ -71,6 +73,7 @@ async function removeItem(itemId) {
         const response = await cartApi.removeFromCart(itemId);
         const cart = response.data?.data || response.data || emptyCart();
         updateState(cart, false, null);
+        return cart;
     } catch (err) {
         updateState(sharedCart, false, err.response?.data?.message || 'Failed to remove item');
         throw err;
@@ -133,15 +136,15 @@ export const useCart = () => {
     }, []);
 
     const addToCart = useCallback(async (productId, quantity = 1) => {
-        await addItem(productId, quantity);
+        return await addItem(productId, quantity);
     }, []);
 
     const updateItemQuantity = useCallback(async (itemId, quantity) => {
-        await updateQuantity(itemId, quantity);
+        return await updateQuantity(itemId, quantity);
     }, []);
 
     const removeFromCart = useCallback(async (itemId) => {
-        await removeItem(itemId);
+        return await removeItem(itemId);
     }, []);
 
     const clearCart = useCallback(async () => {
@@ -154,6 +157,63 @@ export const useCart = () => {
 
     const removeCoupon = useCallback(async () => {
         await removeCode();
+    }, []);
+
+    // Helper method to check if a product is in cart
+    const isInCart = useCallback((productId) => {
+        if (!sharedCart.items || !Array.isArray(sharedCart.items)) return false;
+        return sharedCart.items.some(item => {
+            // Handle both itemId and productId fields
+            const itemProductId = item.productId?._id || item.productId || item.itemId;
+            return itemProductId === productId;
+        });
+    }, []);
+
+    // Helper method to get quantity of a product in cart
+    const getCartQuantity = useCallback((productId) => {
+        if (!sharedCart.items || !Array.isArray(sharedCart.items)) return 0;
+        const item = sharedCart.items.find(item => {
+            const itemProductId = item.productId?._id || item.productId || item.itemId;
+            return itemProductId === productId;
+        });
+        return item?.quantity || 0;
+    }, []);
+
+    // Helper method to update product quantity directly using productId
+    const updateProductQuantity = useCallback(async (productId, quantity) => {
+        try {
+            // Find the cart item by productId
+            if (!sharedCart.items || !Array.isArray(sharedCart.items)) return;
+            
+            const cartItem = sharedCart.items.find(item => {
+                const itemProductId = item.productId?._id || item.productId || item.itemId;
+                return itemProductId === productId;
+            });
+            
+            if (cartItem) {
+                const itemId = cartItem._id || cartItem.id;
+                if (quantity === 0) {
+                    await removeItem(itemId);
+                } else {
+                    await updateQuantity(itemId, quantity);
+                }
+            } else if (quantity > 0) {
+                await addItem(productId, quantity);
+            }
+        } catch (err) {
+            console.error('Error updating product quantity:', err);
+            throw err;
+        }
+    }, []);
+
+    // Helper method to get cart total
+    const getCartTotal = useCallback(() => {
+        return sharedCart.total || sharedCart.subtotal || 0;
+    }, []);
+
+    // Helper method to get item count
+    const getItemCount = useCallback(() => {
+        return sharedCart.itemCount || sharedCart.totalQuantity || 0;
     }, []);
 
     return {
@@ -173,6 +233,12 @@ export const useCart = () => {
         removeFromCart,
         clearCart,
         applyCoupon,
-        removeCoupon
+        removeCoupon,
+        // New helper methods for product card
+        isInCart,
+        getCartQuantity,
+        updateProductQuantity,
+        getCartTotal,
+        getItemCount
     };
 };
