@@ -16,8 +16,10 @@ const Navbar = () => {
     const location = useLocation();
 
     const handleLogout = () => {
-        logout();
-        navigate('/');
+        if (window.confirm("Are you sure you want to log out?")) {
+            logout();
+            navigate('/');
+        }
     };
 
     // Role checks
