@@ -599,6 +599,7 @@ const VendorDashboard = () => {
                                                 <button
                                                     onClick={() => setShowServiceForm(true)}
                                                     className="mt-4 px-4 py-2 text-white rounded-md"
+
                                                     style={{ backgroundColor: theme.primary }}
                                                 >
                                                     Add Your First Service
