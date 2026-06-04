@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import RatingComponent from '../components/RatingComponent';
+import Comments from '../components/Comments';
 
 const ProductDetails = () => {
     const { productId } = useParams();
@@ -436,6 +437,13 @@ const ProductDetails = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Comments Section */}
+                {product && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <Comments itemId={product._id} itemType="product" />
+                    </div>
+                )}
             </div>
         </div>
     );
