@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/auth.middleware.js";
+import { uploadProfilePicture } from "../middlewares/profileUpload.js";
+import { CloudinaryService } from "../services/cloudinary.service.js";
 import User from "../models/user.model.js";
 
 const router = Router();
@@ -104,6 +106,48 @@ router.get("/profile", async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to fetch user profile"
+        });
+    }
+});
+
+router.patch("/profile", uploadProfilePicture, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { name, email } = req.body;
+        const updates = {};
+        
+        if (name) updates.name = name;
+        if (email) updates.email = email;
+        
+        if (req.file) {
+            // Upload the picture to Cloudinary
+            const result = await CloudinaryService.uploadImage(req.file, {
+                folder: 'campuscart/users'
+            });
+            updates.profilePicture = result.url;
+        }
+        
+        const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password -notifications');
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            data: {
+                user
+            }
+        });
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to update user profile"
         });
     }
 });

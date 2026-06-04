@@ -14,7 +14,8 @@ import {
     CheckSquare,
     AlertCircle,
     FileText,
-    Trash2
+    Trash2,
+    X
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -651,83 +652,153 @@ const AdminDashboard = () => {
 
                 {/* Vendor Details Modal */}
                 {selectedVendor && !showRejectModal && !showDeleteModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
-                            <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-xl font-semibold">Vendor Details</h3>
+                    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: `${theme.text.primary}40` }}>
+                        <div className="rounded-lg p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto" style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }}>
+                            <div className="flex justify-between items-start mb-6">
+                                <h3 className="text-xl font-semibold" style={{ color: theme.text.primary }}>Vendor Details</h3>
                                 <button
                                     onClick={() => setSelectedVendor(null)}
-                                    className="text-gray-500 hover:text-gray-700"
+                                    className="hover:opacity-70 transition-opacity"
+                                    style={{ color: theme.text.secondary }}
                                 >
-                                    ×
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
                             
-                            <div className="space-y-4">
-                                <div>
-                                    <h4 className="font-medium text-gray-700">User Information</h4>
-                                    <p><strong>Name:</strong> {selectedVendor.ownerId?.name || 'Unknown User'}</p>
-                                    <p><strong>Email:</strong> {selectedVendor.ownerId?.email || 'No email'}</p>
-                                    <p><strong>User ID:</strong> {selectedVendor.ownerId?._id || 'N/A'}</p>
+                            <div className="space-y-6">
+                                {/* User Information */}
+                                <div className="p-4 rounded-lg" style={{ backgroundColor: theme.background }}>
+                                    <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text.primary }}>
+                                        <Users className="w-5 h-5" style={{ color: theme.secondary }} />
+                                        User Information
+                                    </h4>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>Name:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.ownerId?.name || 'Unknown User'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>Email:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.ownerId?.email || 'No email'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>User ID:</span>
+                                            <span className="font-medium text-sm" style={{ color: theme.text.primary }}>{selectedVendor.ownerId?._id || 'N/A'}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div>
-                                    <h4 className="font-medium text-gray-700">Store Information</h4>
-                                    <p><strong>Store Name:</strong> {selectedVendor.storeName}</p>
-                                    <p><strong>Description:</strong> {selectedVendor.description}</p>
-                                    <p><strong>Address:</strong> {selectedVendor.address}</p>
-                                    <p><strong>Phone:</strong> {selectedVendor.phone}</p>
-                                    <p><strong>University:</strong> {selectedVendor.universityNear}</p>
+                                {/* Store Information */}
+                                <div className="p-4 rounded-lg" style={{ backgroundColor: theme.background }}>
+                                    <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text.primary }}>
+                                        <Store className="w-5 h-5" style={{ color: theme.secondary }} />
+                                        Store Information
+                                    </h4>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>Store Name:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.storeName}</span>
+                                        </div>
+                                        <div>
+                                            <span style={{ color: theme.text.secondary }}>Description:</span>
+                                            <p className="mt-1 text-sm" style={{ color: theme.text.primary }}>{selectedVendor.description}</p>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>Address:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.address}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>Phone:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.phone}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span style={{ color: theme.text.secondary }}>University:</span>
+                                            <span className="font-medium" style={{ color: theme.text.primary }}>{selectedVendor.universityNear}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div>
-                                    <h4 className="font-medium text-gray-700">Status</h4>
-                                    <p><strong>Application Status:</strong> 
-                                        <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                                            selectedVendor.status === 'approved' 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : selectedVendor.status === 'rejected'
-                                                ? 'bg-red-100 text-red-800'
-                                                : 'bg-yellow-100 text-yellow-800'
-                                        }`}>
-                                            {selectedVendor.status === 'approved' ? 'Approved' : selectedVendor.status === 'rejected' ? 'Rejected' : 'Pending'}
-                                        </span>
-                                    </p>
-                                    <p><strong>Active:</strong> {selectedVendor.isActive ? 'Yes' : 'No'}</p>
-                                    {selectedVendor.rejectionReason && (
-                                        <p><strong>Rejection Reason:</strong> {selectedVendor.rejectionReason}</p>
-                                    )}
-                                </div>
-                                
-                                {selectedVendor.legalDocuments && selectedVendor.legalDocuments.length > 0 && (
-                                    <div>
-                                        <h4 className="font-medium text-gray-700">Legal Documents</h4>
-                                        {selectedVendor.legalDocuments.map((doc, index) => (
-                                            <div key={index} className="border-l-2 border-gray-200 pl-4 mb-2">
-                                                <p><strong>Type:</strong> {doc.documentType}</p>
-                                                <p><strong>Uploaded:</strong> {new Date(doc.uploadedAt).toLocaleDateString()}</p>
-                                                {doc.originalName && (
-                                                    <p><strong>File:</strong> {doc.originalName}</p>
-                                                )}
-                                                <p><strong>Debug - Full document:</strong></p>
-                                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-32">
-                                                    {JSON.stringify(doc, null, 2)}
-                                                </pre>
-                                                {doc.fileId ? (
-                                                    <a
-                                                        href={`/api/vendors/files/${doc.fileId}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors mt-2"
-                                                    >
-                                                        <FileText className="w-3 h-3 mr-1" />
-                                                        View Document
-                                                    </a>
-                                                ) : (
-                                                    <p className="text-red-500 text-xs mt-2">No file available - missing fileId</p>
-                                                )}
+                                {/* Status */}
+                                <div className="p-4 rounded-lg" style={{ backgroundColor: theme.background }}>
+                                    <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text.primary }}>
+                                        <TrendingUp className="w-5 h-5" style={{ color: theme.secondary }} />
+                                        Status
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span style={{ color: theme.text.secondary }}>Application Status:</span>
+                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                selectedVendor.status === 'approved' 
+                                                    ? 'bg-green-100 text-green-800' 
+                                                    : selectedVendor.status === 'rejected'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {selectedVendor.status === 'approved' ? 'Approved' : selectedVendor.status === 'rejected' ? 'Rejected' : 'Pending'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span style={{ color: theme.text.secondary }}>Active:</span>
+                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                                selectedVendor.isActive 
+                                                    ? 'bg-blue-100 text-blue-800' 
+                                                    : 'bg-red-100 text-red-800'
+                                            }`}>
+                                                {selectedVendor.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+                                        {selectedVendor.rejectionReason && (
+                                            <div className="p-3 rounded" style={{ backgroundColor: '#FEE2E2' }}>
+                                                <span className="font-medium" style={{ color: '#991B1B' }}>Rejection Reason:</span>
+                                                <p className="mt-1 text-sm" style={{ color: '#991B1B' }}>{selectedVendor.rejectionReason}</p>
                                             </div>
-                                        ))}
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* Legal Documents */}
+                                {selectedVendor.legalDocuments && selectedVendor.legalDocuments.length > 0 && (
+                                    <div className="p-4 rounded-lg" style={{ backgroundColor: theme.background }}>
+                                        <h4 className="font-semibold mb-3 flex items-center gap-2" style={{ color: theme.text.primary }}>
+                                            <FileText className="w-5 h-5" style={{ color: theme.secondary }} />
+                                            Legal Documents
+                                        </h4>
+                                        <div className="space-y-3">
+                                            {selectedVendor.legalDocuments.map((doc, index) => (
+                                                <div key={index} className="p-3 rounded border" style={{ borderColor: theme.border }}>
+                                                    <div className="space-y-1">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-sm" style={{ color: theme.text.secondary }}>Type:</span>
+                                                            <span className="text-sm font-medium" style={{ color: theme.text.primary }}>{doc.documentType}</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-sm" style={{ color: theme.text.secondary }}>Uploaded:</span>
+                                                            <span className="text-sm" style={{ color: theme.text.primary }}>{new Date(doc.uploadedAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                        {doc.originalName && (
+                                                            <div className="flex justify-between">
+                                                                <span className="text-sm" style={{ color: theme.text.secondary }}>File:</span>
+                                                                <span className="text-sm" style={{ color: theme.text.primary }}>{doc.originalName}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {doc.fileId ? (
+                                                        <a
+                                                            href={`/api/vendors/files/${doc.fileId}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center px-3 py-2 rounded text-sm transition-colors mt-2"
+                                                            style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}
+                                                        >
+                                                            <FileText className="w-4 h-4 mr-2" />
+                                                            View Document
+                                                        </a>
+                                                    ) : (
+                                                        <p className="text-sm mt-2" style={{ color: '#DC2626' }}>No file available - missing fileId</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>

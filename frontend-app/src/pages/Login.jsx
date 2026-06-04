@@ -242,7 +242,7 @@ const Login = () => {
 
                                     className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
 
                                 />
 
@@ -280,7 +280,7 @@ const Login = () => {
 
                                         className="w-full px-4 py-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
 
                                     />
 
