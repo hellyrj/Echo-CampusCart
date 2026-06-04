@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import LocationInput from './LocationInput';
 import LocationPicker from './LocationPicker';
 
 const VendorApplicationForm = ({ onSubmit, loading, initialData }) => {
     const { user } = useAuth();
+    const { theme, colors, isDark } = useTheme();
     const { getUniversities, getCategories } = useVendorApi();
     const [formData, setFormData] = useState({
         storeName: initialData?.storeName || '',
@@ -361,7 +363,7 @@ const VendorApplicationForm = ({ onSubmit, loading, initialData }) => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto rounded-lg shadow-lg p-6" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="max-w-2xl mx-auto rounded-lg shadow-lg p-6" style={{ backgroundColor: theme.surface }}>
             {/* Progress Indicator - Only show for new vendors, not for editing */}
             {!initialData && (
                 <div className="mb-8">
@@ -375,7 +377,7 @@ const VendorApplicationForm = ({ onSubmit, loading, initialData }) => {
                                             : 'text-gray-400'
                                     }`}
                                     style={{
-                                        backgroundColor: step <= currentStep ? '#606C38' : '#e5e7eb'
+                                        backgroundColor: step <= currentStep ? theme.primary : theme.border
                                     }}
                                 >
                                     {step}
@@ -390,7 +392,7 @@ const VendorApplicationForm = ({ onSubmit, loading, initialData }) => {
                             </div>
                         ))}
                     </div>
-                    <div className="flex justify-between text-xs" style={{ color: '#606C38' }}>
+                    <div className="flex justify-between text-xs" style={{ color: theme.text.secondary }}>
                         <span>Basic Info</span>
                         <span>Location</span>
                         <span>Delivery</span>
@@ -398,7 +400,7 @@ const VendorApplicationForm = ({ onSubmit, loading, initialData }) => {
                 </div>
             )}
 
-            <h2 className="text-2xl font-bold mb-6" style={{ color: '#283618' }}>
+            <h2 className="text-2xl font-bold mb-6" style={{ color: theme.text.primary }}>
                 {initialData ? 'Update Your Store Information' : 'Start Selling on Campus'}
             </h2>
 
