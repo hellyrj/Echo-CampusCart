@@ -210,6 +210,24 @@ export class VendorController {
     sendResponse(res, 200, "Vendor fetched", vendor);
   });
 
+  updateVendor = asyncHandler(async (req, res, next) => {
+    console.log('=== Update Vendor Debug ===');
+    console.log('Vendor ID:', req.params.id);
+    console.log('Request headers:', req.headers['content-type']);
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body:', req.body);
+    console.log('Request body keys:', req.body ? Object.keys(req.body) : 'undefined');
+
+    if (!req.body) {
+      console.error('Request body is undefined!');
+      return sendResponse(res, 400, "Request body is required");
+    }
+
+    const vendor = await this.vendorSer.updateVendor(req.params.id, req.body);
+
+    sendResponse(res, 200, "Vendor updated successfully", vendor);
+  });
+
   getVendorProducts = asyncHandler(async (req, res, next) => {
     const { id: vendorId } = req.params;
     const { search, category, minPrice, maxPrice, sortBy = 'name', sortOrder = 'asc' } = req.query;

@@ -50,8 +50,16 @@ export const vendorApi = {
     // Get my vendor profile
     getMyVendorProfile: () => axiosInstance.get('/vendors/me'),
     
-    // Update vendor profile
-    updateVendor: (id, vendorData) => axiosInstance.put(`/vendors/${id}`, vendorData),
+    // Update vendor profile (supports both FormData and JSON)
+    updateVendor: (id, vendorData) => {
+        const config = vendorData instanceof FormData
+            ? {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }
+            : {};
+        // For JSON, let axios handle the Content-Type header automatically
+        return axiosInstance.put(`/vendors/${id}`, vendorData, config);
+    },
     
     // Delete vendor account
     deleteVendor: (id) => axiosInstance.delete(`/vendors/${id}`),
