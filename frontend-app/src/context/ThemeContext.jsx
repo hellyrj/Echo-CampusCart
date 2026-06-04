@@ -30,13 +30,13 @@ export const ThemeProvider = ({ children }) => {
   const colors = {
     light: {
       primary: '#283618',
-      secondary: '#606C38',
+      secondary: '#52B788',
       accent: '#DDA15E',
       background: '#FFFF',
       surface: '#FFFFFF',
       text: {
         primary: '#283618',
-        secondary: '#606C38',
+        secondary: '#52B788',
         accent: '#DDA15E',
         muted: '#6B7280',
         inverse: '#FEFAE0'
