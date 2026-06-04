@@ -73,10 +73,10 @@ const ServiceDetails = () => {
     const handleBookService = () => {
         if (!isAuthenticated) {
             alert('Please login to book services');
+            navigate('/login');
             return;
         }
-        // Future implementation: redirect to booking page or open booking modal
-        alert('Service booking feature coming soon!');
+        navigate(`/book-service/${serviceId}`);
     };
 
     const formatPrice = (service) => {
