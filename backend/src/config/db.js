@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dns from "dns";
 import dotenv from "dotenv";
 dotenv.config();
+
 const isProduction = process.env.NODE_ENV === 'production';
 
 /**
@@ -10,22 +11,25 @@ const isProduction = process.env.NODE_ENV === 'production';
  */
 
 export const connectDB = async() => {
-    // Use public DNS servers for SRV resolution if local DNS is refusing requests.
-    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+    // Only set custom DNS servers in development (if needed)
+    if (!isProduction) {
+        dns.setServers(["8.8.8.8", "1.1.1.1"]);
+    }
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI,
-         {
-        family: 4,
+    const mongooseOptions = {
+        family: 4,  // Use IPv4
         serverSelectionTimeoutMS: 10000,
         connectTimeoutMS: 10000,
-        dialectOptions: isProduction? {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false
-            }
-        }: {}
-    }
-);
+    };
 
-    console.log(`MongoDB connected: ${conn.connection.host}`);
+    // Add SSL options for production (MongoDB Atlas requires this)
+    if (isProduction) {
+        mongooseOptions.ssl = true;
+        // Optional: If you need to allow self-signed certificates
+        // mongooseOptions.tlsAllowInvalidCertificates = true;
+    }
+
+    const conn = await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
+    
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
 };
