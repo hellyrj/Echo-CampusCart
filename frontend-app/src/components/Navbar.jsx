@@ -11,7 +11,7 @@ const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
     const { theme } = useTheme();
     const { wishlistCount } = useWishlist();
-    const { totalQuantity } = useCart();
+    const { totalQuantity, itemCount, cart } = useCart(); // Updated to use correct cart properties
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -25,6 +25,9 @@ const Navbar = () => {
     const isVendor = isAuthenticated && user?.role === 'vendor';
     const isAdmin = isAuthenticated && user?.role === 'admin';
 
+    // Get cart item count - use totalQuantity or itemCount or calculate from cart.items
+    const cartItemCount = totalQuantity || itemCount || cart?.totalQuantity || cart?.itemCount || 0;
+
     return (
         <nav style={{ backgroundColor: theme.surface, borderBottom: `1px solid ${theme.border}` }}>
             <div className="w-full px-4 sm:px-6 lg:px-8">
@@ -35,7 +38,7 @@ const Navbar = () => {
                         {/* Logo */}
                         <Link 
                             to="/" 
-                            className="flex items-center space-x-2 text-2xl font-bold  transition-opacity hover:opacity-50 shrink-0"
+                            className="flex items-center space-x-2 text-2xl font-bold transition-opacity hover:opacity-50 shrink-0"
                             style={{ color: theme.text.primary }}
                         >
                             <ShoppingCart className="w-6 h-6" style={{ color: theme.text.secondary }} />
@@ -91,7 +94,7 @@ const Navbar = () => {
                                 <NavIcon 
                                     to="/cart" 
                                     icon={<ShoppingCart size={22} />} 
-                                    badge={totalQuantity}
+                                    badge={cartItemCount}
                                     title="Cart"
                                     isActive={location.pathname === '/cart'}
                                 />
@@ -111,7 +114,7 @@ const Navbar = () => {
                                         Hi,
                                     </span>
                                     <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>
-                                        {user?.name?.split(' ')[0]}
+                                        {user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}
                                     </span>
                                 </div>
                                 
