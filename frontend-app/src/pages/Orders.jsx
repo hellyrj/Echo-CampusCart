@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOrder } from '../hooks/useOrder';
+import { useTheme } from '../context/ThemeContext';
 import { Package, Clock, CheckCircle, Truck, XCircle, ChevronRight, ShoppingBag } from 'lucide-react';
 
 const Orders = () => {
     const { user, isAuthenticated } = useAuth();
     const { getMyOrders, loading } = useOrder();
+    const { theme, colors, isDark } = useTheme();
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [filter, setFilter] = useState('all');
@@ -60,9 +62,9 @@ const Orders = () => {
     if (!isAuthenticated) return null;
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold mb-8" style={{ color: '#283618' }}>My Orders</h1>
+        <div className="min-h-screen" style={{ backgroundColor: colors.home.cream }}>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h1 className="text-3xl font-bold mb-8" style={{ color: colors.home.text }}>My Orders</h1>
 
                 {/* Filters */}
                 <div className="flex flex-wrap gap-2 mb-6">
@@ -79,9 +81,13 @@ const Orders = () => {
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                 filter === f.key
                                     ? 'text-white'
-                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                    : 'border hover:bg-opacity-80'
                             }`}
-                            style={filter === f.key ? { backgroundColor: '#606C38' } : {}}
+                            style={
+                                filter === f.key 
+                                    ? { backgroundColor: theme.secondary, color: theme.text.inverse }
+                                    : { backgroundColor: colors.home.white, color: colors.home.text, border: `1px solid ${colors.home.border}` }
+                            }
                         >
                             {f.label}
                         </button>
@@ -91,21 +97,21 @@ const Orders = () => {
                 {/* Orders List */}
                 {loading ? (
                     <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: theme.secondary }}></div>
                     </div>
                 ) : orders.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                        <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
-                        <p className="text-gray-600 mb-6">
+                    <div className="rounded-lg shadow-sm border p-12 text-center" style={{ backgroundColor: colors.home.white, borderColor: colors.home.border }}>
+                        <ShoppingBag className="w-16 h-16 mx-auto mb-4" style={{ color: colors.home.muted }} />
+                        <h3 className="text-lg font-semibold mb-2" style={{ color: colors.home.text }}>No orders found</h3>
+                        <p className="mb-6" style={{ color: colors.home.muted }}>
                             {filter === 'all' 
                                 ? "You haven't placed any orders yet." 
                                 : `No ${filter} orders found.`}
                         </p>
                         <Link
                             to="/products"
-                            className="inline-flex items-center px-6 py-3 text-white rounded-lg font-semibold"
-                            style={{ backgroundColor: '#606C38' }}
+                            className="inline-flex items-center px-6 py-3 rounded-lg font-semibold transition-colors hover:opacity-90"
+                            style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                         >
                             Start Shopping
                         </Link>
@@ -118,16 +124,21 @@ const Orders = () => {
                                 <Link
                                     key={order._id}
                                     to={`/orders/${order._id}`}
-                                    className="block bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:border-blue-300 hover:shadow-md transition-all"
+                                    className="block rounded-lg shadow-sm border p-6 transition-all hover:shadow-md"
+                                    style={{ 
+                                        backgroundColor: colors.home.white, 
+                                        borderColor: colors.home.border,
+                                        color: colors.home.text
+                                    }}
                                 >
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             {getStatusIcon(order.overallStatus)}
                                             <div>
-                                                <p className="font-semibold text-gray-900">
+                                                <p className="font-semibold" style={{ color: colors.home.text }}>
                                                     Order #{order.orderNumber}
                                                 </p>
-                                                <p className="text-sm text-gray-500">
+                                                <p className="text-sm" style={{ color: colors.home.muted }}>
                                                     {new Date(order.createdAt).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'long',
@@ -148,22 +159,23 @@ const Orders = () => {
                                         {order.vendorOrders?.map((vo) => (
                                             <span
                                                 key={vo.vendorId}
-                                                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                                                className="text-xs px-2 py-1 rounded"
+                                                style={{ backgroundColor: colors.home.beige, color: colors.home.text }}
                                             >
                                                 {vo.vendorName}: {vo.status.replace('_', ' ')}
                                             </span>
                                         ))}
                                     </div>
 
-                                    <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                                        <div className="text-sm text-gray-600">
+                                    <div className="flex items-center justify-between pt-3" style={{ borderTop: `1px solid ${colors.home.border}` }}>
+                                        <div className="text-sm" style={{ color: colors.home.muted }}>
                                             {order.orderSummary?.totalItems || order.vendorOrders?.reduce((sum, vo) => sum + vo.items.length, 0)} items
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className="font-semibold text-lg text-gray-900">
+                                            <span className="font-semibold text-lg" style={{ color: colors.home.text }}>
                                                 ETB {order.orderSummary?.grandTotal?.toFixed(2) || '0.00'}
                                             </span>
-                                            <ChevronRight className="w-5 h-5 text-gray-400" />
+                                            <ChevronRight className="w-5 h-5" style={{ color: colors.home.muted }} />
                                         </div>
                                     </div>
                                 </Link>

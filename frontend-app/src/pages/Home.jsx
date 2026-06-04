@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useProductApi } from '../hooks/useProductApi';
 import { useCategoryApi } from '../hooks/useCategoryApi';
 import { 
@@ -654,6 +655,7 @@ const CompactProductCard = ({ product, badge, badgeColor = COLORS.orange }) => {
 
 const Home = () => {
   const { user, isAuthenticated } = useAuth();
+  const { theme, colors, isDark } = useTheme();
   const { getProducts } = useProductApi();
   const { getCategories } = useCategoryApi();
   const navigate = useNavigate();

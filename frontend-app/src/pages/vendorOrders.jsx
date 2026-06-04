@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useOrder } from '../hooks/useOrder';
 import { 
     Package, Clock, CheckCircle, Truck, XCircle, ChevronRight, 
@@ -9,6 +10,7 @@ import {
 
 const VendorOrders = () => {
     const { user, isAuthenticated } = useAuth();
+    const { theme, colors, isDark } = useTheme();
     const { getVendorOrders, updateOrderStatus, cancelVendorOrder, loading } = useOrder();
     const navigate = useNavigate();
     
@@ -133,18 +135,18 @@ const VendorOrders = () => {
     if (!isAuthenticated || user?.role !== 'vendor') return null;
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>Order Management</h1>
-                        <p className="mt-1" style={{ color: '#606C38' }}>Manage and track customer orders</p>
+                        <h1 className="text-3xl font-bold" style={{ color: theme.text.primary }}>Order Management</h1>
+                        <p className="mt-1" style={{ color: theme.text.secondary }}>Manage and track customer orders</p>
                     </div>
                     <button
                         onClick={fetchOrders}
                         className="mt-4 sm:mt-0 flex items-center px-4 py-2 text-white rounded-lg"
-                        style={{ backgroundColor: '#606C38' }}
+                        style={{ backgroundColor: theme.primary }}
                     >
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Refresh
@@ -154,10 +156,10 @@ const VendorOrders = () => {
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {[
-                        { label: 'Total Orders', value: summary.total, color: '#606C38' },
-                        { label: 'Pending', value: summary.pending, color: '#DDA15E' },
-                        { label: 'Processing', value: summary.processing, color: '#283618' },
-                        { label: 'Completed', value: summary.completed, color: '#606C38' },
+                        { label: 'Total Orders', value: summary.total, color: theme.primary },
+                        { label: 'Pending', value: summary.pending, color: theme.accent },
+                        { label: 'Processing', value: summary.processing, color: theme.text.primary },
+                        { label: 'Completed', value: summary.completed, color: theme.primary },
                     ].map((card, index) => (
                         <div key={index} className="rounded-lg p-4 text-white" style={{ backgroundColor: card.color }}>
                             <p className="text-2xl font-bold">{card.value}</p>
@@ -167,17 +169,17 @@ const VendorOrders = () => {
                 </div>
 
                 {/* Search and Filter */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                <div className="rounded-lg shadow-sm border p-4 mb-6" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                            <Search className="absolute left-3 top-3 w-5 h-5" style={{ color: theme.text.muted }} />
                             <input
                                 type="text"
                                 placeholder="Search by order number, customer name, phone..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2"
-                                style={{ borderColor: '#DDA15E', focusRingColor: '#606C38' }}
+                                style={{ borderColor: theme.accent, focusRingColor: theme.primary, color: theme.text.primary }}
                             />
                         </div>
                         <div className="flex gap-2 flex-wrap">
@@ -197,9 +199,9 @@ const VendorOrders = () => {
                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                                         filter === f.key
                                             ? 'text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            : 'text-gray-700 hover:bg-gray-200'
                                     }`}
-                                    style={filter === f.key ? { backgroundColor: '#606C38' } : {}}
+                                    style={filter === f.key ? { backgroundColor: theme.primary } : { backgroundColor: theme.card }}
                                 >
                                     {f.label}
                                 </button>
@@ -209,16 +211,16 @@ const VendorOrders = () => {
                 </div>
 
                 {/* Orders Table */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="rounded-lg shadow-sm border overflow-hidden" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
                     {loading ? (
                         <div className="p-12 text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: theme.primary }}></div>
                         </div>
                     ) : filteredOrders.length === 0 ? (
                         <div className="p-12 text-center">
-                            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
-                            <p className="text-gray-600">
+                            <Package className="w-16 h-16 mx-auto mb-4" style={{ color: theme.text.muted }} />
+                            <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text.primary }}>No orders found</h3>
+                            <p className="text-gray-600" style={{ color: theme.text.secondary }}>
                                 {filter === 'all' 
                                     ? "You haven't received any orders yet." 
                                     : `No ${filter} orders found.`}
@@ -229,16 +231,16 @@ const VendorOrders = () => {
                             <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Order #</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Customer</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Items</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Total</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Status</th>
+                                        <th className="text-left px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Date</th>
+                                        <th className="text-right px-6 py-3 text-xs font-medium uppercase tracking-wider" style={{ color: theme.text.muted }}>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200">
+                                <tbody className="divide-y divide-gray-200" style={{ borderColor: theme.border }}>
                                     {filteredOrders.map((order) => {
                                         const vendorOrder = order.vendorOrders?.[0];
                                         const statusBadge = vendorOrder ? getStatusBadge(vendorOrder.status) : getStatusBadge('pending');
@@ -247,21 +249,21 @@ const VendorOrders = () => {
                                         return (
                                             <tr key={order._id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm font-medium text-gray-900">
+                                                    <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
                                                         {order.orderNumber}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900">{order.customerInfo?.name || 'N/A'}</div>
-                                                    <div className="text-xs text-gray-500">{order.customerInfo?.phone}</div>
+                                                    <div className="text-sm" style={{ color: theme.text.primary }}>{order.customerInfo?.name || 'N/A'}</div>
+                                                    <div className="text-xs" style={{ color: theme.text.muted }}>{order.customerInfo?.phone}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-600">
+                                                    <span className="text-sm" style={{ color: theme.text.secondary }}>
                                                         {vendorOrder?.items?.length || 0} items
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm font-semibold text-gray-900">
+                                                    <span className="text-sm font-semibold" style={{ color: theme.text.primary }}>
                                                         ETB {vendorOrder?.total?.toFixed(2) || '0.00'}
                                                     </span>
                                                 </td>
@@ -271,15 +273,15 @@ const VendorOrders = () => {
                                                         {vendorOrder?.status?.replace('_', ' ') || 'pending'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: theme.text.muted }}>
                                                     {new Date(order.createdAt).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
                                                             to={`/vendor/orders/${order._id}`}
-                                                            className="hover:text-gray-700"
-                                                            style={{ color: '#606C38' }}
+                                                            className="hover:opacity-70"
+                                                            style={{ color: theme.primary }}
                                                             title="View Details"
                                                         >
                                                             <Eye className="w-4 h-4" />
@@ -287,7 +289,8 @@ const VendorOrders = () => {
                                                         {vendorOrder && getNextStatuses(vendorOrder.status).length > 0 && (
                                                             <button
                                                                 onClick={() => openStatusModal(order)}
-                                                                className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs"
+                                                                className="px-3 py-1 rounded hover:opacity-70 text-xs"
+                                                                style={{ backgroundColor: theme.primary + '20', color: theme.primary }}
                                                             >
                                                                 Update
                                                             </button>
@@ -295,7 +298,8 @@ const VendorOrders = () => {
                                                         {vendorOrder?.status === 'pending' && (
                                                             <button
                                                                 onClick={() => handleRejectOrder(order._id)}
-                                                                className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
+                                                                className="px-3 py-1 rounded hover:opacity-70 text-xs"
+                                                                style={{ backgroundColor: '#FEE2E2', color: '#DC2626' }}
                                                             >
                                                                 Reject
                                                             </button>
@@ -314,19 +318,19 @@ const VendorOrders = () => {
 
             {/* Status Update Modal */}
             {showStatusModal && selectedOrder && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="rounded-lg p-6 max-w-md w-full mx-4" style={{ backgroundColor: theme.card }}>
+                        <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
                             Update Order Status
                         </h3>
                         
-                        <p className="text-sm text-gray-600 mb-1">Order #{selectedOrder.orderNumber}</p>
-                        <p className="text-sm text-gray-600 mb-4">
+                        <p className="text-sm mb-1" style={{ color: theme.text.secondary }}>Order #{selectedOrder.orderNumber}</p>
+                        <p className="text-sm mb-4" style={{ color: theme.text.secondary }}>
                             Customer: {selectedOrder.customerInfo?.name}
                         </p>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                                 New Status
                             </label>
                             <div className="space-y-2">
@@ -339,17 +343,17 @@ const VendorOrders = () => {
                                             onClick={() => setNewStatus(status)}
                                             className={`w-full flex items-center p-3 rounded-lg border-2 transition-colors ${
                                                 newStatus === status
-                                                    ? 'border-[#606C38]'
+                                                    ? ''
                                                     : 'border-gray-200 hover:border-gray-300'
                                             }`}
-                                            style={newStatus === status ? { backgroundColor: '#606C3820' } : {}}
+                                            style={newStatus === status ? { borderColor: theme.primary, backgroundColor: theme.primary + '20' } : { borderColor: theme.border }}
                                         >
                                             <Icon className={`w-5 h-5 mr-3 ${
                                                 newStatus === status ? '' : 'text-gray-400'
-                                            }`} style={newStatus === status ? { color: '#606C38' } : {}} />
+                                            }`} style={newStatus === status ? { color: theme.primary } : {}} />
                                             <span className={`font-medium ${
                                                 newStatus === status ? '' : 'text-gray-700'
-                                            }`} style={newStatus === status ? { color: '#606C38' } : {}}>
+                                            }`} style={newStatus === status ? { color: theme.primary } : {}}>
                                                 {status.replace('_', ' ')}
                                             </span>
                                         </button>
@@ -359,7 +363,7 @@ const VendorOrders = () => {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                                 Note (Optional)
                             </label>
                             <textarea
@@ -367,7 +371,8 @@ const VendorOrders = () => {
                                 onChange={(e) => setStatusNote(e.target.value)}
                                 placeholder="Add a note about this status update..."
                                 rows="2"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#606C38]"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2"
+                                style={{ borderColor: theme.border, focusRingColor: theme.primary }}
                             />
                         </div>
 
@@ -379,7 +384,8 @@ const VendorOrders = () => {
                                     setNewStatus('');
                                     setStatusNote('');
                                 }}
-                                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                className="px-4 py-2 rounded-lg hover:opacity-70"
+                                style={{ color: theme.text.primary, borderColor: theme.border }}
                             >
                                 Cancel
                             </button>
@@ -387,7 +393,7 @@ const VendorOrders = () => {
                                 onClick={handleStatusUpdate}
                                 disabled={!newStatus || updating}
                                 className="px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
-                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                style={{ backgroundColor: theme.primary, color: '#FEFAE0' }}
                             >
                                 {updating ? 'Updating...' : 'Update Status'}
                             </button>

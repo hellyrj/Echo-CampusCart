@@ -1,7 +1,215 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useComment } from '../hooks/useComment';
 import { useAuth } from '../context/AuthContext';
 import { MessageSquare, ThumbsUp, Reply, Edit, Trash2, Send, X } from 'lucide-react';
+
+const CommentItem = ({ comment, isReply, user, replyTo, setReplyTo, replyText, setReplyText, editingComment, setEditingComment, editText, setEditText, handleSubmitReply, handleEditSubmit, handleDelete, handleLike, formatDate, showReplies, setShowReplies }) => {
+    const isOwner = user && comment.userId._id === user._id;
+
+    return (
+        <div className={`${isReply ? 'ml-8 mt-3' : 'mb-4'} p-4 rounded-lg border ${isOwner ? 'border-l-4' : ''}`} style={{ borderLeftColor: isOwner ? '#606C38' : undefined }}>
+            <div className="flex items-start gap-3">
+                {comment.userId.profilePicture ? (
+                    <img
+                        src={comment.userId.profilePicture.startsWith('http') ? comment.userId.profilePicture : `http://localhost:5000/uploads/${comment.userId.profilePicture}`}
+                        alt={comment.userId.name || 'User'}
+                        className="w-10 h-10 rounded-full object-cover"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                            e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                    />
+                ) : null}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white ${comment.userId.profilePicture ? 'hidden' : ''}`} style={{ backgroundColor: '#606C38' }}>
+                    {comment.userId.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold" style={{ color: '#283618' }}>
+                            {comment.userId.name || 'Anonymous'}
+                        </span>
+                        {isOwner && (
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}>
+                                owner
+                            </span>
+                        )}
+                        <span className="text-sm" style={{ color: '#606C38' }}>
+                            {formatDate(comment.createdAt)}
+                        </span>
+                        {comment.isEdited && (
+                            <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: '#FEFAE0', color: '#606C38' }}>
+                                Edited
+                            </span>
+                        )}
+                    </div>
+
+                    {editingComment === comment._id ? (
+                        <form onSubmit={(e) => handleEditSubmit(e, comment._id)} className="mt-2">
+                            <textarea
+                                key={`edit-${comment._id}`}
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 resize-none"
+                                style={{ borderColor: '#D1D5DB', focusRingColor: '#606C38' }}
+                                rows="3"
+                            />
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    type="submit"
+                                    className="px-3 py-1 rounded text-sm"
+                                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setEditingComment(null);
+                                        setEditText('');
+                                    }}
+                                    className="px-3 py-1 rounded text-sm"
+                                    style={{ backgroundColor: '#F3F4F6', color: '#374151' }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <p className="mt-1" style={{ color: '#283618' }}>{comment.content}</p>
+                    )}
+
+                    <div className="flex items-center gap-4 mt-2">
+                        <button
+                            onClick={() => handleLike(comment._id)}
+                            className={`flex items-center gap-1 text-sm hover:opacity-70 transition-opacity ${
+                                comment.likes?.includes(user?._id) ? 'text-red-500' : ''
+                            }`}
+                            style={{ color: comment.likes?.includes(user?._id) ? '#DC2626' : '#606C38' }}
+                        >
+                            <ThumbsUp className="w-4 h-4" />
+                            {comment.likeCount || 0}
+                        </button>
+
+                        {!isReply && (
+                            <button
+                                onClick={() => {
+                                    setReplyTo(comment._id);
+                                    setReplyText('');
+                                }}
+                                className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
+                                style={{ color: '#606C38' }}
+                            >
+                                <Reply className="w-4 h-4" />
+                                Reply
+                            </button>
+                        )}
+
+                        {isOwner && (
+                            <>
+                                <button
+                                    onClick={() => {
+                                        setEditingComment(comment._id);
+                                        setEditText(comment.content);
+                                    }}
+                                    className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
+                                    style={{ color: '#606C38' }}
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(comment._id)}
+                                    className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
+                                    style={{ color: '#DC2626' }}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Reply Form */}
+                    {replyTo === comment._id && (
+                        <form onSubmit={(e) => handleSubmitReply(e, comment._id)} className="mt-3">
+                            <textarea
+                                key={`reply-${comment._id}`}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder="Write a reply..."
+                                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 resize-none"
+                                style={{ borderColor: '#D1D5DB', focusRingColor: '#606C38' }}
+                                rows="2"
+                            />
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    type="submit"
+                                    className="px-3 py-1 rounded text-sm flex items-center gap-1"
+                                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                >
+                                    <Send className="w-4 h-4" />
+                                    Reply
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setReplyTo(null);
+                                        setReplyText('');
+                                    }}
+                                    className="px-3 py-1 rounded text-sm"
+                                    style={{ backgroundColor: '#F3F4F6', color: '#374151' }}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* Replies */}
+                    {!isReply && comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-3">
+                            <button
+                                onClick={() => setShowReplies(prev => ({ ...prev, [comment._id]: !prev[comment._id] }))}
+                                className="text-sm hover:opacity-70 transition-opacity"
+                                style={{ color: '#606C38' }}
+                            >
+                                {showReplies[comment._id] ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                            </button>
+                            {showReplies[comment._id] && (
+                                <div>
+                                    {comment.replies.map(reply => (
+                                        <CommentItem 
+                                            key={reply._id} 
+                                            comment={reply} 
+                                            isReply={true}
+                                            user={user}
+                                            replyTo={replyTo}
+                                            setReplyTo={setReplyTo}
+                                            replyText={replyText}
+                                            setReplyText={setReplyText}
+                                            editingComment={editingComment}
+                                            setEditingComment={setEditingComment}
+                                            editText={editText}
+                                            setEditText={setEditText}
+                                            handleSubmitReply={handleSubmitReply}
+                                            handleEditSubmit={handleEditSubmit}
+                                            handleDelete={handleDelete}
+                                            handleLike={handleLike}
+                                            formatDate={formatDate}
+                                            showReplies={showReplies}
+                                            setShowReplies={setShowReplies}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const Comments = ({ itemId, itemType = 'product' }) => {
     const { isAuthenticated, user } = useAuth();
@@ -22,6 +230,9 @@ const Comments = ({ itemId, itemType = 'product' }) => {
     const [editingComment, setEditingComment] = useState(null);
     const [editText, setEditText] = useState('');
     const [showReplies, setShowReplies] = useState({});
+    
+    const replyTextareaRef = useRef(null);
+    const editTextareaRef = useRef(null);
 
     useEffect(() => {
         loadComments();
@@ -139,192 +350,6 @@ const Comments = ({ itemId, itemType = 'product' }) => {
         return date.toLocaleDateString();
     };
 
-    const CommentItem = ({ comment, isReply = false }) => {
-        const isOwner = user && comment.userId._id === user._id;
-
-        return (
-            <div className={`${isReply ? 'ml-8 mt-3' : 'mb-4'} p-4 rounded-lg border ${isOwner ? 'border-l-4' : ''}`} style={{ borderLeftColor: isOwner ? '#606C38' : undefined }}>
-                <div className="flex items-start gap-3">
-                    {comment.userId.profilePicture ? (
-                        <img
-                            src={comment.userId.profilePicture.startsWith('http') ? comment.userId.profilePicture : `http://localhost:5000/uploads/${comment.userId.profilePicture}`}
-                            alt={comment.userId.name || 'User'}
-                            className="w-10 h-10 rounded-full object-cover"
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.style.display = 'none';
-                                e.target.nextElementSibling.style.display = 'flex';
-                            }}
-                        />
-                    ) : null}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-white ${comment.userId.profilePicture ? 'hidden' : ''}`} style={{ backgroundColor: '#606C38' }}>
-                        {comment.userId.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold" style={{ color: '#283618' }}>
-                                {comment.userId.name || 'Anonymous'}
-                            </span>
-                            {isOwner && (
-                                <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}>
-                                    owner
-                                </span>
-                            )}
-                            <span className="text-sm" style={{ color: '#606C38' }}>
-                                {formatDate(comment.createdAt)}
-                            </span>
-                            {comment.isEdited && (
-                                <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: '#FEFAE0', color: '#606C38' }}>
-                                    Edited
-                                </span>
-                            )}
-                        </div>
-
-                        {editingComment === comment._id ? (
-                            <form onSubmit={(e) => handleEditSubmit(e, comment._id)} className="mt-2">
-                                <textarea
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 resize-none"
-                                    style={{ borderColor: '#D1D5DB', focusRingColor: '#606C38' }}
-                                    rows="3"
-                                />
-                                <div className="flex gap-2 mt-2">
-                                    <button
-                                        type="submit"
-                                        className="px-3 py-1 rounded text-sm"
-                                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditingComment(null);
-                                            setEditText('');
-                                        }}
-                                        className="px-3 py-1 rounded text-sm"
-                                        style={{ backgroundColor: '#F3F4F6', color: '#374151' }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        ) : (
-                            <p className="mt-1" style={{ color: '#283618' }}>{comment.content}</p>
-                        )}
-
-                        <div className="flex items-center gap-4 mt-2">
-                            <button
-                                onClick={() => handleLike(comment._id)}
-                                className={`flex items-center gap-1 text-sm hover:opacity-70 transition-opacity ${
-                                    comment.likes?.includes(user?._id) ? 'text-red-500' : ''
-                                }`}
-                                style={{ color: comment.likes?.includes(user?._id) ? '#DC2626' : '#606C38' }}
-                            >
-                                <ThumbsUp className="w-4 h-4" />
-                                {comment.likeCount || 0}
-                            </button>
-
-                            {!isReply && (
-                                <button
-                                    onClick={() => {
-                                        setReplyTo(comment._id);
-                                        setReplyText('');
-                                    }}
-                                    className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
-                                    style={{ color: '#606C38' }}
-                                >
-                                    <Reply className="w-4 h-4" />
-                                    Reply
-                                </button>
-                            )}
-
-                            {isOwner && (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setEditingComment(comment._id);
-                                            setEditText(comment.content);
-                                        }}
-                                        className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
-                                        style={{ color: '#606C38' }}
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(comment._id)}
-                                        className="flex items-center gap-1 text-sm hover:opacity-70 transition-opacity"
-                                        style={{ color: '#DC2626' }}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete
-                                    </button>
-                                </>
-                            )}
-                        </div>
-
-                        {/* Reply Form */}
-                        {replyTo === comment._id && (
-                            <form onSubmit={(e) => handleSubmitReply(e, comment._id)} className="mt-3">
-                                <textarea
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    placeholder="Write a reply..."
-                                    className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 resize-none"
-                                    style={{ borderColor: '#D1D5DB', focusRingColor: '#606C38' }}
-                                    rows="2"
-                                />
-                                <div className="flex gap-2 mt-2">
-                                    <button
-                                        type="submit"
-                                        className="px-3 py-1 rounded text-sm flex items-center gap-1"
-                                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
-                                    >
-                                        <Send className="w-4 h-4" />
-                                        Reply
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setReplyTo(null);
-                                            setReplyText('');
-                                        }}
-                                        className="px-3 py-1 rounded text-sm"
-                                        style={{ backgroundColor: '#F3F4F6', color: '#374151' }}
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-
-                        {/* Replies */}
-                        {!isReply && comment.replies && comment.replies.length > 0 && (
-                            <div className="mt-3">
-                                <button
-                                    onClick={() => setShowReplies(prev => ({ ...prev, [comment._id]: !prev[comment._id] }))}
-                                    className="text-sm hover:opacity-70 transition-opacity"
-                                    style={{ color: '#606C38' }}
-                                >
-                                    {showReplies[comment._id] ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
-                                </button>
-                                {showReplies[comment._id] && (
-                                    <div>
-                                        {comment.replies.map(reply => (
-                                            <CommentItem key={reply._id} comment={reply} isReply={true} />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="mt-8">
             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: '#283618' }}>
@@ -371,7 +396,27 @@ const Comments = ({ itemId, itemType = 'product' }) => {
             ) : (
                 <div>
                     {comments.map(comment => (
-                        <CommentItem key={comment._id} comment={comment} />
+                        <CommentItem 
+                            key={comment._id} 
+                            comment={comment} 
+                            isReply={false}
+                            user={user}
+                            replyTo={replyTo}
+                            setReplyTo={setReplyTo}
+                            replyText={replyText}
+                            setReplyText={setReplyText}
+                            editingComment={editingComment}
+                            setEditingComment={setEditingComment}
+                            editText={editText}
+                            setEditText={setEditText}
+                            handleSubmitReply={handleSubmitReply}
+                            handleEditSubmit={handleEditSubmit}
+                            handleDelete={handleDelete}
+                            handleLike={handleLike}
+                            formatDate={formatDate}
+                            showReplies={showReplies}
+                            setShowReplies={setShowReplies}
+                        />
                     ))}
                 </div>
             )}

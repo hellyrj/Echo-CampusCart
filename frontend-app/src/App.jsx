@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { CartProvider } from './context/CartContext'; // Add this import
+import { CartProvider } from './context/CartContext';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -68,11 +68,11 @@ function App() {
         <ThemeProvider>
             <AuthProvider>
                 <WishlistProvider>
-                    <CartProvider> {/* Add CartProvider here */}
+                    <CartProvider>
                         <Router>
                             <AppContent />
                         </Router>
-                    </CartProvider> {/* Add closing CartProvider tag */}
+                    </CartProvider>
                 </WishlistProvider>
             </AuthProvider>
         </ThemeProvider>
@@ -81,11 +81,111 @@ function App() {
 
 const AppContent = () => {
     const { theme } = useTheme();
+    const location = useLocation();
+    
+    // Don't apply the default background wrapper for these routes
+    // as they handle their own backgrounds
+    const routesWithOwnBackground = [
+        '/admin/dashboard', 
+        '/vendor/dashboard', 
+        '/profile',
+        '/orders',
+        '/wishlist',
+        '/cart',
+        '/checkout',
+        '/my-products',
+        '/my-services',
+        '/vendor/orders',
+        '/my-bookings'
+    ];
+    const shouldApplyDefaultBackground = !routesWithOwnBackground.some(route => location.pathname.startsWith(route));
     
     return (
-        <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
+        <div style={{ 
+            backgroundColor: theme.background,
+            minHeight: '100vh'
+        }}>
             <ConditionalNavbar />
-            <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
+            
+            {/* Only wrap with default background if the page doesn't handle its own */}
+            {shouldApplyDefaultBackground ? (
+                <div style={{ backgroundColor: theme.background }}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<Home />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/products" element={
+                            <ErrorBoundary>
+                                <Products />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/products/:productId" element={
+                            <ErrorBoundary>
+                                <ProductDetails />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/services/:serviceId" element={
+                            <ErrorBoundary>
+                                <ServiceDetails />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/book-service/:serviceId" element={
+                            <ErrorBoundary>
+                                <BookService />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/vendor/apply" element={
+                            <ErrorBoundary>
+                                <VendorApplication />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/vendor/:vendorId" element={
+                            <ErrorBoundary>
+                                <VendorPublicPage />
+                            </ErrorBoundary>
+                        } />
+                        
+                        {/* Public Routes */}
+                        <Route path="/search-vendors" element={<VendorSearch />} />
+                        <Route path="/test-location" element={<TestLocationPicker />} />
+                        
+                        {/* Protected Routes - These will get the default background */}
+                        <Route element={<PrivateRoute />}>
+                            <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                            <Route path="/my-products" element={<MyProducts />} />
+                            <Route path="/my-services" element={<MyServices />} />
+                            <Route path="/profile" element={<Profile />} />
+                            <Route path="/wishlist" element={<Wishlist />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/orders" element={<Orders />} />
+                            <Route path="/orders/:orderId" element={<OrderDetail />} />
+                            <Route path="/my-bookings" element={<MyBookings />} />
+                            <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                            <Route path="/vendor/orders" element={
+                                <ErrorBoundary>
+                                    <VendorOrders />
+                                </ErrorBoundary>
+                            } />
+                            <Route path="/vendor/orders/:orderId" element={
+                                <ErrorBoundary>
+                                    <VendorOrderDetail />
+                                </ErrorBoundary>
+                            } />
+                            <Route path="/admin/dashboard" element={
+                                <ErrorBoundary>
+                                    <AdminDashboard />
+                                </ErrorBoundary>
+                            } />
+                        </Route>
+                        
+                        {/* Fallback */}
+                        <Route path="*" element={<FallbackRoute />} />
+                    </Routes>
+                </div>
+            ) : (
+                // Render routes without the extra background wrapper (they handle their own)
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={<Home />} />
@@ -126,7 +226,7 @@ const AppContent = () => {
                     <Route path="/search-vendors" element={<VendorSearch />} />
                     <Route path="/test-location" element={<TestLocationPicker />} />
                     
-                    {/* Protected Routes */}
+                    {/* Protected Routes - These handle their own backgrounds */}
                     <Route element={<PrivateRoute />}>
                         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                         <Route path="/my-products" element={<MyProducts />} />
@@ -159,7 +259,8 @@ const AppContent = () => {
                     {/* Fallback */}
                     <Route path="*" element={<FallbackRoute />} />
                 </Routes>
-            </div>
+            )}
+            
             <ConditionalFloatingButton />
         </div>
     );

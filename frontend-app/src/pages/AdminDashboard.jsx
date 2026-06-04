@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-    const { theme } = useTheme();
+    const { theme, colors, isDark } = useTheme();
     const [activeTab, setActiveTab] = useState('overview');
     
     // Debug: Check if user is logged in and has admin role
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
 
             if (statsResult.success) {
                 console.log('Setting stats:', statsResult.data.data);
-                setStats(statsResult.data.data); // Nested data structure
+                setStats(statsResult.data.data);
             } else {
                 console.error('Stats API failed:', statsResult.message);
             }
@@ -146,16 +146,13 @@ const AdminDashboard = () => {
             if (result.success) {
                 console.log('Rejection successful, cleaning up...');
                 
-                // Close modal and reset form
                 setShowRejectModal(false);
                 setRejectReason('');
                 setSelectedVendor(null);
                 
-                // Force refresh all data
                 console.log('Refreshing dashboard data...');
                 await loadDashboardData();
                 
-                // Show success message
                 alert('Vendor application rejected successfully!');
             } else {
                 console.log('Rejection failed:', result.message);
@@ -205,62 +202,82 @@ const AdminDashboard = () => {
         setDeleteConfirmation('');
     };
 
-    const StatCard = ({ title, value, icon: Icon, color = 'blue' }) => (
-        <div className={`bg-white rounded-lg shadow p-6 border-l-4 border-${color}-500`}>
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-gray-500 text-sm">{title}</p>
-                    <p className="text-2xl font-bold text-gray-800">{value}</p>
+    const StatCard = ({ title, value, icon: Icon, color = 'blue' }) => {
+        const getColorStyles = () => {
+            switch(color) {
+                case 'blue':
+                    return { bg: isDark ? '#1E3A5F' : '#EFF6FF', text: '#3B82F6', border: '#3B82F6' };
+                case 'green':
+                    return { bg: isDark ? '#1A3A2A' : '#ECFDF5', text: '#10B981', border: '#10B981' };
+                case 'purple':
+                    return { bg: isDark ? '#2E1A5F' : '#F5F3FF', text: '#8B5CF6', border: '#8B5CF6' };
+                case 'yellow':
+                    return { bg: isDark ? '#3D2E1A' : '#FEF3C7', text: '#F59E0B', border: '#F59E0B' };
+                default:
+                    return { bg: isDark ? '#1E3A5F' : '#EFF6FF', text: '#3B82F6', border: '#3B82F6' };
+            }
+        };
+        
+        const colorStyles = getColorStyles();
+        
+        return (
+            <div className="rounded-lg shadow p-6 border-l-4" style={{ 
+                backgroundColor: colors.home.white,
+                borderLeftColor: colorStyles.border
+            }}>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-sm" style={{ color: colors.home.muted }}>{title}</p>
+                        <p className="text-2xl font-bold" style={{ color: colors.home.text }}>{value}</p>
+                    </div>
+                    <Icon className="w-8 h-8" style={{ color: colorStyles.text }} />
                 </div>
-                <Icon className={`w-8 h-8 text-${color}-500`} />
             </div>
-        </div>
-    );
+        );
+    };
 
     const VendorApplicationCard = ({ application }) => (
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
+        <div className="rounded-lg shadow p-6 mb-4" style={{ backgroundColor: colors.home.white }}>
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h3 className="text-lg font-semibold">{application.storeName}</h3>
-                    <div className="text-sm text-gray-600 mb-1">
-                        <strong>Applied by:</strong> {application.ownerId?.name || 'Unknown User'}
+                    <h3 className="text-lg font-semibold" style={{ color: colors.home.text }}>{application.storeName}</h3>
+                    <div className="text-sm mb-1" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>Applied by:</strong> {application.ownerId?.name || 'Unknown User'}
                     </div>
-                    <p className="text-gray-600 text-sm">
-                        <strong>User Email:</strong> {application.ownerId?.email || 'No email'}
+                    <p className="text-sm" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>User Email:</strong> {application.ownerId?.email || 'No email'}
                     </p>
-                    <p className="text-sm text-gray-500">
-                        <strong>Store Phone:</strong> {application.phone}
+                    <p className="text-sm" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>Store Phone:</strong> {application.phone}
                     </p>
                 </div>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                <span className="px-3 py-1 rounded-full text-sm" style={{ backgroundColor: isDark ? '#3D2E1A' : '#FEF3C7', color: isDark ? '#FBBF24' : '#D97706' }}>
                     Pending
                 </span>
             </div>
             
             <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">{application.description}</p>
-                <p className="text-sm text-gray-500">
-                    <strong>Address:</strong> {application.address}
+                <p className="text-sm mb-2" style={{ color: colors.home.muted }}>{application.description}</p>
+                <p className="text-sm" style={{ color: colors.home.muted }}>
+                    <strong style={{ color: colors.home.text }}>Address:</strong> {application.address}
                 </p>
-                <p className="text-sm text-gray-500">
-                    <strong>University:</strong> {application.universityNear}
+                <p className="text-sm" style={{ color: colors.home.muted }}>
+                    <strong style={{ color: colors.home.text }}>University:</strong> {application.universityNear}
                 </p>
             </div>
 
             {application.legalDocuments && application.legalDocuments.length > 0 && (
                 <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Legal Documents:</p>
+                    <p className="text-sm font-medium mb-2" style={{ color: colors.home.text }}>Legal Documents:</p>
                     <div className="flex flex-wrap gap-2">
                         {application.legalDocuments.map((doc, index) => {
                             console.log(`Document ${index}:`, doc);
                             console.log(`Document ${index} fileId:`, doc.fileId);
                             console.log(`Document ${index} keys:`, Object.keys(doc));
                             
-                            // Use fileId if available, otherwise create a fallback based on index
                             let fileToUse = doc.fileId;
                             
                             if (!fileToUse && doc.originalName) {
-                                // Try to match by original name pattern (this is a fallback)
                                 const knownFiles = [
                                     'documents-1776240984356-756931328.pdf',
                                     'documents-1777042421325-287313303.pdf', 
@@ -275,7 +292,8 @@ const AdminDashboard = () => {
                                         href={fileToUse ? `/api/vendors/files/${fileToUse}` : '#'}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs hover:bg-blue-200 transition-colors"
+                                        className="inline-flex items-center px-3 py-1 rounded text-xs transition-colors"
+                                        style={{ backgroundColor: isDark ? '#1E3A5F' : '#EFF6FF', color: '#3B82F6' }}
                                         onClick={!fileToUse ? (e) => {
                                             e.preventDefault();
                                             alert(`Document missing fileId. Document data: ${JSON.stringify(doc, null, 2)}`);
@@ -286,7 +304,7 @@ const AdminDashboard = () => {
                                         {!doc.fileId && <span className="ml-1 text-orange-500">(Fallback)</span>}
                                     </a>
                                     {!doc.fileId && (
-                                        <span className="text-xs text-orange-500">
+                                        <span className="text-xs" style={{ color: '#F97316' }}>
                                             Using fallback file - fileId missing
                                         </span>
                                     )}
@@ -312,7 +330,8 @@ const AdminDashboard = () => {
                 </button>
                 <button
                     onClick={() => handleApproveVendor(application._id)}
-                    className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:bg-green-700 transition-colors"
+                    style={{ backgroundColor: '#10B981', color: '#FFFFFF' }}
                 >
                     <CheckSquare className="w-4 h-4" />
                     Approve
@@ -322,7 +341,8 @@ const AdminDashboard = () => {
                         setSelectedVendor(application);
                         setShowRejectModal(true);
                     }}
-                    className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                    style={{ backgroundColor: '#EF4444', color: '#FFFFFF' }}
                 >
                     <XCircle className="w-4 h-4" />
                     Reject
@@ -330,7 +350,7 @@ const AdminDashboard = () => {
                 <button
                     onClick={() => viewVendorDetails(application)}
                     className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
-                    style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
+                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
@@ -340,34 +360,34 @@ const AdminDashboard = () => {
     );
 
     const VendorCard = ({ vendor }) => (
-        <div className="bg-white rounded-lg shadow p-6 mb-4">
+        <div className="rounded-lg shadow p-6 mb-4" style={{ backgroundColor: colors.home.white }}>
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h3 className="text-lg font-semibold">{vendor.storeName}</h3>
-                    <div className="text-sm text-gray-600 mb-1">
-                        <strong>Owner:</strong> {vendor.ownerId?.name || 'Unknown User'}
+                    <h3 className="text-lg font-semibold" style={{ color: colors.home.text }}>{vendor.storeName}</h3>
+                    <div className="text-sm mb-1" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>Owner:</strong> {vendor.ownerId?.name || 'Unknown User'}
                     </div>
-                    <p className="text-gray-600 text-sm">
-                        <strong>User Email:</strong> {vendor.ownerId?.email || 'No email'}
+                    <p className="text-sm" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>User Email:</strong> {vendor.ownerId?.email || 'No email'}
                     </p>
-                    <p className="text-sm text-gray-500">
-                        <strong>Store Phone:</strong> {vendor.phone}
+                    <p className="text-sm" style={{ color: colors.home.muted }}>
+                        <strong style={{ color: colors.home.text }}>Store Phone:</strong> {vendor.phone}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className={`px-3 py-1 rounded-full text-sm ${
                         vendor.status === 'approved' 
-                            ? 'bg-green-100 text-green-800' 
+                            ? (isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
                             : vendor.status === 'rejected'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                            ? (isDark ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800')
+                            : (isDark ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800')
                     }`}>
                         {vendor.status === 'approved' ? 'Approved' : vendor.status === 'rejected' ? 'Rejected' : 'Pending'}
                     </span>
                     <span className={`px-3 py-1 rounded-full text-sm ${
                         vendor.isActive 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-red-100 text-red-800'
+                            ? (isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800')
+                            : (isDark ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800')
                     }`}>
                         {vendor.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -375,12 +395,12 @@ const AdminDashboard = () => {
             </div>
             
             <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-2">{vendor.description}</p>
-                <p className="text-sm text-gray-500">
-                    <strong>Address:</strong> {vendor.address}
+                <p className="text-sm mb-2" style={{ color: colors.home.muted }}>{vendor.description}</p>
+                <p className="text-sm" style={{ color: colors.home.muted }}>
+                    <strong style={{ color: colors.home.text }}>Address:</strong> {vendor.address}
                 </p>
-                <p className="text-sm text-gray-500">
-                    <strong>University:</strong> {vendor.universityNear}
+                <p className="text-sm" style={{ color: colors.home.muted }}>
+                    <strong style={{ color: colors.home.text }}>University:</strong> {vendor.universityNear}
                 </p>
             </div>
 
@@ -388,18 +408,22 @@ const AdminDashboard = () => {
                 <button
                     onClick={() => viewVendorDetails(vendor)}
                     className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
-                    style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
+                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
                 </button>
                 <button
                     onClick={() => handleToggleVendorStatus(vendor._id, !vendor.isActive)}
-                    className={`flex items-center gap-1 px-4 py-2 rounded ${
+                    className={`flex items-center gap-1 px-4 py-2 rounded transition-colors ${
                         vendor.isActive 
-                            ? 'bg-red-600 text-white hover:bg-red-700' 
-                            : 'bg-green-600 text-white hover:bg-green-700'
+                            ? 'hover:bg-red-700' 
+                            : 'hover:bg-green-700'
                     }`}
+                    style={{
+                        backgroundColor: vendor.isActive ? '#EF4444' : '#10B981',
+                        color: '#FFFFFF'
+                    }}
                 >
                     {vendor.isActive ? (
                         <>
@@ -415,7 +439,8 @@ const AdminDashboard = () => {
                 </button>
                 <button
                     onClick={() => openDeleteModal(vendor)}
-                    className="flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                    style={{ backgroundColor: '#EF4444', color: '#FFFFFF' }}
                 >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -425,22 +450,29 @@ const AdminDashboard = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen" style={{ 
+            backgroundColor: colors.home.cream,
+            fontFamily: "'DM Sans', 'Segoe UI', sans-serif"
+        }}>
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
+                <h1 className="text-3xl font-bold mb-8" style={{ color: colors.home.text }}>Admin Dashboard</h1>
 
                 {/* Error Display */}
                 {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    <div className="border rounded px-4 py-3 mb-6" style={{ 
+                        backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2', 
+                        borderColor: isDark ? '#991B1B' : '#FCA5A5', 
+                        color: isDark ? '#FCA5A5' : '#991B1B' 
+                    }}>
                         {error}
-                        <button onClick={resetError} className="ml-4 text-red-500 hover:text-red-700">
+                        <button onClick={resetError} className="ml-4 hover:opacity-70">
                             ×
                         </button>
                     </div>
                 )}
 
                 {/* Tab Navigation */}
-                <div className="flex space-x-1 mb-8 border-b">
+                <div className="flex space-x-1 mb-8 border-b" style={{ borderBottomColor: colors.home.border }}>
                     {['overview', 'applications', 'vendors'].map((tab) => (
                         <button
                             key={tab}
@@ -448,9 +480,12 @@ const AdminDashboard = () => {
                             className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                                 activeTab === tab
                                     ? ''
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    : 'border-transparent hover:opacity-70'
                             }`}
-                            style={activeTab === tab ? { borderColor: theme.secondary, color: theme.secondary } : { borderColor: 'transparent' }}
+                            style={{
+                                borderBottomColor: activeTab === tab ? theme.secondary : 'transparent',
+                                color: activeTab === tab ? theme.secondary : colors.home.muted
+                            }}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
                         </button>
@@ -460,7 +495,7 @@ const AdminDashboard = () => {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                     <div>
-                        <h2 className="text-xl font-semibold mb-6">System Overview</h2>
+                        <h2 className="text-xl font-semibold mb-6" style={{ color: colors.home.text }}>System Overview</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                             <StatCard
                                 title="Total Users"
@@ -494,16 +529,16 @@ const AdminDashboard = () => {
                 {activeTab === 'applications' && (
                     <div>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-semibold">Vendor Applications</h2>
-                            <span className="text-sm text-gray-500">
+                            <h2 className="text-xl font-semibold" style={{ color: colors.home.text }}>Vendor Applications</h2>
+                            <span className="text-sm" style={{ color: colors.home.muted }}>
                                 {vendorApplications.length} pending applications
                             </span>
                         </div>
                         
                         {loading ? (
-                            <div className="text-center py-8">Loading...</div>
+                            <div className="text-center py-8" style={{ color: colors.home.muted }}>Loading...</div>
                         ) : vendorApplications.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8" style={{ color: colors.home.muted }}>
                                 No pending applications
                             </div>
                         ) : (
@@ -518,16 +553,16 @@ const AdminDashboard = () => {
                 {activeTab === 'vendors' && (
                     <div>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-semibold">All Vendors</h2>
-                            <span className="text-sm text-gray-500">
+                            <h2 className="text-xl font-semibold" style={{ color: colors.home.text }}>All Vendors</h2>
+                            <span className="text-sm" style={{ color: colors.home.muted }}>
                                 {vendors.length} total vendors
                             </span>
                         </div>
                         
                         {loading ? (
-                            <div className="text-center py-8">Loading...</div>
+                            <div className="text-center py-8" style={{ color: colors.home.muted }}>Loading...</div>
                         ) : vendors.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8" style={{ color: colors.home.muted }}>
                                 No vendors found
                             </div>
                         ) : (
@@ -541,23 +576,29 @@ const AdminDashboard = () => {
                 {/* Reject Modal */}
                 {showRejectModal && selectedVendor && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                            <h3 className="text-lg font-semibold mb-4">Reject Vendor Application</h3>
-                            <p className="text-gray-600 mb-4">
-                                Are you sure you want to reject the application for <strong>{selectedVendor.storeName}</strong>?
+                        <div className="rounded-lg p-6 max-w-md w-full mx-4" style={{ backgroundColor: colors.home.white }}>
+                            <h3 className="text-lg font-semibold mb-4" style={{ color: colors.home.text }}>Reject Vendor Application</h3>
+                            <p className="mb-4" style={{ color: colors.home.muted }}>
+                                Are you sure you want to reject the application for <strong style={{ color: colors.home.text }}>{selectedVendor.storeName}</strong>?
                             </p>
                             <textarea
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
                                 placeholder="Please provide a reason for rejection..."
-                                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                style={{ 
+                                    backgroundColor: colors.home.cream, 
+                                    borderColor: colors.home.border, 
+                                    color: colors.home.text 
+                                }}
                                 rows="4"
                             />
                             <div className="flex gap-3 mt-4">
                                 <button
                                     onClick={handleRejectVendor}
                                     disabled={!rejectReason.trim()}
-                                    className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50"
+                                    className="flex-1 py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                                    style={{ backgroundColor: '#EF4444', color: '#FFFFFF' }}
                                 >
                                     Reject
                                 </button>
@@ -567,7 +608,8 @@ const AdminDashboard = () => {
                                         setRejectReason('');
                                         setSelectedVendor(null);
                                     }}
-                                    className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                                    className="flex-1 py-2 px-4 rounded-md hover:opacity-70 transition-colors"
+                                    style={{ backgroundColor: '#9CA3AF', color: '#FFFFFF' }}
                                 >
                                     Cancel
                                 </button>
@@ -579,46 +621,57 @@ const AdminDashboard = () => {
                 {/* Delete Vendor Modal */}
                 {showDeleteModal && selectedVendor && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                            <h3 className="text-lg font-semibold mb-4 text-red-600">Delete Vendor</h3>
+                        <div className="rounded-lg p-6 max-w-md w-full mx-4" style={{ backgroundColor: colors.home.white }}>
+                            <h3 className="text-lg font-semibold mb-4" style={{ color: '#EF4444' }}>Delete Vendor</h3>
                             
                             <div className="mb-4">
-                                <p className="text-gray-700 mb-2">
+                                <p className="mb-2" style={{ color: colors.home.muted }}>
                                     Are you sure you want to delete this vendor permanently?
                                 </p>
-                                <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
-                                    <p className="text-sm text-red-800">
+                                <div className="border rounded p-3 mb-3" style={{ 
+                                    backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2', 
+                                    borderColor: isDark ? '#991B1B' : '#FCA5A5' 
+                                }}>
+                                    <p className="text-sm" style={{ color: isDark ? '#FCA5A5' : '#991B1B' }}>
                                         <strong>⚠️ This action cannot be undone!</strong>
                                     </p>
-                                    <p className="text-sm text-red-700 mt-1">
+                                    <p className="text-sm mt-1" style={{ color: isDark ? '#FCA5A5' : '#991B1B' }}>
                                         This will permanently delete:
                                     </p>
-                                    <ul className="text-sm text-red-700 mt-1 ml-4 list-disc">
+                                    <ul className="text-sm mt-1 ml-4 list-disc" style={{ color: isDark ? '#FCA5A5' : '#991B1B' }}>
                                         <li>The vendor account</li>
                                         <li>All their products</li>
                                         <li>All product reviews</li>
                                         <li>Reset user role to student</li>
                                     </ul>
                                 </div>
-                                <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                                    <p className="text-sm text-gray-700">
+                                <div className="border rounded p-3" style={{ 
+                                    backgroundColor: colors.home.cream, 
+                                    borderColor: colors.home.border 
+                                }}>
+                                    <p className="text-sm" style={{ color: colors.home.text }}>
                                         <strong>Vendor:</strong> {selectedVendor.storeName}
                                     </p>
-                                    <p className="text-sm text-gray-700">
+                                    <p className="text-sm" style={{ color: colors.home.text }}>
                                         <strong>Owner:</strong> {selectedVendor.ownerId?.name || 'Unknown'}
                                     </p>
                                 </div>
                             </div>
                             
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label className="block text-sm font-medium mb-2" style={{ color: colors.home.text }}>
                                     Type "DELETE" to confirm:
                                 </label>
                                 <input
                                     type="text"
                                     value={deleteConfirmation}
                                     onChange={(e) => setDeleteConfirmation(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    style={{ 
+                                        backgroundColor: colors.home.cream, 
+                                        borderColor: colors.home.border, 
+                                        color: colors.home.text 
+                                    }}
                                     placeholder="Type DELETE"
                                 />
                             </div>
@@ -627,11 +680,15 @@ const AdminDashboard = () => {
                                 <button
                                     onClick={handleDeleteVendor}
                                     disabled={deleteConfirmation !== 'DELETE'}
-                                    className={`flex-1 px-4 py-2 rounded font-medium ${
+                                    className={`flex-1 px-4 py-2 rounded font-medium transition-colors ${
                                         deleteConfirmation === 'DELETE'
-                                            ? 'bg-red-600 text-white hover:bg-red-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            ? 'hover:bg-red-700'
+                                            : 'cursor-not-allowed'
                                     }`}
+                                    style={{
+                                        backgroundColor: deleteConfirmation === 'DELETE' ? '#EF4444' : '#9CA3AF',
+                                        color: '#FFFFFF'
+                                    }}
                                 >
                                     Delete Permanently
                                 </button>
@@ -641,7 +698,8 @@ const AdminDashboard = () => {
                                         setDeleteConfirmation('');
                                         setSelectedVendor(null);
                                     }}
-                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 font-medium"
+                                    className="flex-1 px-4 py-2 rounded font-medium transition-colors hover:opacity-70"
+                                    style={{ backgroundColor: '#9CA3AF', color: '#FFFFFF' }}
                                 >
                                     Cancel
                                 </button>
@@ -652,8 +710,11 @@ const AdminDashboard = () => {
 
                 {/* Vendor Details Modal */}
                 {selectedVendor && !showRejectModal && !showDeleteModal && (
-                    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: `${theme.text.primary}40` }}>
-                        <div className="rounded-lg p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto" style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }}>
+                    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <div className="rounded-lg p-6 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto" style={{ 
+                            backgroundColor: theme.surface, 
+                            border: `1px solid ${theme.border}` 
+                        }}>
                             <div className="flex justify-between items-start mb-6">
                                 <h3 className="text-xl font-semibold" style={{ color: theme.text.primary }}>Vendor Details</h3>
                                 <button
@@ -729,10 +790,10 @@ const AdminDashboard = () => {
                                             <span style={{ color: theme.text.secondary }}>Application Status:</span>
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                                 selectedVendor.status === 'approved' 
-                                                    ? 'bg-green-100 text-green-800' 
+                                                    ? (isDark ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
                                                     : selectedVendor.status === 'rejected'
-                                                    ? 'bg-red-100 text-red-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
+                                                    ? (isDark ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800')
+                                                    : (isDark ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800')
                                             }`}>
                                                 {selectedVendor.status === 'approved' ? 'Approved' : selectedVendor.status === 'rejected' ? 'Rejected' : 'Pending'}
                                             </span>
@@ -741,16 +802,16 @@ const AdminDashboard = () => {
                                             <span style={{ color: theme.text.secondary }}>Active:</span>
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                                 selectedVendor.isActive 
-                                                    ? 'bg-blue-100 text-blue-800' 
-                                                    : 'bg-red-100 text-red-800'
+                                                    ? (isDark ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800')
+                                                    : (isDark ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800')
                                             }`}>
                                                 {selectedVendor.isActive ? 'Active' : 'Inactive'}
                                             </span>
                                         </div>
                                         {selectedVendor.rejectionReason && (
-                                            <div className="p-3 rounded" style={{ backgroundColor: '#FEE2E2' }}>
-                                                <span className="font-medium" style={{ color: '#991B1B' }}>Rejection Reason:</span>
-                                                <p className="mt-1 text-sm" style={{ color: '#991B1B' }}>{selectedVendor.rejectionReason}</p>
+                                            <div className="p-3 rounded" style={{ backgroundColor: isDark ? '#7F1D1D' : '#FEE2E2' }}>
+                                                <span className="font-medium" style={{ color: isDark ? '#FCA5A5' : '#991B1B' }}>Rejection Reason:</span>
+                                                <p className="mt-1 text-sm" style={{ color: isDark ? '#FCA5A5' : '#991B1B' }}>{selectedVendor.rejectionReason}</p>
                                             </div>
                                         )}
                                     </div>
@@ -787,7 +848,7 @@ const AdminDashboard = () => {
                                                             href={`/api/vendors/files/${doc.fileId}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center px-3 py-2 rounded text-sm transition-colors mt-2"
+                                                            className="inline-flex items-center px-3 py-2 rounded text-sm transition-colors mt-2 hover:opacity-80"
                                                             style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}
                                                         >
                                                             <FileText className="w-4 h-4 mr-2" />

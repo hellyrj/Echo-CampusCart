@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useVendorApi } from '../hooks/useVendorApi';
 import { useProductApi } from '../hooks/useProductApi';
 import { useServiceApi } from '../hooks/useServiceApi';
@@ -12,6 +13,7 @@ import VendorProfile from '../components/VendorProfile';
 
 const VendorDashboard = () => {
     const { user, isAuthenticated } = useAuth();
+    const { theme, colors, isDark } = useTheme();
     
     const { getVendorProducts, createProduct, updateProduct, deleteProduct } = useProductApi();
     const { getMyServices, createService, updateService, deleteService } = useServiceApi();
@@ -428,7 +430,7 @@ const VendorDashboard = () => {
                     <Link
     to="/vendor/orders"
     className="text-white px-6 py-2 rounded-md inline-flex items-center"
-    style={{ backgroundColor: '#606C38' }}
+    style={{ backgroundColor: theme.primary }}
 >
     <Package className="w-4 h-4 mr-2" />
     Manage Orders
@@ -455,7 +457,7 @@ const VendorDashboard = () => {
                         <button
                             onClick={() => setShowCreateForm(true)}
                             className="px-6 py-3 rounded-md"
-                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                style={{ backgroundColor: theme.primary, color: '#FEFAE0' }}
                         >
                             Apply to Become a Vendor
                         </button>
@@ -466,9 +468,9 @@ const VendorDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen py-8" style={{ backgroundColor: theme.background }}>
             <div className="px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold mb-8" style={{ color: '#283618' }}>Vendor Dashboard</h1>
+                <h1 className="text-3xl font-bold mb-8" style={{ color: theme.text.primary }}>Vendor Dashboard</h1>
                 
                 {applicationStatus === 'approved' && renderApplicationStatus()}
                 
@@ -510,7 +512,7 @@ const VendorDashboard = () => {
                                             <button
                                                 onClick={() => setShowProductForm(true)}
                                                 className="px-4 py-2 text-white rounded-md"
-                                                style={{ backgroundColor: '#606C38' }}
+                                                style={{ backgroundColor: theme.primary }}
                                             >
                                                 Add New Product
                                             </button>
@@ -522,7 +524,7 @@ const VendorDashboard = () => {
                                                 <button
                                                     onClick={() => setShowProductForm(true)}
                                                     className="mt-4 px-4 py-2 text-white rounded-md"
-                                                    style={{ backgroundColor: '#606C38' }}
+                                                    style={{ backgroundColor: theme.primary }}
                                                 >
                                                     Add Your First Product
                                                 </button>
@@ -585,7 +587,7 @@ const VendorDashboard = () => {
                                             <button
                                                 onClick={() => setShowServiceForm(true)}
                                                 className="px-4 py-2 text-white rounded-md"
-                                                style={{ backgroundColor: '#606C38' }}
+                                                style={{ backgroundColor: theme.primary }}
                                             >
                                                 Add New Service
                                             </button>
@@ -597,7 +599,7 @@ const VendorDashboard = () => {
                                                 <button
                                                     onClick={() => setShowServiceForm(true)}
                                                     className="mt-4 px-4 py-2 text-white rounded-md"
-                                                    style={{ backgroundColor: '#606C38' }}
+                                                    style={{ backgroundColor: theme.primary }}
                                                 >
                                                     Add Your First Service
                                                 </button>
@@ -669,7 +671,7 @@ const VendorDashboard = () => {
                                                 <button
                                                     onClick={() => setShowProductForm(true)}
                                                     className="px-4 py-2 text-white rounded-md"
-                                                    style={{ backgroundColor: '#606C38' }}
+                                                    style={{ backgroundColor: theme.primary }}
                                                 >
                                                     Add Product
                                                 </button>
@@ -678,7 +680,7 @@ const VendorDashboard = () => {
                                                 <button
                                                     onClick={() => setShowServiceForm(true)}
                                                     className="px-4 py-2 text-white rounded-md"
-                                                    style={{ backgroundColor: '#606C38' }}
+                                                    style={{ backgroundColor: theme.primary }}
                                                 >
                                                     Add Service
                                                 </button>
