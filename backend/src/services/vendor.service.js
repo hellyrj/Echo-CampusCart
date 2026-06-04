@@ -67,6 +67,48 @@ export class VendorService {
     return vendor;
   }
 
+  async updateVendor(vendorId, updateData) {
+    console.log('Service: updateVendor called with vendorId:', vendorId);
+    console.log('Service: updateData:', updateData);
+
+    if (!updateData) {
+      throw new ApiError(400, "Update data is required");
+    }
+
+    const vendor = await this.vendorRepo.findById(vendorId);
+
+    if (!vendor) throw new ApiError(404, "Vendor not found");
+
+    // Process location if provided
+    let location = vendor.location; // Keep existing location if not provided
+    if (updateData.location) {
+      try {
+        const parsedLocation = typeof updateData.location === 'string'
+          ? JSON.parse(updateData.location)
+          : updateData.location;
+
+        if (parsedLocation.type === "Point" && Array.isArray(parsedLocation.coordinates)) {
+          location = parsedLocation;
+        }
+      } catch (error) {
+        console.warn('Failed to parse location from update data:', error);
+      }
+    }
+
+    // Prepare update data
+    const dataToUpdate = {
+      ...updateData,
+      location
+    };
+
+    // Remove location from updateData since we've processed it
+    delete dataToUpdate.location;
+
+    console.log('Service: Final data to update:', dataToUpdate);
+
+    return this.vendorRepo.updateById(vendorId, dataToUpdate);
+  }
+
   async getVendorProducts(userId) {
 
   const vendor = await this.vendorRepo.findByOwner(userId);

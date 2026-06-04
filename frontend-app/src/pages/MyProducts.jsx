@@ -120,23 +120,24 @@ const MyProducts = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center items-center min-h-screen" style={{ backgroundColor: '#FEFAE0' }}>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">My Products</h1>
+                    <h1 className="text-3xl font-bold" style={{ color: '#283618' }}>My Products</h1>
                     <button
                         onClick={() => {
                             setEditingProduct(null);
                             setShowCreateForm(true);
                         }}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                        className="px-6 py-2 rounded-md transition-colors"
+                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                     >
                         Add New Product
                     </button>
@@ -191,11 +192,12 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                     )}
                     <div className="p-6">
                         <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
+                            <h3 className="text-xl font-semibold" style={{ color: '#283618' }}>{product.name}</h3>
                             <div className="flex space-x-2">
                                 <button
                                     onClick={() => onEdit(product)}
-                                    className="text-blue-600 hover:text-blue-800"
+                                    className="hover:opacity-70 transition-colors"
+                                    style={{ color: '#606C38' }}
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -215,7 +217,7 @@ const ProductList = ({ products, onEdit, onDelete }) => {
                         <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
                         
                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-2xl font-bold text-blue-600">${product.basePrice}</span>
+                            <span className="text-2xl font-bold" style={{ color: '#606C38' }}>${product.basePrice}</span>
                             {product.inventory?.totalStock > 0 ? (
                                 <span className="text-sm text-green-600 font-medium">In Stock: {product.inventory.totalStock}</span>
                             ) : (

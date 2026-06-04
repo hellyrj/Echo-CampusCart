@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuthApi } from '../hooks/useAuthApi';
+import { useTheme } from '../context/ThemeContext';
 
 import { ShoppingCart, Eye, EyeOff, CheckCircle, Home } from 'lucide-react';
 
@@ -26,8 +27,7 @@ const Register = () => {
 
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    
-
+    const { theme } = useTheme();
     const { register, loading, error, resetError } = useAuthApi();
 
     const navigate = useNavigate();
@@ -134,11 +134,11 @@ const Register = () => {
 
     return (
 
-        <div className="min-h-screen flex" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen flex" style={{ backgroundColor: theme.background }}>
 
             {/* Left Side - Hero Section */}
 
-            <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #283618 0%, #606C38 100%)' }}>
+            <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` }}>
 
                 <div className="absolute inset-0 bg-black opacity-10"></div>
 
@@ -146,19 +146,19 @@ const Register = () => {
 
                     <div className="text-center">
 
-                        <div className="p-3 rounded-full mb-4 inline-block" style={{ backgroundColor: '#DDA15E40' }}>
+                        <div className="p-3 rounded-full mb-4 inline-block" style={{ backgroundColor: `${theme.accent}40` }}>
 
-                            <ShoppingCart className="w-12 h-12" style={{ color: '#DDA15E' }} />
+                            <ShoppingCart className="w-12 h-12" style={{ color: theme.accent }} />
 
                         </div>
 
-                        <h1 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: '#FEFAE0' }}>
+                        <h1 className="text-3xl md:text-4xl font-bold mb-3" style={{ color: theme.text.inverse }}>
 
                             Join CampusCart
 
                         </h1>
 
-                        <p className="text-lg mb-6" style={{ color: '#FEFAE0', opacity: 0.9 }}>
+                        <p className="text-lg mb-6" style={{ color: theme.text.inverse, opacity: 0.9 }}>
 
                             Create your account and start shopping
 
@@ -168,33 +168,33 @@ const Register = () => {
 
                     <div className="space-y-3 text-left max-w-sm">
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: '#DDA15E' }} />
+                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: theme.accent }} />
 
                             <span>Free account creation</span>
 
                         </div>
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: '#DDA15E' }} />
+                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: theme.accent }} />
 
                             <span>Access to exclusive deals</span>
 
                         </div>
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: '#DDA15E' }} />
+                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: theme.accent }} />
 
                             <span>Track your orders</span>
 
                         </div>
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: '#DDA15E' }} />
+                            <CheckCircle className="w-5 h-5 mr-3" style={{ color: theme.accent }} />
 
                             <span>Save favorite items</span>
 
@@ -206,8 +206,8 @@ const Register = () => {
                     <div className="mt-8">
                         <Link
                             to="/"
-                            className="inline-flex items-center text-white px-6 py-3 rounded-lg font-semibold transition-colors hover:scale-105"
-                            style={{ backgroundColor: '#606C38' }}
+                            className="inline-flex items-center px-6 py-3 rounded-lg font-semibold transition-colors hover:scale-105"
+                            style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                         >
                             <Home className="w-5 h-5 mr-2" />
                             Go to Home
@@ -228,15 +228,15 @@ const Register = () => {
 
                     <div className="lg:hidden text-center mb-8">
 
-                        <div className="p-3 rounded-full inline-block mb-4" style={{ backgroundColor: '#DDA15E40' }}>
+                        <div className="p-3 rounded-full inline-block mb-4" style={{ backgroundColor: `${theme.accent}40` }}>
 
-                            <ShoppingCart className="w-12 h-12" style={{ color: '#DDA15E' }} />
+                            <ShoppingCart className="w-12 h-12" style={{ color: theme.accent }} />
 
                         </div>
 
-                        <h1 className="text-3xl font-bold mb-2" style={{ color: '#283618' }}>Join CampusCart</h1>
+                        <h1 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>Join CampusCart</h1>
 
-                        <p style={{ color: '#606C38' }}>Create your account to get started</p>
+                        <p style={{ color: theme.text.secondary }}>Create your account to get started</p>
 
                     </div>
 
@@ -244,13 +244,13 @@ const Register = () => {
 
                     {/* Register Form */}
 
-                    <div className="bg-white rounded-2xl shadow-xl p-10">
+                    <div className="rounded-2xl shadow-xl p-10" style={{ backgroundColor: theme.surface }}>
 
                         <div className="text-center mb-8">
 
-                            <h2 className="text-2xl font-bold mb-2" style={{ color: '#283618' }}>Sign Up</h2>
+                            <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>Sign Up</h2>
 
-                            <p style={{ color: '#606C38' }}>Join thousands of students shopping on campus</p>
+                            <p style={{ color: theme.text.secondary }}>Join thousands of students shopping on campus</p>
 
                         </div>
 
@@ -258,7 +258,7 @@ const Register = () => {
 
                         {error && (
 
-                            <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                            <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: theme.error + '10', color: theme.error, border: `1px solid ${theme.error}40` }}>
 
                                 {error}
 
@@ -272,7 +272,7 @@ const Register = () => {
 
                             <div>
 
-                                <label htmlFor="name" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="name" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Full Name
 
@@ -296,7 +296,7 @@ const Register = () => {
 
                                     className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                    style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                 />
 
@@ -308,7 +308,7 @@ const Register = () => {
 
                             <div>
 
-                                <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Email Address
 
@@ -332,7 +332,7 @@ const Register = () => {
 
                                     className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                    style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                 />
 
@@ -344,7 +344,7 @@ const Register = () => {
 
                             <div>
 
-                                <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Password
 
@@ -370,7 +370,7 @@ const Register = () => {
 
                                         className="w-full px-4 py-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                        style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                     />
 
@@ -380,7 +380,8 @@ const Register = () => {
 
                                         onClick={() => setShowPassword(!showPassword)}
 
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:opacity-70 transition-opacity"
+                                        style={{ color: theme.text.muted }}
 
                                     >
 
@@ -432,7 +433,7 @@ const Register = () => {
 
                             <div>
 
-                                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Confirm Password
 
@@ -458,7 +459,7 @@ const Register = () => {
 
                                         className="w-full px-4 py-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                        style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                     />
 
@@ -468,7 +469,8 @@ const Register = () => {
 
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:opacity-70 transition-opacity"
+                                        style={{ color: theme.text.muted }}
 
                                     >
 
@@ -480,13 +482,13 @@ const Register = () => {
 
                                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (
 
-                                    <p className="mt-1 text-xs" style={{ color: '#dc2626' }}>Passwords do not match</p>
+                                    <p className="mt-1 text-xs" style={{ color: theme.error }}>Passwords do not match</p>
 
                                 )}
 
                                 {formData.confirmPassword && formData.password === formData.confirmPassword && (
 
-                                    <p className="mt-1 text-xs flex items-center" style={{ color: '#22c55e' }}>
+                                    <p className="mt-1 text-xs flex items-center" style={{ color: theme.success }}>
 
                                         <CheckCircle className="w-3 h-3 mr-1" />
 
@@ -510,7 +512,7 @@ const Register = () => {
 
                                 className="w-full py-4 px-4 rounded-lg font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
 
-                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
 
                             >
 
@@ -544,7 +546,7 @@ const Register = () => {
 
                         <div className="mt-8 text-center">
 
-                            <p style={{ color: '#606C38' }}>
+                            <p style={{ color: theme.text.secondary }}>
 
                                 Already have an account?{' '}
 
@@ -554,7 +556,7 @@ const Register = () => {
 
                                     className="font-medium hover:underline transition-colors"
 
-                                    style={{ color: '#283618' }}
+                                    style={{ color: theme.text.primary }}
 
                                 >
 

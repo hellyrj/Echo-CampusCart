@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdminApi } from '../hooks/useAdminApi';
+import { useTheme } from '../context/ThemeContext';
 import { 
     Users, 
     Store, 
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
+    const { theme } = useTheme();
     const [activeTab, setActiveTab] = useState('overview');
     
     // Debug: Check if user is logged in and has admin role
@@ -301,7 +303,8 @@ const AdminDashboard = () => {
                         console.log('Application ID:', application._id);
                         console.log('Application data:', application);
                     }}
-                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 mr-2 transition-colors"
+                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                 >
                     <AlertCircle className="w-4 h-4" />
                     Test
@@ -325,7 +328,8 @@ const AdminDashboard = () => {
                 </button>
                 <button
                     onClick={() => viewVendorDetails(application)}
-                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
@@ -382,7 +386,8 @@ const AdminDashboard = () => {
             <div className="flex gap-2">
                 <button
                     onClick={() => viewVendorDetails(vendor)}
-                    className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
@@ -441,9 +446,10 @@ const AdminDashboard = () => {
                             onClick={() => setActiveTab(tab)}
                             className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                                 activeTab === tab
-                                    ? 'border-blue-500 text-blue-600'
+                                    ? ''
                                     : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
+                            style={activeTab === tab ? { borderColor: theme.secondary, color: theme.secondary } : { borderColor: 'transparent' }}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
                         </button>

@@ -1,12 +1,15 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { Heart, ShoppingCart, Package, User, Store, Shield, Plus, LogOut } from 'lucide-react';
 import Notifications from './Notifications.jsx';
+import ThemeToggle from './ThemeToggle.jsx';
 
 const Navbar = () => {
     const { user, isAuthenticated, logout } = useAuth();
+    const { theme } = useTheme();
     const { wishlistCount } = useWishlist();
     const { totalQuantity } = useCart();
     const navigate = useNavigate();
@@ -23,7 +26,7 @@ const Navbar = () => {
     const isAdmin = isAuthenticated && user?.role === 'admin';
 
     return (
-        <nav style={{ backgroundColor: '#FEFAE0', borderBottom: '1px solid #E5E5E5' }}>
+        <nav style={{ backgroundColor: theme.surface, borderBottom: `1px solid ${theme.border}` }}>
             <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     
@@ -32,10 +35,10 @@ const Navbar = () => {
                         {/* Logo */}
                         <Link 
                             to="/" 
-                            className="flex items-center space-x-2 text-xl font-bold transition-opacity hover:opacity-80 shrink-0"
-                            style={{ color: '#283618' }}
+                            className="flex items-center space-x-2 text-2xl font-bold  transition-opacity hover:opacity-50 shrink-0"
+                            style={{ color: theme.text.primary }}
                         >
-                            <ShoppingCart className="w-6 h-6" style={{ color: '#606C38' }} />
+                            <ShoppingCart className="w-6 h-6" style={{ color: theme.text.secondary }} />
                             <span>CampusCart</span>
                         </Link>
 
@@ -45,7 +48,7 @@ const Navbar = () => {
                             <NavLink to="/products" label="Products" isActive={location.pathname === '/products'} />
                             
                             {/* Divider */}
-                            <div className="mx-1 h-6 w-px bg-gray-300" />
+                            <div className="mx-1 h-6 w-px" style={{ backgroundColor: theme.border }} />
                             
                             {/* Student-only items */}
                             {isStudent && (
@@ -79,6 +82,9 @@ const Navbar = () => {
 
                     {/* RIGHT SECTION - Pushed to far right corner */}
                     <div className="flex items-center gap-2">
+                        {/* Theme Toggle */}
+                        <ThemeToggle />
+                        
                         {isAuthenticated ? (
                             <>
                                 {/* Cart and Wishlist */}
@@ -101,10 +107,10 @@ const Navbar = () => {
                                 
                                 {/* User greeting */}
                                 <div className="hidden lg:flex items-center gap-2">
-                                    <span className="text-sm" style={{ color: '#283618' }}>
+                                    <span className="text-sm" style={{ color: theme.text.primary }}>
                                         Hi,
                                     </span>
-                                    <span className="text-sm font-medium" style={{ color: '#606C38' }}>
+                                    <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>
                                         {user?.name?.split(' ')[0]}
                                     </span>
                                 </div>
@@ -113,14 +119,14 @@ const Navbar = () => {
                                 <button
                                     onClick={handleLogout}
                                     className="p-2 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center"
-                                    style={{ backgroundColor: '#DDA15E', color: '#FEFAE0', width: '38px', height: '38px' }}
+                                    style={{ backgroundColor: theme.accent, color: theme.text.inverse, width: '38px', height: '38px' }}
                                     title="Logout"
                                 >
                                     <LogOut size={18} />
                                 </button>
                                 
                                 {/* Mobile Menu Button */}
-                                <button className="md:hidden p-2 rounded-lg" style={{ color: '#283618' }}>
+                                <button className="md:hidden p-2 rounded-lg" style={{ color: theme.text.primary }}>
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                     </svg>
@@ -132,14 +138,14 @@ const Navbar = () => {
                                 <Link
                                     to="/login"
                                     className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
-                                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                                 >
                                     Login
                                 </Link>
                                 <Link
                                     to="/register"
                                     className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
-                                    style={{ backgroundColor: '#DDA15E', color: '#FEFAE0' }}
+                                    style={{ backgroundColor: theme.accent, color: theme.text.inverse }}
                                 >
                                     Register
                                 </Link>
@@ -155,17 +161,18 @@ const Navbar = () => {
 
 // Text Navigation Link Component
 const NavLink = ({ to, label, isActive = false }) => {
+    const { theme } = useTheme();
     return (
         <Link
             to={to}
             className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
             style={{ 
-                color: isActive ? '#ffffff' : '#283618',
-                backgroundColor: isActive ? '#606C38' : 'transparent'
+                color: isActive ? theme.text.inverse : theme.text.primary,
+                backgroundColor: isActive ? theme.secondary : 'transparent'
             }}
             onMouseEnter={(e) => {
                 if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#DDA15E20';
+                    e.currentTarget.style.backgroundColor = `${theme.accent}20`;
                 }
             }}
             onMouseLeave={(e) => {
@@ -181,20 +188,21 @@ const NavLink = ({ to, label, isActive = false }) => {
 
 // Icon Navigation Component
 const NavIcon = ({ to, icon, badge, title = '', isActive = false }) => {
+    const { theme } = useTheme();
     return (
         <Link
             to={to}
             className="relative p-2 rounded-lg transition-all duration-200 hover:scale-105 flex items-center justify-center"
             style={{ 
-                color: isActive ? '#ffffff' : '#283618',
-                backgroundColor: isActive ? '#606C38' : 'transparent',
+                color: isActive ? theme.text.inverse : theme.text.primary,
+                backgroundColor: isActive ? theme.secondary : 'transparent',
                 width: '38px',
                 height: '38px'
             }}
             title={title}
             onMouseEnter={(e) => {
                 if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#DDA15E20';
+                    e.currentTarget.style.backgroundColor = `${theme.accent}20`;
                 }
             }}
             onMouseLeave={(e) => {
@@ -208,7 +216,7 @@ const NavIcon = ({ to, icon, badge, title = '', isActive = false }) => {
                 <span 
                     className="absolute -top-1 -right-1 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center font-bold shadow-sm"
                     style={{ 
-                        backgroundColor: '#DDA15E', 
+                        backgroundColor: theme.accent, 
                         fontSize: '10px',
                         lineHeight: '1'
                     }}

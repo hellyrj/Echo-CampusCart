@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import { useAuthApi } from '../hooks/useAuthApi';
+import { useTheme } from '../context/ThemeContext';
 
 import { ShoppingCart, Eye, EyeOff, Home } from 'lucide-react';
 
@@ -20,8 +21,7 @@ const Login = () => {
 
     const [showPassword, setShowPassword] = useState(false);
 
-    
-
+    const { theme } = useTheme();
     const { login, loading, error, resetError } = useAuthApi();
 
     const navigate = useNavigate();
@@ -86,11 +86,11 @@ const Login = () => {
 
     return (
 
-        <div className="min-h-screen flex" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen flex" style={{ backgroundColor: theme.background }}>
 
             {/* Left Side - Hero Section */}
 
-            <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #283618 0%, #606C38 100%)' }}>
+            <div className="hidden lg:flex lg:w-1/3 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)` }}>
 
                 <div className="absolute inset-0 bg-black opacity-10"></div>
 
@@ -98,19 +98,19 @@ const Login = () => {
 
                     <div className="text-center">
 
-                        <div className="p-4 rounded-full mb-6 inline-block" style={{ backgroundColor: '#DDA15E40' }}>
+                        <div className="p-4 rounded-full mb-6 inline-block" style={{ backgroundColor: `${theme.accent}40` }}>
 
-                            <ShoppingCart className="w-16 h-16" style={{ color: '#DDA15E' }} />
+                            <ShoppingCart className="w-16 h-16" style={{ color: theme.accent }} />
 
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#FEFAE0' }}>
+                        <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: theme.text.inverse }}>
 
                             Welcome Back
 
                         </h1>
 
-                        <p className="text-xl mb-8" style={{ color: '#FEFAE0', opacity: 0.9 }}>
+                        <p className="text-xl mb-8" style={{ color: theme.text.inverse, opacity: 0.9 }}>
 
                             Sign in to access your campus marketplace
 
@@ -120,25 +120,25 @@ const Login = () => {
 
                     <div className="space-y-4 text-left max-w-md">
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: '#DDA15E' }}></div>
+                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: theme.accent }}></div>
 
                             <span>Browse thousands of products</span>
 
                         </div>
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: '#DDA15E' }}></div>
+                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: theme.accent }}></div>
 
                             <span>Connect with local vendors</span>
 
                         </div>
 
-                        <div className="flex items-center" style={{ color: '#FEFAE0', opacity: 0.8 }}>
+                        <div className="flex items-center" style={{ color: theme.text.inverse, opacity: 0.8 }}>
 
-                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: '#DDA15E' }}></div>
+                            <div className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: theme.accent }}></div>
 
                             <span>Fast campus delivery</span>
 
@@ -150,8 +150,8 @@ const Login = () => {
                     <div className="mt-8">
                         <Link
                             to="/"
-                            className="inline-flex items-center text-white px-6 py-3 rounded-lg font-semibold transition-colors hover:scale-105"
-                            style={{ backgroundColor: '#606C38' }}
+                            className="inline-flex items-center px-6 py-3 rounded-lg font-semibold transition-colors hover:scale-105"
+                            style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                         >
                             <Home className="w-5 h-5 mr-2" />
                             Go to Home
@@ -174,15 +174,15 @@ const Login = () => {
 
                     <div className="lg:hidden text-center mb-8">
 
-                        <div className="p-3 rounded-full inline-block mb-4" style={{ backgroundColor: '#DDA15E40' }}>
+                        <div className="p-3 rounded-full inline-block mb-4" style={{ backgroundColor: `${theme.accent}40` }}>
 
-                            <ShoppingCart className="w-12 h-12" style={{ color: '#DDA15E' }} />
+                            <ShoppingCart className="w-12 h-12" style={{ color: theme.accent }} />
 
                         </div>
 
-                        <h1 className="text-3xl font-bold mb-2" style={{ color: '#283618' }}>Welcome Back</h1>
+                        <h1 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>Welcome Back</h1>
 
-                        <p style={{ color: '#606C38' }}>Sign in to your account</p>
+                        <p style={{ color: theme.text.secondary }}>Sign in to your account</p>
 
                     </div>
 
@@ -190,13 +190,13 @@ const Login = () => {
 
                     {/* Login Form */}
 
-                    <div className="bg-white rounded-2xl shadow-xl p-10">
+                    <div className="rounded-2xl shadow-xl p-10" style={{ backgroundColor: theme.surface }}>
 
                         <div className="text-center mb-8">
 
-                            <h2 className="text-2xl font-bold mb-2" style={{ color: '#283618' }}>Sign In</h2>
+                            <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>Sign In</h2>
 
-                            <p style={{ color: '#606C38' }}>Enter your credentials to access your account</p>
+                            <p style={{ color: theme.text.secondary }}>Enter your credentials to access your account</p>
 
                         </div>
 
@@ -204,7 +204,7 @@ const Login = () => {
 
                         {error && (
 
-                            <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                            <div className="mb-6 p-4 rounded-lg text-sm" style={{ backgroundColor: theme.error + '10', color: theme.error, border: `1px solid ${theme.error}40` }}>
 
                                 {error}
 
@@ -218,7 +218,7 @@ const Login = () => {
 
                             <div>
 
-                                <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Email Address
 
@@ -242,7 +242,7 @@ const Login = () => {
 
                                     className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                    style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                 />
 
@@ -254,7 +254,7 @@ const Login = () => {
 
                             <div>
 
-                                <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: '#283618' }}>
+                                <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
 
                                     Password
 
@@ -280,7 +280,7 @@ const Login = () => {
 
                                         className="w-full px-4 py-4 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
 
-                                        style={{ borderColor: '#e5e7eb', focusRingColor: '#606C38' }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
 
                                     />
 
@@ -290,7 +290,8 @@ const Login = () => {
 
                                         onClick={() => setShowPassword(!showPassword)}
 
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:opacity-70 transition-opacity"
+                                        style={{ color: theme.text.muted }}
 
                                     >
 
@@ -314,7 +315,7 @@ const Login = () => {
 
                                 className="w-full py-4 px-4 rounded-lg font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
 
-                                style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                                style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
 
                             >
 
@@ -348,7 +349,7 @@ const Login = () => {
 
                         <div className="mt-8 text-center">
 
-                            <p style={{ color: '#606C38' }}>
+                            <p style={{ color: theme.text.secondary }}>
 
                                 Don't have an account?{' '}
 
@@ -358,7 +359,7 @@ const Login = () => {
 
                                     className="font-medium hover:underline transition-colors"
 
-                                    style={{ color: '#283618' }}
+                                    style={{ color: theme.text.primary }}
 
                                 >
 

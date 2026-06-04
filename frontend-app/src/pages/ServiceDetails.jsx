@@ -103,20 +103,21 @@ const ServiceDetails = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: '#606C38' }}></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center">
                     <div className="text-red-600 text-lg mb-4">Error: {error}</div>
                     <button 
                         onClick={loadService}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+                        className="px-6 py-2 rounded-md transition-colors"
+                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                     >
                         Try Again
                     </button>
@@ -127,12 +128,13 @@ const ServiceDetails = () => {
 
     if (!service) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FEFAE0' }}>
                 <div className="text-center">
                     <div className="text-gray-600 text-lg mb-4">Service not found</div>
                     <Link 
                         to="/products"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 inline-block"
+                        className="px-6 py-2 rounded-md transition-colors inline-block"
+                        style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                     >
                         Back to Services
                     </Link>
@@ -142,12 +144,13 @@ const ServiceDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-6 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    className="mb-6 flex items-center hover:opacity-70 transition-colors"
+                    style={{ color: '#283618' }}
                 >
                     <ChevronLeft className="w-5 h-5 mr-2" />
                     Back to Services
@@ -171,8 +174,8 @@ const ServiceDetails = () => {
                                             }}
                                         />
                                     ) : (
-                                        <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-blue-200">
-                                            <Wrench className="w-24 h-24 text-blue-600" />
+                                        <div className="flex items-center justify-center h-full" style={{ background: 'linear-gradient(to bottom right, #606C3810, #606C3820)' }}>
+                                            <Wrench className="w-24 h-24" style={{ color: '#606C38' }} />
                                         </div>
                                     )}
                                 </div>
@@ -251,11 +254,11 @@ const ServiceDetails = () => {
                         <div className="p-6">
                             <div className="mb-6">
                                 {/* Service Title */}
-                                <h1 className="text-3xl font-bold text-gray-900 mb-4">{service.title}</h1>
+                                <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>{service.title}</h1>
                                 
                                 {/* Price and Rating */}
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="text-3xl font-bold text-blue-600">
+                                    <div className="text-3xl font-bold" style={{ color: '#606C38' }}>
                                         {formatPrice(service)}
                                     </div>
                                     {service.averageRating > 0 && (
@@ -270,20 +273,20 @@ const ServiceDetails = () => {
 
                                 {/* Service Category and Type */}
                                 <div className="flex flex-wrap gap-2 mb-4">
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
                                         {service.serviceCategory?.charAt(0).toUpperCase() + service.serviceCategory?.slice(1).replace('_', ' ') || 'General'}
                                     </span>
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
                                         {formatLocation(service)}
                                     </span>
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                         {service.pricingModel === 'hourly' ? 'Hourly' : service.pricingModel === 'fixed' ? 'Fixed Price' : service.pricingModel === 'package' ? 'Package' : 'Custom Quote'}
                                     </span>
                                 </div>
 
                                 {/* Description */}
                                 <div className="mb-6">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">About This Service</h3>
+                                    <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>About This Service</h3>
                                     <p className="text-gray-600 leading-relaxed">
                                         {service.description || 'No description available'}
                                     </p>
@@ -291,18 +294,18 @@ const ServiceDetails = () => {
 
                                 {/* Service Details */}
                                 <div className="mb-6 space-y-4">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Service Details</h3>
+                                    <h3 className="text-lg font-semibold mb-3" style={{ color: '#283618' }}>Service Details</h3>
                                     
                                     {service.estimatedDuration && (
                                         <div className="flex items-center text-gray-600">
-                                            <Clock className="w-5 h-5 mr-3 text-blue-600" />
+                                            <Clock className="w-5 h-5 mr-3" style={{ color: '#606C38' }} />
                                             <span>Estimated duration: {service.estimatedDuration} hour{service.estimatedDuration > 1 ? 's' : ''}</span>
                                         </div>
                                     )}
 
                                     {service.minimumHours && service.pricingModel === 'hourly' && (
                                         <div className="flex items-center text-gray-600">
-                                            <Clock className="w-5 h-5 mr-3 text-blue-600" />
+                                            <Clock className="w-5 h-5 mr-3" style={{ color: '#606C38' }} />
                                             <span>Minimum booking: {service.minimumHours} hour{service.minimumHours > 1 ? 's' : ''}</span>
                                         </div>
                                     )}
@@ -316,7 +319,7 @@ const ServiceDetails = () => {
 
                                     {service.canTravel && (
                                         <div className="flex items-center text-gray-600">
-                                            <MapPin className="w-5 h-5 mr-3 text-blue-600" />
+                                            <MapPin className="w-5 h-5 mr-3" style={{ color: '#606C38' }} />
                                             <span>Travel available within {service.travelRadius}m</span>
                                             {service.travelFee > 0 && <span className="ml-2">(Additional {service.travelFee} ETB fee)</span>}
                                         </div>
@@ -324,7 +327,7 @@ const ServiceDetails = () => {
 
                                     {service.completedCount > 0 && (
                                         <div className="flex items-center text-gray-600">
-                                            <Users className="w-5 h-5 mr-3 text-blue-600" />
+                                            <Users className="w-5 h-5 mr-3" style={{ color: '#606C38' }} />
                                             <span>Successfully completed {service.completedCount} times</span>
                                         </div>
                                     )}
@@ -332,19 +335,20 @@ const ServiceDetails = () => {
 
                                 {/* Vendor Information */}
                                 {service.vendorId && (
-                                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Service Provider</h3>
+                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#E8F5E8', borderColor: '#E8F5E8' }}>
+                                        <h3 className="text-lg font-semibold mb-3" style={{ color: '#283618' }}>Service Provider</h3>
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 {service.vendorId._id ? (
                                                     <Link 
                                                         to={`/vendor/${service.vendorId._id}`}
-                                                        className="text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                                                        className="font-medium hover:opacity-70"
+                                                        style={{ color: '#283618' }}
                                                     >
                                                         {service.vendorId.storeName || 'Unknown Vendor'}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-blue-600 font-medium">
+                                                    <span className="font-medium" style={{ color: '#283618' }}>
                                                         {service.vendorId.storeName || 'Unknown Vendor'}
                                                     </span>
                                                 )}
@@ -356,12 +360,12 @@ const ServiceDetails = () => {
                                                 )}
                                                 <div className="flex gap-2 mt-2">
                                                     {service.vendorId.deliveryAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#28361820', color: '#283618' }}>
                                                             Delivery Available
                                                         </span>
                                                     )}
                                                     {service.vendorId.pickupAvailable && (
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
                                                             Pickup Available
                                                         </span>
                                                     )}
@@ -373,29 +377,29 @@ const ServiceDetails = () => {
 
                                 {/* Customer Requirements */}
                                 {service.customerRequirements && (
-                                    <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">What You Need to Provide</h3>
+                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#FEFAE0' }}>
+                                        <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>What You Need to Provide</h3>
                                         <p className="text-gray-600 text-sm">{service.customerRequirements}</p>
                                     </div>
                                 )}
 
                                 {/* Availability */}
                                 {service.availability && (
-                                    <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Availability</h3>
+                                    <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#606C3810' }}>
+                                        <h3 className="text-lg font-semibold mb-2" style={{ color: '#283618' }}>Availability</h3>
                                         <div className="flex flex-wrap gap-2">
                                             {service.availability.weekdays && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
                                                     Weekdays
                                                 </span>
                                             )}
                                             {service.availability.weekends && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
                                                     Weekends
                                                 </span>
                                             )}
                                             {service.availability.evenings && (
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#606C3820', color: '#606C38' }}>
                                                     Evenings
                                                 </span>
                                             )}
@@ -409,7 +413,8 @@ const ServiceDetails = () => {
                                 {/* Book Service Button */}
                                 <button
                                     onClick={handleBookService}
-                                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 flex items-center justify-center transition-colors"
+                                    className="w-full px-6 py-3 rounded-md flex items-center justify-center transition-colors"
+                                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
                                 >
                                     <Calendar className="w-5 h-5 mr-2" />
                                     Book This Service

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useCart } from '../hooks/useCart';
 import { ShoppingCart, Trash2, Minus, Plus, ArrowLeft, Tag, X, ShoppingBag, AlertTriangle } from 'lucide-react';
 
 const Cart = () => {
     const { isAuthenticated } = useAuth();
+    const { theme } = useTheme();
     const navigate = useNavigate();
     const {
         items,
@@ -31,15 +33,15 @@ const Cart = () => {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="min-h-screen py-12" style={{ backgroundColor: theme.background }}>
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                    <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h1 className="text-2xl font-bold mb-4" style={{ color: '#283618' }}>Please Log In</h1>
-                    <p className="mb-8" style={{ color: '#606C38' }}>You need to be logged in to view your cart.</p>
+                    <ShoppingCart className="w-16 h-16 mx-auto mb-4" style={{ color: theme.text.muted }} />
+                    <h1 className="text-2xl font-bold mb-4" style={{ color: theme.text.primary }}>Please Log In</h1>
+                    <p className="mb-8" style={{ color: theme.text.secondary }}>You need to be logged in to view your cart.</p>
                     <Link
                         to="/login"
-                        className="inline-block text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                        style={{ backgroundColor: '#606C38' }}
+                        className="inline-block px-6 py-3 rounded-lg font-semibold transition-colors"
+                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                     >
                         Log In
                     </Link>
@@ -107,12 +109,12 @@ const Cart = () => {
 
     if (loading && items.length === 0) {
         return (
-            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="min-h-screen py-12" style={{ backgroundColor: theme.background }}>
                 <div className="max-w-4xl mx-auto px-4">
                     <div className="animate-pulse space-y-4">
-                        <div className="h-8 bg-gray-300 rounded w-1/4"></div>
+                        <div className="h-8 rounded w-1/4" style={{ backgroundColor: theme.border }}></div>
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-24 bg-gray-300 rounded"></div>
+                            <div key={i} className="h-24 rounded" style={{ backgroundColor: theme.border }}></div>
                         ))}
                     </div>
                 </div>
@@ -122,15 +124,15 @@ const Cart = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen py-12" style={{ backgroundColor: '#FEFAE0' }}>
+            <div className="min-h-screen py-12" style={{ backgroundColor: theme.background }}>
                 <div className="max-w-4xl mx-auto px-4 text-center">
-                    <ShoppingBag className="w-20 h-20 text-gray-300 mx-auto mb-6" />
-                    <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>Your Cart is Empty</h1>
-                    <p className="mb-8" style={{ color: '#606C38' }}>Looks like you haven't added anything to your cart yet.</p>
+                    <ShoppingBag className="w-20 h-20 mx-auto mb-6" style={{ color: theme.text.muted }} />
+                    <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text.primary }}>Your Cart is Empty</h1>
+                    <p className="mb-8" style={{ color: theme.text.secondary }}>Looks like you haven't added anything to your cart yet.</p>
                     <Link
                         to="/products"
-                        className="inline-flex items-center text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                        style={{ backgroundColor: '#606C38' }}
+                        className="inline-flex items-center px-6 py-3 rounded-lg font-semibold transition-colors"
+                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                     >
                         <ShoppingBag className="w-5 h-5 mr-2" />
                         Start Shopping
@@ -141,28 +143,29 @@ const Cart = () => {
     }
 
     return (
-        <div className="min-h-screen py-8" style={{ backgroundColor: '#FEFAE0' }}>
+        <div className="min-h-screen py-8" style={{ backgroundColor: theme.background }}>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex items-center mb-8">
                     <button
                         onClick={() => navigate('/products')}
-                        className="flex items-center text-gray-600 hover:text-gray-900 mr-4"
+                        className="flex items-center mr-4 hover:opacity-70 transition-opacity"
+                        style={{ color: theme.text.secondary }}
                     >
                         <ArrowLeft className="w-5 h-5 mr-1" />
                         Continue Shopping
                     </button>
-                    <h1 className="text-2xl font-bold flex items-center" style={{ color: '#283618' }}>
+                    <h1 className="text-2xl font-bold flex items-center" style={{ color: theme.text.primary }}>
                         <ShoppingCart className="w-6 h-6 mr-2" />
                         Shopping Cart
-                        <span className="ml-2 text-sm font-normal text-gray-500">
+                        <span className="ml-2 text-sm font-normal" style={{ color: theme.text.muted }}>
                             ({itemCount} {itemCount === 1 ? 'item' : 'items'})
                         </span>
                     </h1>
                 </div>
 
                 {error && (
-                    <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+                    <div className="mb-6 px-4 py-3 rounded-lg flex items-center" style={{ backgroundColor: theme.error + '10', color: theme.error, border: `1px solid ${theme.error}40` }}>
                         <AlertTriangle className="w-5 h-5 mr-2" />
                         {error}
                     </div>
@@ -174,10 +177,12 @@ const Cart = () => {
                         {items.map((item) => (
                             <div
                                 key={item._id}
-                                className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex gap-4"
+                                className="rounded-lg shadow-sm border p-4 flex gap-4"
+                                style={{ backgroundColor: theme.surface, borderColor: theme.border }}
                             >
                                 {/* Product Image */}
-                                <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                                <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden"
+                                style={{ backgroundColor: theme.border }}>
                                     {item.image?.url ? (
                                         <img
                                             src={item.image.url}
@@ -189,8 +194,9 @@ const Cart = () => {
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                                            <ShoppingBag className="w-8 h-8 text-gray-400" />
+                                        <div className="w-full h-full flex items-center justify-center"
+                                        style={{ background: 'linear-gradient(to bottom right, #e5e7eb, #d1d5db)' }}>
+                                            <ShoppingBag className="w-8 h-8" style={{ color: theme.text.muted }} />
                                         </div>
                                     )}
                                 </div>
@@ -199,18 +205,19 @@ const Cart = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                            <h3 className="text-lg font-semibold truncate" style={{ color: theme.text.primary }}>
                                                 {item.name}
                                             </h3>
                                             {(item.vendorName || item.vendorId?.storeName) && (
-                                                <p className="text-sm text-gray-500 mt-0.5">
+                                                <p className="text-sm mt-0.5" style={{ color: theme.text.muted }}>
                                                     Sold by {item.vendorName || item.vendorId?.storeName}
                                                 </p>
                                             )}
                                             {item.attributes && Object.keys(item.attributes).length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-1">
                                                     {Object.entries(item.attributes).map(([key, value]) => (
-                                                        <span key={key} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                                        <span key={key} className="text-xs px-2 py-0.5 rounded"
+                                                        style={{ backgroundColor: theme.border, color: theme.text.muted }}>
                                                             {key}: {value}
                                                         </span>
                                                     ))}
@@ -219,7 +226,8 @@ const Cart = () => {
                                         </div>
                                         <button
                                             onClick={() => handleRemoveItem(item._id)}
-                                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                            className="transition-colors p-1 hover:opacity-70"
+                                            style={{ color: theme.text.muted }}
                                             title="Remove item"
                                         >
                                             <Trash2 className="w-5 h-5" />
@@ -228,21 +236,24 @@ const Cart = () => {
 
                                     <div className="flex items-center justify-between mt-4">
                                         {/* Quantity Controls */}
-                                        <div className="flex items-center border border-gray-300 rounded-lg">
+                                        <div className="flex items-center rounded-lg"
+                                        style={{ border: `1px solid ${theme.border}` }}>
                                             <button
                                                 onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
                                                 disabled={item.quantity <= 1 || updatingItems.has(item._id)}
-                                                className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                className="p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:opacity-70"
+                                                style={{ backgroundColor: 'transparent' }}
                                             >
                                                 <Minus className="w-4 h-4" />
                                             </button>
-                                            <span className="px-4 py-2 font-medium min-w-[3rem] text-center">
+                                            <span className="px-4 py-2 font-medium min-w-[3rem] text-center" style={{ color: theme.text.primary }}>
                                                 {updatingItems.has(item._id) ? '...' : item.quantity}
                                             </span>
                                             <button
                                                 onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
                                                 disabled={updatingItems.has(item._id)}
-                                                className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                className="p-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:opacity-70"
+                                                style={{ backgroundColor: 'transparent' }}
                                             >
                                                 <Plus className="w-4 h-4" />
                                             </button>
@@ -250,10 +261,10 @@ const Cart = () => {
 
                                         {/* Price */}
                                         <div className="text-right">
-                                            <p className="text-lg font-bold" style={{ color: '#606C38' }}>
+                                            <p className="text-lg font-bold" style={{ color: theme.text.secondary }}>
                                                 ETB {(item.price * item.quantity).toFixed(2)}
                                             </p>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm" style={{ color: theme.text.muted }}>
                                                 ETB {item.price.toFixed(2)} each
                                             </p>
                                         </div>
@@ -265,7 +276,8 @@ const Cart = () => {
                         {/* Clear Cart Button */}
                         <button
                             onClick={handleClearCart}
-                            className="flex items-center text-red-600 hover:text-red-700 font-medium transition-colors"
+                            className="flex items-center font-medium transition-colors hover:opacity-70"
+                            style={{ color: theme.error }}
                         >
                             <Trash2 className="w-4 h-4 mr-1" />
                             Clear Cart
@@ -274,21 +286,24 @@ const Cart = () => {
 
                     {/* Order Summary */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
+                        <div className="rounded-lg shadow-sm border p-6"
+                        style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+                            <h2 className="text-lg font-bold mb-4" style={{ color: theme.text.primary }}>Order Summary</h2>
 
                             {/* Coupon Section */}
                             {coupon?.code ? (
-                                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                                <div className="mb-4 p-3 rounded-lg flex items-center justify-between"
+                                style={{ backgroundColor: theme.success + '10', border: `1px solid ${theme.success}40` }}>
                                     <div className="flex items-center">
-                                        <Tag className="w-4 h-4 text-green-600 mr-2" />
-                                        <span className="text-sm text-green-800 font-medium">
+                                        <Tag className="w-4 h-4 mr-2" style={{ color: theme.success }} />
+                                        <span className="text-sm font-medium" style={{ color: theme.success }}>
                                             {coupon.code}
                                         </span>
                                     </div>
                                     <button
                                         onClick={handleRemoveCoupon}
-                                        className="text-green-600 hover:text-green-800"
+                                        className="hover:opacity-70 transition-opacity"
+                                        style={{ color: theme.success }}
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -304,39 +319,40 @@ const Cart = () => {
                                                 setCouponError('');
                                             }}
                                             placeholder="Enter coupon code"
-                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 text-sm"
-                                            style={{ focusRingColor: '#606C38' }}
+                                            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 text-sm"
+                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
                                         />
                                         <button
                                             type="submit"
                                             disabled={couponLoading || !couponCode.trim()}
-                                            className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-50 transition-colors"
+                                            className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors hover:opacity-90"
+                                            style={{ backgroundColor: theme.text.primary, color: theme.text.inverse }}
                                         >
                                             {couponLoading ? '...' : 'Apply'}
                                         </button>
                                     </div>
                                     {couponError && (
-                                        <p className="text-xs text-red-600 mt-1">{couponError}</p>
+                                        <p className="text-xs mt-1" style={{ color: theme.error }}>{couponError}</p>
                                     )}
                                 </form>
                             )}
 
                             {/* Price Breakdown */}
                             <div className="space-y-3 mb-4">
-                                <div className="flex justify-between text-gray-600">
+                                <div className="flex justify-between" style={{ color: theme.text.secondary }}>
                                     <span>Subtotal ({totalQuantity} items)</span>
                                     <span>ETB {subtotal.toFixed(2)}</span>
                                 </div>
                                 {discountAmount > 0 && (
-                                    <div className="flex justify-between text-green-600">
+                                    <div className="flex justify-between" style={{ color: theme.success }}>
                                         <span>Discount</span>
                                         <span>-ETB {discountAmount.toFixed(2)}</span>
                                     </div>
                                 )}
-                                <div className="border-t border-gray-200 pt-3">
+                                <div className="border-t pt-3" style={{ borderColor: theme.border }}>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-lg font-bold text-gray-900">Total</span>
-                                        <span className="text-2xl font-bold" style={{ color: '#606C38' }}>
+                                        <span className="text-lg font-bold" style={{ color: theme.text.primary }}>Total</span>
+                                        <span className="text-2xl font-bold" style={{ color: theme.text.secondary }}>
                                             ETB {total.toFixed(2)}
                                         </span>
                                     </div>
@@ -347,13 +363,13 @@ const Cart = () => {
                             <button
                                 onClick={() => navigate('/checkout')}
                                 disabled={items.length === 0}
-                                className="w-full text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                style={{ backgroundColor: '#606C38' }}
+                                className="w-full py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:opacity-90"
+                                style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                             >
                                 Proceed to Checkout
                             </button>
 
-                            <p className="text-xs text-gray-500 text-center mt-3">
+                            <p className="text-xs text-center mt-3" style={{ color: theme.text.muted }}>
                                 Shipping & taxes calculated at checkout
                             </p>
                         </div>
