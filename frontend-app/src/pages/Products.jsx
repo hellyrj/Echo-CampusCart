@@ -990,212 +990,216 @@ const Products = () => {
                                 const isAdding = addingToCart[product._id];
                                 
                                 return (
-                                    <div 
-                                        key={product._id}
-                                        onClick={() => navigate(`/products/${product._id}`)}
-                                        className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-                                    >
-                                        <div className="relative">
-                                            <div className="aspect-square bg-gray-200">
-                                                {product.images && product.images.length > 0 ? (
-                                                    <>
-                                                        <img
-                                                            src={getImageUrl(product.images[productImageIndexes[product._id] || 0])}
-                                                            alt={product.name}
-                                                            className="w-full h-full object-contain rounded-t-2xl p-2"
-                                                            onError={(e) => {
-                                                                e.target.onerror = null;
-                                                                e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=No+Image';
-                                                            }}
-                                                        />
-                                                        
-                                                        {product.images.length > 1 && (
-                                                            <>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        prevImage(product._id, product.images.length);
-                                                                    }}
-                                                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
-                                                                >
-                                                                    <ChevronLeft className="w-4 h-4" />
-                                                                </button>
-                                                                
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        nextImage(product._id, product.images.length);
-                                                                    }}
-                                                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
-                                                                >
-                                                                    <ChevronRight className="w-4 h-4" />
-                                                                </button>
-                                                                
-                                                                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                                                                    {product.images.map((_, index) => (
-                                                                        <button
-                                                                            key={index}
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                goToImage(product._id, index);
-                                                                            }}
-                                                                            className={'w-2 h-2 rounded-full transition-all ' + (
-                                                                                index === (productImageIndexes[product._id] || 0)
-                                                                                    ? 'bg-white w-6'
-                                                                                    : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                                                                            )}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                                
-                                                                <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full">
-                                                                    {(productImageIndexes[product._id] || 0) + 1} / {product.images.length}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg">
-                                                        <span className="text-gray-400 text-sm font-medium">No Image</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleWishlistToggle(product);
-                                                }}
-                                                className={'absolute top-2 right-2 p-2 rounded-full transition-colors ' + (
-                                                    isProductInWishlist(product._id) 
-                                                        ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                                                        : 'bg-white text-gray-400 hover:bg-gray-200'
-                                                )}
-                                            >
-                                                <Heart className={'w-5 h-5 ' + (isProductInWishlist(product._id) ? 'fill-current' : '')} />
-                                            </button>
-                                        </div>
-                                        
-                                        <div className="p-6">
-                                            <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text.primary }}>{product.name}</h3>
-                                            
-                                            {product.vendorId ? (
-                                                <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
-                                                            <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
-                                                        </div>
-                                                        <div>
-                                                            {product.vendorId._id ? (
-                                                                <Link 
-                                                                    to={`/vendor/${product.vendorId._id}`}
-                                                                    className="text-sm font-medium hover:opacity-70"
-                                                                    style={{ color: theme.text.primary }}
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    {product.vendorId.storeName || 'Unknown Vendor'}
-                                                                </Link>
-                                                            ) : (
-                                                                <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                                                                    {product.vendorId.storeName || 'Unknown Vendor'}
-                                                                </span>
-                                                            )}
-                                                            {product.vendorId.universityNear && (
-                                                                <span className="text-xs block" style={{ color: theme.text.secondary }}>
-                                                                    📍 {product.vendorId.universityNear}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
-                                                            <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
-                                                        </div>
-                                                        <div>
-                                                            <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                                                                Vendor information loading...
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            {product.inventory && (
-                                                <div className="mb-3">
-                                                    <div className={'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ' + (
-                                                        product.inventory.totalStock > 0 
-                                                            ? 'bg-green-50 text-green-700 border border-green-200' 
-                                                            : 'bg-red-50 text-red-700 border border-red-200'
-                                                    )}>
-                                                        {product.inventory.totalStock > 0 ? (
-                                                            <>
-                                                                <Package className="w-4 h-4" />
-                                                                <span>{product.inventory.totalStock} in stock</span>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <X className="w-4 h-4" />
-                                                                <span>Out of stock</span>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            
-                                            <div className="mb-3" onClick={(e) => e.stopPropagation()}>
-                                                <RatingComponent
-                                                    productId={product._id}
-                                                    currentRating={product.averageRating}
-                                                    reviewCount={product.reviewCount}
-                                                    onRatingUpdate={(newRating) => handleRatingUpdate(product._id, newRating)}
-                                                    size="small"
-                                                />
-                                            </div>
-                                            
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-2xl font-bold" style={{ color: theme.text.primary }}>
-                                                    ${product.basePrice || product.price}
-                                                </span>
-                                                
-                                                {cartLoading && isAdding ? (
-                                                    <button
-                                                        disabled
-                                                        className="px-4 py-2 rounded-md flex items-center gap-2 opacity-70"
-                                                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
-                                                    >
-                                                        <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent" />
-                                                        {inCart ? 'Removing...' : 'Adding...'}
-                                                    </button>
-                                                ) : inCart ? (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleRemoveFromCart(product._id, e);
-                                                        }}
-                                                        disabled={isAdding}
-                                                        className="px-4 py-2 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-2 disabled:opacity-50"
-                                                        style={{ backgroundColor: '#10b981', color: 'white' }}
-                                                    >
-                                                        <Check className="w-4 h-4" />
-                                                        Added to Cart
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={(e) => handleAddToCart(product, e)}
-                                                        disabled={isAdding || (product.inventory && product.inventory.totalStock === 0)}
-                                                        className="px-4 py-2 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
-                                                    >
-                                                        <ShoppingCart className="w-4 h-4" />
-                                                        Add to Cart
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                  <div 
+    key={product._id}
+    onClick={() => navigate(`/products/${product._id}`)}
+    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden flex flex-col"
+>
+    <div className="relative">
+        <div className="aspect-square bg-gray-200">
+            {product.images && product.images.length > 0 ? (
+                <>
+                    <img
+                        src={getImageUrl(product.images[productImageIndexes[product._id] || 0])}
+                        alt={product.name}
+                        className="w-full h-full object-contain p-2"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=No+Image';
+                        }}
+                    />
+                    
+                    {product.images.length > 1 && (
+                        <>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    prevImage(product._id, product.images.length);
+                                }}
+                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    nextImage(product._id, product.images.length);
+                                }}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                            
+                            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                                {product.images.map((_, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            goToImage(product._id, index);
+                                        }}
+                                        className={'w-2 h-2 rounded-full transition-all ' + (
+                                            index === (productImageIndexes[product._id] || 0)
+                                                ? 'bg-white w-6'
+                                                : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                            
+                            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full">
+                                {(productImageIndexes[product._id] || 0) + 1} / {product.images.length}
+                            </div>
+                        </>
+                    )}
+                </>
+            ) : (
+                <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg">
+                    <span className="text-gray-400 text-sm font-medium">No Image</span>
+                </div>
+            )}
+        </div>
+        
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                handleWishlistToggle(product);
+            }}
+            className={'absolute top-2 right-2 p-2 rounded-full transition-colors ' + (
+                isProductInWishlist(product._id) 
+                    ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                    : 'bg-white text-gray-400 hover:bg-gray-200'
+            )}
+        >
+            <Heart className={'w-5 h-5 ' + (isProductInWishlist(product._id) ? 'fill-current' : '')} />
+        </button>
+    </div>
+    
+    {/* REDUCED HEIGHT SECTION - Changed from p-6 to p-3 and reduced spacing */}
+    <div className="p-3 flex flex-col flex-grow">
+        <h3 className="text-base font-semibold mb-1 line-clamp-2" style={{ color: theme.text.primary }}>
+            {product.name}
+        </h3>
+        
+        {product.vendorId ? (
+            <div className="mb-1.5 p-1 rounded-md" style={{ backgroundColor: theme.surface }}>
+                <div className="flex items-center space-x-1.5">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${theme.secondary}20` }}>
+                        <Store className="w-3 h-3" style={{ color: theme.text.primary }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        {product.vendorId._id ? (
+                            <Link 
+                                to={`/vendor/${product.vendorId._id}`}
+                                className="text-xs font-medium hover:opacity-70 truncate block"
+                                style={{ color: theme.text.primary }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {product.vendorId.storeName || 'Unknown Vendor'}
+                            </Link>
+                        ) : (
+                            <span className="text-xs font-medium truncate block" style={{ color: theme.text.primary }}>
+                                {product.vendorId.storeName || 'Unknown Vendor'}
+                            </span>
+                        )}
+                        {product.vendorId.universityNear && (
+                            <span className="text-[10px] block truncate" style={{ color: theme.text.secondary }}>
+                                📍 {product.vendorId.universityNear}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        ) : (
+            <div className="mb-1.5 p-1 rounded-md" style={{ backgroundColor: theme.surface }}>
+                <div className="flex items-center space-x-1.5">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                        <Store className="w-3 h-3" style={{ color: theme.text.primary }} />
+                    </div>
+                    <div>
+                        <span className="text-xs font-medium" style={{ color: theme.text.primary }}>
+                            Vendor info...
+                        </span>
+                    </div>
+                </div>
+            </div>
+        )}
+        
+       <div className="mb-2 flex items-center justify-between">
+    <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+        <RatingComponent
+            productId={product._id}
+            currentRating={product.averageRating}
+            reviewCount={product.reviewCount}
+            onRatingUpdate={(newRating) => handleRatingUpdate(product._id, newRating)}
+            size="small"
+        />
+    </div>
+    
+    {product.inventory && (
+        <div className={'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium flex-shrink-0 ml-2 ' + (
+            product.inventory.totalStock > 0 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : 'bg-red-50 text-red-700 border border-red-200'
+        )}>
+            {product.inventory.totalStock > 0 ? (
+                <>
+                    <Package className="w-3 h-3" />
+                    <span>{product.inventory.totalStock}</span>
+                </>
+            ) : (
+                <>
+                    <X className="w-3 h-3" />
+                    <span>Out</span>
+                </>
+            )}
+        </div>
+    )}
+</div>
+        
+        <div className="flex items-center justify-between mt-auto pt-1">
+            <span className="text-lg font-bold" style={{ color: theme.text.primary }}>
+                ${product.basePrice || product.price}
+            </span>
+            
+            {cartLoading && isAdding ? (
+                <button
+                    disabled
+                    className="px-2 py-1 rounded-md flex items-center gap-1 text-xs opacity-70"
+                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                >
+                    <div className="w-3 h-3 border-2 border-white rounded-full animate-spin border-t-transparent" />
+                    {inCart ? 'Removing...' : 'Adding...'}
+                </button>
+            ) : inCart ? (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFromCart(product._id, e);
+                    }}
+                    disabled={isAdding}
+                    className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50"
+                    style={{ backgroundColor: '#10b981', color: 'white' }}
+                >
+                    <Check className="w-3 h-3" />
+                    Added
+                </button>
+            ) : (
+                <button
+                    onClick={(e) => handleAddToCart(product, e)}
+                    disabled={isAdding || (product.inventory && product.inventory.totalStock === 0)}
+                    className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                >
+                    <ShoppingCart className="w-3 h-3" />
+                    Add
+                </button>
+            )}
+        </div>
+    </div>
+</div>
+                                   
                                 );
                             })}
                             

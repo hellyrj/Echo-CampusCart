@@ -5,7 +5,7 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, ShoppingCart, ArrowLeft, Package, MapPin, Star, ChevronLeft, ChevronRight, Check, X, Store } from 'lucide-react';
 import RatingComponent from '../components/RatingComponent';
 
 const ProductDetails = () => {
@@ -15,7 +15,7 @@ const ProductDetails = () => {
     
     const { getProduct } = useProductApi();
     const { toggleWishlistItem, isProductInWishlist } = useWishlist();
-    const { addToCart } = useCart();
+    const { addToCart, removeFromCart, updateProductQuantity, isInCart, loading: cartLoading } = useCart();
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
@@ -24,6 +24,15 @@ const ProductDetails = () => {
     const [error, setError] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
+    const [addingToCart, setAddingToCart] = useState(false);
+    const [showToast, setShowToast] = useState({ show: false, message: '', type: '' });
+
+    const showToastMessage = (message, type = 'success') => {
+        setShowToast({ show: true, message, type });
+        setTimeout(() => {
+            setShowToast({ show: false, message: '', type: '' });
+        }, 3000);
+    };
 
     // Helper function to get image URL (same as Products page)
     const getImageUrl = (image) => {
@@ -34,7 +43,6 @@ const ProductDetails = () => {
         if (image.startsWith('/')) return `http://localhost:5000${image}`;
         return `http://localhost:5000/uploads/${image}`;
     };
-
 
     useEffect(() => {
         loadProduct();
@@ -50,20 +58,9 @@ const ProductDetails = () => {
             console.log('Product API result:', result);
             
             if (result.success) {
-                const productData = result.data.data; // Extract actual product data
+                const productData = result.data.data;
                 console.log('Product data loaded:', productData);
-                console.log('Product keys:', Object.keys(productData));
-                console.log('Product images:', productData.images);
-                console.log('Product vendorId:', productData.vendorId);
-                console.log('Full product structure:', JSON.stringify(productData, null, 2));
                 setProduct(productData);
-                
-                // Debug: Check product state immediately after setting
-                setTimeout(() => {
-                    console.log('Product state after setProduct:', product);
-                    console.log('Product state images:', product?.images);
-                    console.log('Product state vendorId:', product?.vendorId);
-                }, 100);
             } else {
                 console.error('Product load failed:', result.message);
                 setError(result.message || 'Failed to load product');
@@ -78,33 +75,66 @@ const ProductDetails = () => {
 
     const handleAddToCart = async () => {
         if (!isAuthenticated) {
-            alert('Please login to add items to cart');
+            showToastMessage('Please login to add items to cart', 'error');
             return;
         }
 
+        setAddingToCart(true);
+        
         try {
             await addToCart(product._id, quantity);
-            alert('Product added to cart successfully!');
+            showToastMessage(`${quantity} item(s) added to cart!`, 'success');
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to add to cart');
+            console.error('Error adding to cart:', err);
+            showToastMessage(err.response?.data?.message || 'Failed to add to cart', 'error');
+        } finally {
+            setTimeout(() => {
+                setAddingToCart(false);
+            }, 500);
+        }
+    };
+
+    const handleRemoveFromCart = async () => {
+        if (!isAuthenticated) {
+            showToastMessage('Please login to manage your cart', 'error');
+            return;
+        }
+
+        setAddingToCart(true);
+        
+        try {
+            await updateProductQuantity(product._id, 0);
+            showToastMessage('Item removed from cart', 'success');
+        } catch (err) {
+            console.error('Error removing from cart:', err);
+            showToastMessage(err.response?.data?.message || 'Failed to remove from cart', 'error');
+        } finally {
+            setTimeout(() => {
+                setAddingToCart(false);
+            }, 500);
         }
     };
 
     const handleWishlistToggle = async () => {
         if (!isAuthenticated) {
-            alert('Please login to add items to wishlist');
+            showToastMessage('Please login to add items to wishlist', 'error');
             return;
         }
 
         try {
             await toggleWishlistItem(product._id);
+            if (isProductInWishlist(product._id)) {
+                showToastMessage('Item removed from wishlist', 'success');
+            } else {
+                showToastMessage('Item added to wishlist', 'success');
+            }
         } catch (error) {
             console.error('Error toggling wishlist:', error);
+            showToastMessage('Failed to update wishlist', 'error');
         }
     };
 
     const handleRatingUpdate = (newRating) => {
-        // Update the product state with new rating
         setProduct(prev => ({
             ...prev,
             averageRating: newRating.averageRating,
@@ -138,7 +168,7 @@ const ProductDetails = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
                 <div className="text-center">
                     <div className="text-red-600 text-lg mb-4">Error: {error}</div>
                     <button 
@@ -155,7 +185,7 @@ const ProductDetails = () => {
 
     if (!product) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.background }}>
                 <div className="text-center">
                     <div className="text-gray-600 text-lg mb-4">Product not found</div>
                     <Link 
@@ -170,8 +200,26 @@ const ProductDetails = () => {
         );
     }
 
+    const inCart = isInCart(product._id);
+
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
+            {/* Toast Notification */}
+            {showToast.show && (
+                <div className="fixed bottom-4 right-4 z-50 animate-fade-in-up">
+                    <div className={`px-4 py-3 rounded-lg shadow-lg text-white flex items-center gap-2 ${
+                        showToast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                    }`}>
+                        {showToast.type === 'success' ? (
+                            <Check className="w-5 h-5" />
+                        ) : (
+                            <X className="w-5 h-5" />
+                        )}
+                        {showToast.message}
+                    </div>
+                </div>
+            )}
+
             <div className="px-4 sm:px-6 lg:px-8 py-8">
                 {/* Back Button */}
                 <button
@@ -183,7 +231,7 @@ const ProductDetails = () => {
                     Back to Products
                 </button>
 
-                <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="rounded-lg shadow-lg overflow-hidden" style={{ backgroundColor: theme.surface }}>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Product Images */}
                         <div className="p-6">
@@ -194,7 +242,7 @@ const ProductDetails = () => {
                                         <img
                                             src={getImageUrl(product.images[currentImageIndex])}
                                             alt={product.name}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-contain p-4"
                                             onError={(e) => {
                                                 e.target.onerror = null;
                                                 e.target.src = 'https://via.placeholder.com/600x600/e5e7eb/6b7280?text=No+Image';
@@ -207,10 +255,9 @@ const ProductDetails = () => {
                                     )}
                                 </div>
 
-                                {/* Carousel Controls - Only show if multiple images */}
+                                {/* Carousel Controls */}
                                 {product.images && product.images.length > 1 && (
                                     <>
-                                        {/* Previous Button */}
                                         <button
                                             onClick={prevImage}
                                             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
@@ -218,7 +265,6 @@ const ProductDetails = () => {
                                             <ChevronLeft className="w-5 h-5" />
                                         </button>
                                         
-                                        {/* Next Button */}
                                         <button
                                             onClick={nextImage}
                                             className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
@@ -226,7 +272,6 @@ const ProductDetails = () => {
                                             <ChevronRight className="w-5 h-5" />
                                         </button>
                                         
-                                        {/* Image Indicators */}
                                         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
                                             {product.images.map((_, index) => (
                                                 <button
@@ -241,7 +286,6 @@ const ProductDetails = () => {
                                             ))}
                                         </div>
                                         
-                                        {/* Image Counter */}
                                         <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full">
                                             {currentImageIndex + 1} / {product.images.length}
                                         </div>
@@ -295,7 +339,7 @@ const ProductDetails = () => {
                                 {/* Product Name */}
                                 <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text.primary }}>{product.name}</h1>
                                 
-                                {/* Interactive Rating Display */}
+                                {/* Rating */}
                                 <div className="mb-4">
                                     <RatingComponent
                                         productId={product._id}
@@ -313,6 +357,29 @@ const ProductDetails = () => {
                                     </span>
                                 </div>
 
+                                {/* Stock Status - Same as product card */}
+                                {product.inventory && (
+                                    <div className="mb-4">
+                                        <div className={'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ' + (
+                                            product.inventory.totalStock > 0 
+                                                ? 'bg-green-50 text-green-700 border border-green-200' 
+                                                : 'bg-red-50 text-red-700 border border-red-200'
+                                        )}>
+                                            {product.inventory.totalStock > 0 ? (
+                                                <>
+                                                    <Package className="w-4 h-4" />
+                                                    <span>{product.inventory.totalStock} in stock</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <X className="w-4 h-4" />
+                                                    <span>Out of stock</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Category Tags */}
                                 {product.categories && product.categories.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-4">
@@ -328,30 +395,17 @@ const ProductDetails = () => {
                                     </div>
                                 )}
 
-                                {/* Stock Status */}
-                                {product.inventory && (
-                                    <div className="mb-4">
-                                        <span className={'text-sm font-medium ' + (
-                                            product.inventory.totalStock > 0 ? 'text-green-600' : 'text-red-600'
-                                        )}>
-                                            {product.inventory.totalStock > 0 
-                                                ? product.inventory.totalStock + ' in stock' 
-                                                : 'Out of stock'}
-                                        </span>
-                                    </div>
-                                )}
-
                                 {/* Description */}
                                 <div className="mb-6">
                                     <h3 className="text-lg font-semibold mb-2" style={{ color: theme.text.primary }}>Description</h3>
-                                    <p className="text-gray-600 leading-relaxed">
+                                    <p className="leading-relaxed" style={{ color: theme.text.secondary }}>
                                         {product.description || 'No description available'}
                                     </p>
                                 </div>
 
                                 {/* Vendor Information */}
                                 {product.vendorId && (
-                                    <div className="mb-6 p-4 rounded-lg border" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+                                    <div className="mb-6 p-4 rounded-lg border" style={{ backgroundColor: theme.background, borderColor: theme.border }}>
                                         <h3 className="text-lg font-semibold mb-3" style={{ color: theme.text.primary }}>Vendor Information</h3>
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -391,46 +445,71 @@ const ProductDetails = () => {
                                     </div>
                                 )}
 
-                                {/* Quantity and Add to Cart */}
+                                {/* Quantity and Cart Actions */}
                                 <div className="space-y-4">
-                                    <div>
-                                        <label htmlFor="quantity" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
-                                            Quantity
-                                        </label>
-                                        <div className="flex items-center space-x-3">
-                                            <button
-                                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                                className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
-                                                style={{ borderColor: theme.accent, color: theme.text.primary }}
-                                            >
-                                                -
-                                            </button>
-                                            <input
-                                                type="number"
-                                                id="quantity"
-                                                min="1"
-                                                value={quantity}
-                                                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                                className="w-20 text-center border rounded-md px-3 py-2"
-                                                style={{ borderColor: theme.accent }}
-                                            />
-                                            <button
-                                                onClick={() => setQuantity(quantity + 1)}
-                                                className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
-                                                style={{ borderColor: theme.accent, color: theme.text.primary }}
-                                            >
-                                                +
-                                            </button>
+                                    {!inCart && (
+                                        <div>
+                                            <label htmlFor="quantity" className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                                                Quantity
+                                            </label>
+                                            <div className="flex items-center space-x-3">
+                                                <button
+                                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                                    className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
+                                                    style={{ borderColor: theme.accent, color: theme.text.primary }}
+                                                >
+                                                    -
+                                                </button>
+                                                <input
+                                                    type="number"
+                                                    id="quantity"
+                                                    min="1"
+                                                    value={quantity}
+                                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                                    className="w-20 text-center border rounded-md px-3 py-2"
+                                                    style={{ borderColor: theme.accent, backgroundColor: theme.background, color: theme.text.primary }}
+                                                />
+                                                <button
+                                                    onClick={() => setQuantity(quantity + 1)}
+                                                    className="px-3 py-2 border rounded-md hover:opacity-70 transition-all"
+                                                    style={{ borderColor: theme.accent, color: theme.text.primary }}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <button
-                                        onClick={handleAddToCart}
-                                        disabled={product.inventory && product.inventory.totalStock <= 0}
-                                        className="w-full bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                                    >
-                                        <ShoppingCart className="w-5 h-5 mr-2" />
-                                        Add to Cart
-                                    </button>
+                                    )}
+                                    
+                                    {cartLoading && addingToCart ? (
+                                        <button
+                                            disabled
+                                            className="w-full px-6 py-3 rounded-md flex items-center justify-center gap-2 opacity-70"
+                                            style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                                        >
+                                            <div className="w-5 h-5 border-2 border-white rounded-full animate-spin border-t-transparent" />
+                                            {inCart ? 'Removing...' : 'Adding...'}
+                                        </button>
+                                    ) : inCart ? (
+                                        <button
+                                            onClick={handleRemoveFromCart}
+                                            disabled={addingToCart}
+                                            className="w-full px-6 py-3 rounded-md transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50"
+                                            style={{ backgroundColor: '#10b981', color: 'white' }}
+                                        >
+                                            <Check className="w-5 h-5" />
+                                            Remove from Cart
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleAddToCart}
+                                            disabled={addingToCart || (product.inventory && product.inventory.totalStock === 0)}
+                                            className="w-full px-6 py-3 rounded-md transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                                        >
+                                            <ShoppingCart className="w-5 h-5" />
+                                            Add to Cart
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
