@@ -330,13 +330,4 @@ export class ServiceController {
         console.log('Service categories result:', categories);
         sendResponse(res, 200, "Service categories fetched successfully", categories);
     });
-
-    // =========================
-    // SERVICE BOOKING (Future enhancement)
-    // =========================
-
-    // This could be expanded to include booking functionality
-    // bookService = asyncHandler(async (req, res, next) => {
-    //     // Implementation for service booking
-    // });
 }

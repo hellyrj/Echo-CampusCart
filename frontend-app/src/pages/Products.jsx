@@ -674,7 +674,7 @@ const Products = () => {
                                         value={searchTerm}
                                         onChange={(e) => debouncedSearch(e.target.value)}
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     />
                                     <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -778,7 +778,7 @@ const Products = () => {
                                             value={locationSearchQuery}
                                             onChange={handleLocationSearchChange}
                                             className="w-full pl-9 pr-4 py-2 border rounded-md focus:ring-2 focus:border-transparent text-sm"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                                         {locationSearchQuery && (
@@ -860,7 +860,7 @@ const Products = () => {
                                         value={selectedCategory}
                                         onChange={(e) => setSelectedCategory(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     >
                                         <option value="">All Categories</option>
                                         {categories.map((category, idx) => {
@@ -883,7 +883,7 @@ const Products = () => {
                                         value={selectedUniversity}
                                         onChange={(e) => setSelectedUniversity(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     >
                                         <option value="">All Universities</option>
                                         {universities.map((university) => (
@@ -903,7 +903,7 @@ const Products = () => {
                                             value={priceRange.min}
                                             onChange={(e) => handlePriceRangeChange('min', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         <input
                                             type="number"
@@ -911,7 +911,7 @@ const Products = () => {
                                             value={priceRange.max}
                                             onChange={(e) => handlePriceRangeChange('max', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                     </div>
                                 </div>
@@ -923,7 +923,7 @@ const Products = () => {
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         >
                                             <option value="averageRating">Rating (High to Low)</option>
                                             <option value="basePrice">Price</option>
@@ -934,7 +934,7 @@ const Products = () => {
                                             value={sortOrder}
                                             onChange={(e) => setSortOrder(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         >
                                             <option value="desc">Descending</option>
                                             <option value="asc">Ascending</option>
@@ -984,355 +984,343 @@ const Products = () => {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                             {(contentType === 'all' || contentType === 'products') && products.map((product) => {
                                 const inCart = isInCart(product._id);
                                 const isAdding = addingToCart[product._id];
-                                
+
                                 return (
-                                  <div 
-    key={product._id}
-    onClick={() => navigate(`/products/${product._id}`)}
-    className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden flex flex-col"
->
-    <div className="relative">
-        <div className="aspect-square bg-gray-200">
-            {product.images && product.images.length > 0 ? (
-                <>
-                    <img
-                        src={getImageUrl(product.images[productImageIndexes[product._id] || 0])}
-                        alt={product.name}
-                        className="w-full h-full object-contain p-2"
-                        onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=No+Image';
-                        }}
-                    />
-                    
-                    {product.images.length > 1 && (
-                        <>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    prevImage(product._id, product.images.length);
-                                }}
-                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    nextImage(product._id, product.images.length);
-                                }}
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                            
-                            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                                {product.images.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            goToImage(product._id, index);
-                                        }}
-                                        className={'w-2 h-2 rounded-full transition-all ' + (
-                                            index === (productImageIndexes[product._id] || 0)
-                                                ? 'bg-white w-6'
-                                                : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                                        )}
-                                    />
-                                ))}
-                            </div>
-                            
-                            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full">
-                                {(productImageIndexes[product._id] || 0) + 1} / {product.images.length}
-                            </div>
-                        </>
-                    )}
-                </>
-            ) : (
-                <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg">
-                    <span className="text-gray-400 text-sm font-medium">No Image</span>
-                </div>
-            )}
-        </div>
-        
-        <button
-            onClick={(e) => {
-                e.stopPropagation();
-                handleWishlistToggle(product);
-            }}
-            className={'absolute top-2 right-2 p-2 rounded-full transition-colors ' + (
-                isProductInWishlist(product._id) 
-                    ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                    : 'bg-white text-gray-400 hover:bg-gray-200'
-            )}
-        >
-            <Heart className={'w-5 h-5 ' + (isProductInWishlist(product._id) ? 'fill-current' : '')} />
-        </button>
-    </div>
-    
-    {/* REDUCED HEIGHT SECTION - Changed from p-6 to p-3 and reduced spacing */}
-    <div className="p-3 flex flex-col flex-grow">
-        <h3 className="text-base font-semibold mb-1 line-clamp-2" style={{ color: theme.text.primary }}>
-            {product.name}
-        </h3>
-        
-        {product.vendorId ? (
-            <div className="mb-1.5 p-1 rounded-md" style={{ backgroundColor: theme.surface }}>
-                <div className="flex items-center space-x-1.5">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${theme.secondary}20` }}>
-                        <Store className="w-3 h-3" style={{ color: theme.text.primary }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        {product.vendorId._id ? (
-                            <Link 
-                                to={`/vendor/${product.vendorId._id}`}
-                                className="text-xs font-medium hover:opacity-70 truncate block"
-                                style={{ color: theme.text.primary }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {product.vendorId.storeName || 'Unknown Vendor'}
-                            </Link>
-                        ) : (
-                            <span className="text-xs font-medium truncate block" style={{ color: theme.text.primary }}>
-                                {product.vendorId.storeName || 'Unknown Vendor'}
-                            </span>
-                        )}
-                        {product.vendorId.universityNear && (
-                            <span className="text-[10px] block truncate" style={{ color: theme.text.secondary }}>
-                                📍 {product.vendorId.universityNear}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
-        ) : (
-            <div className="mb-1.5 p-1 rounded-md" style={{ backgroundColor: theme.surface }}>
-                <div className="flex items-center space-x-1.5">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
-                        <Store className="w-3 h-3" style={{ color: theme.text.primary }} />
-                    </div>
-                    <div>
-                        <span className="text-xs font-medium" style={{ color: theme.text.primary }}>
-                            Vendor info...
-                        </span>
-                    </div>
-                </div>
-            </div>
-        )}
-        
-       <div className="mb-2 flex items-center justify-between">
-    <div className="flex-1" onClick={(e) => e.stopPropagation()}>
-        <RatingComponent
-            productId={product._id}
-            currentRating={product.averageRating}
-            reviewCount={product.reviewCount}
-            onRatingUpdate={(newRating) => handleRatingUpdate(product._id, newRating)}
-            size="small"
-        />
-    </div>
-    
-    {product.inventory && (
-        <div className={'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium flex-shrink-0 ml-2 ' + (
-            product.inventory.totalStock > 0 
-                ? 'bg-green-50 text-green-700 border border-green-200' 
-                : 'bg-red-50 text-red-700 border border-red-200'
-        )}>
-            {product.inventory.totalStock > 0 ? (
-                <>
-                    <Package className="w-3 h-3" />
-                    <span>{product.inventory.totalStock}</span>
-                </>
-            ) : (
-                <>
-                    <X className="w-3 h-3" />
-                    <span>Out</span>
-                </>
-            )}
-        </div>
-    )}
-</div>
-        
-        <div className="flex items-center justify-between mt-auto pt-1">
-            <span className="text-lg font-bold" style={{ color: theme.text.primary }}>
-                ${product.basePrice || product.price}
-            </span>
-            
-            {cartLoading && isAdding ? (
-                <button
-                    disabled
-                    className="px-2 py-1 rounded-md flex items-center gap-1 text-xs opacity-70"
-                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
-                >
-                    <div className="w-3 h-3 border-2 border-white rounded-full animate-spin border-t-transparent" />
-                    {inCart ? 'Removing...' : 'Adding...'}
-                </button>
-            ) : inCart ? (
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFromCart(product._id, e);
-                    }}
-                    disabled={isAdding}
-                    className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50"
-                    style={{ backgroundColor: '#10b981', color: 'white' }}
-                >
-                    <Check className="w-3 h-3" />
-                    Added
-                </button>
-            ) : (
-                <button
-                    onClick={(e) => handleAddToCart(product, e)}
-                    disabled={isAdding || (product.inventory && product.inventory.totalStock === 0)}
-                    className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
-                >
-                    <ShoppingCart className="w-3 h-3" />
-                    Add
-                </button>
-            )}
-        </div>
-    </div>
-</div>
-                                   
+                                    <div
+                                        key={product._id}
+                                        onClick={() => navigate(`/products/${product._id}`)}
+                                        className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border border-gray-200"
+                                    >
+                                        <div className="relative">
+                                            <div className="h-40 bg-gray-100 flex items-center justify-center">
+                                                {product.images && product.images.length > 0 ? (
+                                                    <>
+                                                        <img
+                                                            src={getImageUrl(product.images[productImageIndexes[product._id] || 0])}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-contain rounded-t-lg p-2"
+                                                            onError={(e) => {
+                                                                e.target.onerror = null;
+                                                                e.target.src = 'https://via.placeholder.com/200x150/e5e7eb/6b7280?text=No+Image';
+                                                            }}
+                                                        />
+
+                                                        {product.images.length > 1 && (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        prevImage(product._id, product.images.length);
+                                                                    }}
+                                                                    className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
+                                                                >
+                                                                    <ChevronLeft className="w-3 h-3" />
+                                                                </button>
+
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        nextImage(product._id, product.images.length);
+                                                                    }}
+                                                                    className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70 transition-all"
+                                                                >
+                                                                    <ChevronRight className="w-3 h-3" />
+                                                                </button>
+
+                                                                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+                                                                    {product.images.map((_, index) => (
+                                                                        <button
+                                                                            key={index}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                goToImage(product._id, index);
+                                                                            }}
+                                                                            className={'w-1.5 h-1.5 rounded-full transition-all ' + (
+                                                                                index === (productImageIndexes[product._id] || 0)
+                                                                                    ? 'bg-white w-4'
+                                                                                    : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                                                                            )}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+
+                                                                <div className="absolute top-1 left-1 bg-black bg-opacity-50 text-white text-xs px-1.5 py-0.5 rounded-full">
+                                                                    {(productImageIndexes[product._id] || 0) + 1} / {product.images.length}
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-t-lg">
+                                                        <span className="text-gray-400 text-xs font-medium">No Image</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleWishlistToggle(product);
+                                                }}
+                                                className={'absolute top-1 right-1 p-1.5 rounded-full transition-colors ' + (
+                                                    isProductInWishlist(product._id)
+                                                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                        : 'bg-white text-gray-400 hover:bg-gray-200'
+                                                )}
+                                            >
+                                                <Heart className={'w-4 h-4 ' + (isProductInWishlist(product._id) ? 'fill-current' : '')} />
+                                            </button>
+                                        </div>
+
+                                        <div className="p-3">
+                                            <h3 className="text-sm font-semibold mb-1 truncate" style={{ color: theme.text.primary }} title={product.name}>{product.name}</h3>
+
+                                            {product.vendorId ? (
+                                                <div className="mb-2 p-1.5 rounded-md" style={{ backgroundColor: theme.surface }}>
+                                                    <div className="flex items-center space-x-1.5">
+                                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                            <Store className="w-2.5 h-2.5" style={{ color: theme.text.primary }} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            {product.vendorId._id ? (
+                                                                <Link
+                                                                    to={`/vendor/${product.vendorId._id}`}
+                                                                    className="text-xs font-medium hover:opacity-70 truncate block"
+                                                                    style={{ color: theme.text.primary }}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    {product.vendorId.storeName || 'Unknown Vendor'}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-xs font-medium truncate block" style={{ color: theme.text.primary }}>
+                                                                    {product.vendorId.storeName || 'Unknown Vendor'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="mb-2 p-1.5 rounded-md" style={{ backgroundColor: theme.surface }}>
+                                                    <div className="flex items-center space-x-1.5">
+                                                        <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                            <Store className="w-2.5 h-2.5" style={{ color: theme.text.primary }} />
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-xs font-medium" style={{ color: theme.text.primary }}>
+                                                                Vendor loading...
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {product.inventory && (
+                                                <div className="mb-2">
+                                                    <div className={'flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ' + (
+                                                        product.inventory.totalStock > 0
+                                                            ? 'bg-green-50 text-green-700 border border-green-200'
+                                                            : 'bg-red-50 text-red-700 border border-red-200'
+                                                    )}>
+                                                        {product.inventory.totalStock > 0 ? (
+                                                            <>
+                                                                <Package className="w-3 h-3" />
+                                                                <span>{product.inventory.totalStock} in stock</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <X className="w-3 h-3" />
+                                                                <span>Out of stock</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="mb-2" onClick={(e) => e.stopPropagation()}>
+                                                <RatingComponent
+                                                    productId={product._id}
+                                                    currentRating={product.averageRating}
+                                                    reviewCount={product.reviewCount}
+                                                    onRatingUpdate={(newRating) => handleRatingUpdate(product._id, newRating)}
+                                                    size="small"
+                                                />
+                                            </div>
+
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-base font-bold" style={{ color: theme.text.primary }}>
+                                                    ${product.basePrice || product.price}
+                                                </span>
+
+                                                {cartLoading && isAdding ? (
+                                                    <button
+                                                        disabled
+                                                        className="px-2 py-1 rounded-md flex items-center gap-1 text-xs opacity-70"
+                                                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                                                    >
+                                                        <div className="w-3 h-3 border-2 border-white rounded-full animate-spin border-t-transparent" />
+                                                        {inCart ? '...' : '...'}
+                                                    </button>
+                                                ) : inCart ? (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRemoveFromCart(product._id, e);
+                                                        }}
+                                                        disabled={isAdding}
+                                                        className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50"
+                                                        style={{ backgroundColor: '#10b981', color: 'white' }}
+                                                    >
+                                                        <Check className="w-3 h-3" />
+                                                        Added
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={(e) => handleAddToCart(product, e)}
+                                                        disabled={isAdding || (product.inventory && product.inventory.totalStock === 0)}
+                                                        className="px-2 py-1 rounded-md transition-all duration-200 hover:scale-105 flex items-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
+                                                    >
+                                                        <ShoppingCart className="w-3 h-3" />
+                                                        Add
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 );
                             })}
                             
                             {(contentType === 'all' || contentType === 'services') && services.map((service) => (
-                                <div 
+                                <div
                                     key={service._id}
                                     onClick={() => navigate(`/services/${service._id}`)}
-                                    className="rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
-                                    style={{ backgroundColor: theme.background }}
+                                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer border border-gray-200"
                                 >
                                     <div className="relative">
-                                        <div className="aspect-square bg-gray-200">
+                                        <div className="h-40 bg-gray-100 flex items-center justify-center">
                                             {service.images && service.images.length > 0 ? (
                                                 <img
                                                     src={service.images[0].startsWith('http') ? service.images[0] : `http://localhost:5000/uploads/${service.images[0]}`}
                                                     alt={service.title}
-                                                    className="w-full h-full object-contain rounded-t-2xl p-2"
+                                                    className="w-full h-full object-contain rounded-t-lg p-2"
                                                     onError={(e) => {
                                                         e.target.onerror = null;
-                                                        e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=Service';
+                                                        e.target.src = 'https://via.placeholder.com/200x150/e5e7eb/6b7280?text=Service';
                                                     }}
                                                 />
                                             ) : (
                                                 <div className="flex items-center justify-center h-full" style={{ background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)` }}>
-                                                    <Wrench className="w-12 h-12" style={{ color: theme.text.inverse }} />
+                                                    <Wrench className="w-8 h-8" style={{ color: theme.text.inverse }} />
                                                 </div>
                                             )}
-                                            
-                                            <div className="absolute top-2 left-2">
-                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
+
+                                            <div className="absolute top-1 left-1">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.accent}20`, color: theme.accent }}>
                                                     Service
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <div className="p-4">
-                                        <h3 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: theme.text.primary }}>
+
+                                    <div className="p-3">
+                                        <h3 className="text-sm font-semibold mb-1 truncate" style={{ color: theme.text.primary }} title={service.title}>
                                             {service.title}
                                         </h3>
-                                        
+
                                         <div className="mb-2">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}>
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: `${theme.secondary}20`, color: theme.secondary }}>
                                                 {service.serviceCategory?.charAt(0).toUpperCase() + service.serviceCategory?.slice(1).replace('_', ' ') || 'General'}
                                             </span>
                                         </div>
-                                        
+
                                         {service.vendorId ? (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
-                                                <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
-                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
+                                            <div className="mb-2 p-1.5 rounded-md" style={{ backgroundColor: theme.surface }}>
+                                                <div className="flex items-center space-x-1.5">
+                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-2.5 h-2.5" style={{ color: theme.text.primary }} />
                                                     </div>
-                                                    <div>
-                                                        <p className="text-xs" style={{ color: theme.text.secondary }}>Offered by</p>
+                                                    <div className="flex-1 min-w-0">
                                                         {service.vendorId._id ? (
-                                                            <Link 
+                                                            <Link
                                                                 to={`/vendor/${service.vendorId._id}`}
-                                                                className="text-sm font-medium hover:opacity-70"
+                                                                className="text-xs font-medium hover:opacity-70 truncate block"
                                                                 style={{ color: theme.text.primary }}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
                                                             </Link>
                                                         ) : (
-                                                            <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                                                            <span className="text-xs font-medium truncate block" style={{ color: theme.text.primary }}>
                                                                 {service.vendorId.storeName || 'Unknown Vendor'}
-                                                            </span>
-                                                        )}
-                                                        {service.vendorId.universityNear && (
-                                                            <span className="text-xs block" style={{ color: theme.text.secondary }}>
-                                                                📍 {service.vendorId.universityNear}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="mb-3 p-2 rounded-md" style={{ backgroundColor: theme.surface }}>
-                                                <div className="flex items-center space-x-2">
-                                                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
-                                                        <Store className="w-4 h-4" style={{ color: theme.text.primary }} />
+                                            <div className="mb-2 p-1.5 rounded-md" style={{ backgroundColor: theme.surface }}>
+                                                <div className="flex items-center space-x-1.5">
+                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: `${theme.secondary}20` }}>
+                                                        <Store className="w-2.5 h-2.5" style={{ color: theme.text.primary }} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs" style={{ color: theme.text.secondary }}>Offered by</p>
-                                                        <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                                                            Vendor information loading...
+                                                        <span className="text-xs font-medium" style={{ color: theme.text.primary }}>
+                                                            Vendor loading...
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
-                                        
-                                        <div className="mb-3">
-                                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 border border-green-200">
-                                                <Package className="w-4 h-4" />
+
+                                        <div className="mb-2">
+                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                                <Package className="w-3 h-3" />
                                                 <span>Available</span>
                                             </div>
                                         </div>
-                                        
-                                        <div className="flex gap-2 mb-3">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+
+                                        <div className="flex gap-1.5 mb-2">
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 {service.serviceLocation === 'online' ? 'Online' : service.serviceLocation === 'in_person' ? 'In-person' : 'Both'}
                                             </span>
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.pricingModel === 'fixed' ? `Fixed: ${service.basePrice}` : service.pricingModel === 'package' ? `Package: ${service.basePrice}` : 'Contact for quote'}
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.pricingModel === 'fixed' ? `Fixed: ${service.basePrice}` : service.pricingModel === 'package' ? `Package: ${service.basePrice}` : 'Quote'}
                                             </span>
                                         </div>
-                                        
+
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <span className="text-2xl font-bold" style={{ color: theme.text.secondary }}>
+                                                <span className="text-base font-bold" style={{ color: theme.text.secondary }}>
                                                     {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}
                                                 </span>
                                                 {service.averageRating > 0 && (
-                                                    <div className="flex items-center mt-1">
-                                                        <span className="text-yellow-400 text-sm">★</span>
-                                                        <span className="text-sm text-gray-600 ml-1">
+                                                    <div className="flex items-center mt-0.5">
+                                                        <span className="text-yellow-400 text-xs">★</span>
+                                                        <span className="text-xs text-gray-600 ml-1">
                                                             {service.averageRating.toFixed(1)} ({service.reviewCount})
                                                         </span>
                                                     </div>
                                                 )}
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    alert('Service booking feature coming soon!');
+                                                    if (!isAuthenticated) {
+                                                        alert('Please login to book services');
+                                                        navigate('/login');
+                                                        return;
+                                                    }
+                                                    navigate(`/book-service/${service._id}`);
                                                 }}
-                                                className="text-white px-4 py-2 rounded-md flex items-center transition-colors"
+                                                className="text-white px-2 py-1 rounded-md flex items-center text-xs transition-colors"
                                                 style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
                                             >
-                                                <Wrench className="w-4 h-4 mr-1" />
-                                                Book Now
+                                                <Wrench className="w-3 h-3 mr-1" />
+                                                Book
                                             </button>
                                         </div>
                                     </div>

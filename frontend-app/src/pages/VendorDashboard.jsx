@@ -528,50 +528,43 @@ const VendorDashboard = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 {products.map((product) => (
-                                                    <div key={product._id} className="bg-gray-50 rounded-lg overflow-hidden">
+                                                    <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
                                                         {/* Product Image */}
-                                                        <div className="h-48 bg-gray-200">
+                                                        <div className="h-32 bg-gray-100 flex items-center justify-center">
                                                             <img
-                                                                src={product.images && product.images.length > 0 
-                                                                    ? product.images[0].url 
-                                                                    : 'https://via.placeholder.com/300x200?text=Product'}
+                                                                src={product.images && product.images.length > 0
+                                                                    ? product.images[0].url
+                                                                    : 'https://via.placeholder.com/200x150?text=Product'}
                                                                 alt={product.name}
-                                                                className="w-full h-full object-cover"
+                                                                className="w-full h-full object-contain p-2"
                                                                 onError={(e) => {
-                                                                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                                    e.target.src = 'https://via.placeholder.com/200x150?text=No+Image';
                                                                 }}
                                                             />
                                                         </div>
-                                                        
+
                                                         {/* Product Info */}
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                                                                <span className="text-xs px-2 py-1 rounded"
-                                                                    style={{ backgroundColor: '#DDA15E20', color: '#DDA15E' }}>
-                                                                    {getCategoryNames(product.categories)}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                                                            <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
-                                                                <span>Price: ${product.basePrice}</span>
-                                                                <span className={`px-2 py-1 rounded ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        <div className="p-3">
+                                                            <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate" title={product.name}>{product.name}</h3>
+                                                            <p className="text-xs text-gray-600 mb-2 line-clamp-2" title={product.description}>{product.description}</p>
+                                                            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                                                                <span className="font-medium" style={{ color: '#606C38' }}>${product.basePrice}</span>
+                                                                <span className={`px-2 py-0.5 rounded text-xs ${product.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                                     {product.isAvailable ? 'Available' : 'Out of Stock'}
                                                                 </span>
-                                                                <span>Stock: {product.inventory?.totalStock || 0}</span>
                                                             </div>
                                                             <div className="flex gap-2">
                                                                 <button
                                                                     onClick={() => handleEditProduct(product)}
-                                                                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                                    className="flex-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                                                                 >
                                                                     Edit
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteProduct(product._id)}
-                                                                    className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                                    className="flex-1 px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 transition-colors"
                                                                 >
                                                                     Delete
                                                                 </button>
@@ -610,52 +603,47 @@ const VendorDashboard = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 {services.map((service) => (
-                                                    <div key={service._id} className="bg-gray-50 rounded-lg overflow-hidden">
+                                                    <div key={service._id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
                                                         {/* Service Image */}
-                                                        <div className="h-48 bg-gray-200">
+                                                        <div className="h-32 bg-gray-100 flex items-center justify-center">
                                                             {service.images && service.images.length > 0 ? (
                                                                 <img
                                                                     src={service.images[0].startsWith('http') ? service.images[0] : `http://localhost:5000/uploads/${service.images[0]}`}
                                                                     alt={service.title}
-                                                                    className="w-full h-full object-cover"
+                                                                    className="w-full h-full object-contain p-2"
                                                                     onError={(e) => {
-                                                                        e.target.src = 'https://via.placeholder.com/300x200?text=Service';
+                                                                        e.target.src = 'https://via.placeholder.com/200x150?text=Service';
                                                                     }}
                                                                 />
                                                             ) : (
                                                                 <div className="flex items-center justify-center h-full" style={{ background: 'linear-gradient(to bottom right, #606C3810, #606C3820)' }}>
-                                                                    <span className="text-lg font-medium" style={{ color: '#606C38' }}>Service</span>
+                                                                    <span className="text-sm font-medium" style={{ color: '#606C38' }}>Service</span>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        
+
                                                         {/* Service Info */}
-                                                        <div className="p-4">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <h3 className="font-semibold text-gray-900">{service.title}</h3>
-                                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                                    {service.serviceCategory}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-sm text-gray-600 mb-2">{service.description}</p>
-                                                            <div className="flex justify-between items-center text-sm text-gray-500 mb-3">
-                                                                <span>Price: {service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}</span>
-                                                                <span className={`px-2 py-1 rounded ${service.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        <div className="p-3">
+                                                            <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate" title={service.title}>{service.title}</h3>
+                                                            <p className="text-xs text-gray-600 mb-2 line-clamp-2" title={service.description}>{service.description}</p>
+                                                            <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                                                                <span className="font-medium" style={{ color: '#606C38' }}>{service.pricingModel === 'hourly' ? `${service.basePrice}/hr` : service.basePrice ? `$${service.basePrice}` : 'Quote'}</span>
+                                                                <span className={`px-2 py-0.5 rounded text-xs ${service.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                                                     {service.isActive ? 'Active' : 'Inactive'}
                                                                 </span>
                                                             </div>
                                                             <div className="flex gap-2">
                                                                 <button
                                                                     onClick={() => handleEditService(service)}
-                                                                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                                                                    className="flex-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                                                                 >
                                                                     Edit
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteService(service._id)}
-                                                                    className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                                                    className="flex-1 px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 transition-colors"
                                                                 >
                                                                     Delete
                                                                 </button>

@@ -32,6 +32,8 @@ import VendorOrders from './pages/vendorOrders';
 import VendorOrderDetail from './pages/vendorOrderDetail';
 import VendorSearch from './pages/VendorSearch';
 import TestLocationPicker from './components/TestLocationPicker';
+import BookService from './pages/BookService';
+import MyBookings from './pages/MyBookings';
 
 const ConditionalNavbar = () => {
     const location = useLocation();
@@ -103,6 +105,11 @@ const AppContent = () => {
                             <ServiceDetails />
                         </ErrorBoundary>
                     } />
+                    <Route path="/book-service/:serviceId" element={
+                        <ErrorBoundary>
+                            <BookService />
+                        </ErrorBoundary>
+                    } />
                     <Route path="/register" element={<Register />} />
                     <Route path="/vendor/apply" element={
                         <ErrorBoundary>
@@ -130,6 +137,7 @@ const AppContent = () => {
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/orders" element={<Orders />} />
                         <Route path="/orders/:orderId" element={<OrderDetail />} />
+                        <Route path="/my-bookings" element={<MyBookings />} />
                         <Route path="/checkout/success" element={<CheckoutSuccess />} />
                         <Route path="/vendor/orders" element={
                             <ErrorBoundary>

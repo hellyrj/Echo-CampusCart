@@ -238,7 +238,7 @@ class VendorRepository extends BaseRepository {
 
   async searchNearbyVendorsWithItems({ longitude, latitude, radius, searchItem, category, minPrice, maxPrice, sortBy = 'distance', page = 1, limit = 20 }) {
     const skip = (page - 1) * limit;
-    
+
     // Build product filter
     let productFilter = {};
     if (searchItem && searchItem.trim()) {
@@ -248,11 +248,11 @@ class VendorRepository extends BaseRepository {
         { description: searchRegex }
       ];
     }
-    
+
     if (category) {
       productFilter.categories = category;
     }
-    
+
     if (minPrice !== undefined || maxPrice !== undefined) {
       productFilter.basePrice = {};
       if (minPrice !== undefined) {
@@ -263,7 +263,31 @@ class VendorRepository extends BaseRepository {
       }
     }
 
-    // Find nearby vendors with products matching the filter
+    // Build service filter (similar to product filter but for services)
+    let serviceFilter = {};
+    if (searchItem && searchItem.trim()) {
+      const searchRegex = { $regex: searchItem.trim(), $options: 'i' };
+      serviceFilter.$or = [
+        { title: searchRegex },
+        { description: searchRegex }
+      ];
+    }
+
+    if (category) {
+      serviceFilter.serviceCategory = category;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      serviceFilter.basePrice = {};
+      if (minPrice !== undefined) {
+        serviceFilter.basePrice.$gte = minPrice;
+      }
+      if (maxPrice !== undefined) {
+        serviceFilter.basePrice.$lte = maxPrice;
+      }
+    }
+
+    // Find nearby vendors with products or services matching the filter
     const vendors = await this.model.aggregate([
       {
         $geoNear: {
@@ -291,37 +315,86 @@ class VendorRepository extends BaseRepository {
         }
       },
       {
+        $lookup: {
+          from: 'services',
+          localField: '_id',
+          foreignField: 'vendorId',
+          as: 'services'
+        }
+      },
+      {
         $match: {
-          'products': { $exists: true, $ne: [] },
-          ...(Object.keys(productFilter).length > 0 && {
-            'products': { $elemMatch: productFilter }
-          })
+          $or: [
+            { 'products': { $exists: true, $ne: [] } },
+            { 'services': { $exists: true, $ne: [] } }
+          ]
         }
       },
       {
         $addFields: {
-          avgProductPrice: { $avg: '$products.basePrice' },
+          allItems: {
+            $concatArrays: [
+              { $map: { input: '$products', as: 'p', in: { ... '$$p', itemType: 'product' } } },
+              { $map: { input: '$services', as: 's', in: { ... '$$s', itemType: 'service' } } }
+            ]
+          },
           productCount: { $size: '$products' },
-          matchingProducts: {
+          serviceCount: { $size: '$services' },
+          totalItemsCount: { $add: [{ $size: '$products' }, { $size: '$services' }] }
+        }
+      },
+      {
+        $addFields: {
+          matchingItems: {
             $filter: {
-              input: '$products',
-              as: 'product',
-              cond: Object.keys(productFilter).length === 0 ? true : {
-                $and: Object.keys(productFilter).map(key => {
-                  if (key === '$or') {
-                    return {
-                      $or: productFilter[key].map(orCondition => ({
-                        $regexMatch: {
-                          input: { $toString: `$$product.${orCondition.field || key}` },
-                          regex: orCondition.$regex,
-                          options: orCondition.$options
-                        }
-                      }))
-                    };
-                  } else {
-                    return { [key]: productFilter[key] };
-                  }
-                })
+              input: '$allItems',
+              as: 'item',
+              cond: {
+                $switch: {
+                  branches: [
+                    {
+                      case: { $eq: ['$$item.itemType', 'product'] },
+                      then: Object.keys(productFilter).length === 0 ? true : {
+                        $and: Object.keys(productFilter).map(key => {
+                          if (key === '$or') {
+                            return {
+                              $or: productFilter[key].map(orCondition => ({
+                                $regexMatch: {
+                                  input: { $toString: `$$item.${orCondition.field || key}` },
+                                  regex: orCondition.$regex,
+                                  options: orCondition.$options
+                                }
+                              }))
+                            };
+                          } else {
+                            return { [key]: productFilter[key] };
+                          }
+                        })
+                      }
+                    },
+                    {
+                      case: { $eq: ['$$item.itemType', 'service'] },
+                      then: Object.keys(serviceFilter).length === 0 ? true : {
+                        $and: Object.keys(serviceFilter).map(key => {
+                          if (key === '$or') {
+                            return {
+                              $or: serviceFilter[key].map(orCondition => ({
+                                $regexMatch: {
+                                  input: { $toString: `$$item.${orCondition.field || key}` },
+                                  regex: orCondition.$regex,
+                                  options: orCondition.$options
+                                }
+                              }))
+                            };
+                          } else {
+                            return { [key]: serviceFilter[key] };
+                          }
+                        })
+                      }
+                    }
+                  ],
+                  default: false
+                }
               }
             }
           }
@@ -329,7 +402,8 @@ class VendorRepository extends BaseRepository {
       },
       {
         $addFields: {
-          matchingProductCount: { $size: '$matchingProducts' }
+          matchingItemCount: { $size: '$matchingItems' },
+          avgProductPrice: { $avg: '$products.basePrice' }
         }
       },
       {
@@ -358,17 +432,21 @@ class VendorRepository extends BaseRepository {
           distance: 1,
           avgProductPrice: 1,
           productCount: 1,
-          matchingProductCount: 1,
-          matchingProducts: {
+          serviceCount: 1,
+          totalItemsCount: 1,
+          matchingItemCount: 1,
+          matchingItems: {
             $map: {
-              input: { $slice: ['$matchingProducts', 3] }, // Show first 3 matching products
-              as: 'product',
+              input: { $slice: ['$matchingItems', 3] },
+              as: 'item',
               in: {
-                _id: '$$product._id',
-                name: '$$product.name',
-                basePrice: '$$product.basePrice',
-                images: '$$product.images',
-                categories: '$$product.categories'
+                _id: '$$item._id',
+                name: { $ifNull: ['$$item.name', '$$item.title'] },
+                basePrice: '$$item.basePrice',
+                images: '$$item.images',
+                categories: '$$item.categories',
+                itemType: '$$item.itemType',
+                serviceCategory: '$$item.serviceCategory'
               }
             }
           }
@@ -404,11 +482,19 @@ class VendorRepository extends BaseRepository {
         }
       },
       {
+        $lookup: {
+          from: 'services',
+          localField: '_id',
+          foreignField: 'vendorId',
+          as: 'services'
+        }
+      },
+      {
         $match: {
-          'products': { $exists: true, $ne: [] },
-          ...(Object.keys(productFilter).length > 0 && {
-            'products': { $elemMatch: productFilter }
-          })
+          $or: [
+            { 'products': { $exists: true, $ne: [] } },
+            { 'services': { $exists: true, $ne: [] } }
+          ]
         }
       },
       {
@@ -447,6 +533,14 @@ class VendorRepository extends BaseRepository {
 
   async deleteById(vendorId) {
     return this.model.findByIdAndDelete(vendorId);
+  }
+
+  async updateById(vendorId, updateData) {
+    return this.model.findByIdAndUpdate(
+      vendorId,
+      updateData,
+      { new: true, runValidators: true }
+    );
   }
 }
 

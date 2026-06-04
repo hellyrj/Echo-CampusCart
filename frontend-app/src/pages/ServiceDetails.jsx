@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useServiceApi } from '../hooks/useServiceApi';
 import { useAuth } from '../context/AuthContext';
 import { Heart, MapPin, Star, ChevronLeft, ChevronRight, Wrench, Clock, DollarSign, Users, Calendar } from 'lucide-react';
+import Comments from '../components/Comments';
 
 const ServiceDetails = () => {
     const { serviceId } = useParams();
@@ -73,10 +74,10 @@ const ServiceDetails = () => {
     const handleBookService = () => {
         if (!isAuthenticated) {
             alert('Please login to book services');
+            navigate('/login');
             return;
         }
-        // Future implementation: redirect to booking page or open booking modal
-        alert('Service booking feature coming soon!');
+        navigate(`/book-service/${serviceId}`);
     };
 
     const formatPrice = (service) => {
@@ -423,6 +424,13 @@ const ServiceDetails = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Comments Section */}
+                {service && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <Comments itemId={service._id} itemType="service" />
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -18,6 +18,10 @@ export const userApi = {
 
     // Update user profile
     updateProfile: (profileData) => {
-        return axiosInstance.patch('/user/profile', profileData);
+        return axiosInstance.patch('/user/profile', profileData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     }
 };

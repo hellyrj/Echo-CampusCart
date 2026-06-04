@@ -30,6 +30,18 @@ router.get(
   controller.getMyVendorProfile
 );  //done
 
+router.put(
+  "/:id",
+  authenticate,
+  (req, res, next) => {
+    console.log('=== PUT Route Middleware Debug ===');
+    console.log('Request body before controller:', req.body);
+    console.log('Request headers:', req.headers);
+    next();
+  },
+  controller.updateVendor
+); //done
+
 
 /**
  router.get(
