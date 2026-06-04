@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+//import React, { useEffect, useState } from 'react';
+import { Link, useSearchParams, /*useNavigate*/ } from 'react-router-dom';
 import { CheckCircle, Package, ArrowRight, Home } from 'lucide-react';
 
 const CheckoutSuccess = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const orderId = searchParams.get('orderId');
     const orderNumber = searchParams.get('orderNumber');
 
@@ -14,12 +14,12 @@ const CheckoutSuccess = () => {
                 <div className="max-w-2xl mx-auto px-4 text-center">
                     <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
                     <h1 className="text-3xl font-bold mb-4" style={{ color: '#283618' }}>Order Placed Successfully!</h1>
-                    <p className="mb-8" style={{ color: '#606C38' }}>Your order has been placed and is being processed.</p>
+                    <p className="mb-8" style={{ color: '#52B788' }}>Your order has been placed and is being processed.</p>
                     <div className="flex justify-center gap-4">
                         <Link
                             to="/orders"
                             className="inline-flex items-center px-6 py-3 rounded-lg font-semibold transition-colors"
-                            style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                            style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
                         >
                             <Package className="w-5 h-5 mr-2" />
                             View My Orders
@@ -43,11 +43,11 @@ const CheckoutSuccess = () => {
             <div className="max-w-2xl mx-auto px-4">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
                     <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: '#E8F5E8' }}>
-                        <CheckCircle className="w-12 h-12" style={{ color: '#606C38' }} />
+                        <CheckCircle className="w-12 h-12" style={{ color: '#52B788' }} />
                     </div>
                     
                     <h1 className="text-3xl font-bold mb-2" style={{ color: '#283618' }}>Order Confirmed!</h1>
-                    <p className="mb-6" style={{ color: '#606C38' }}>Thank you for your order. Your order has been placed successfully.</p>
+                    <p className="mb-6" style={{ color: '#52B788' }}>Thank you for your order. Your order has been placed successfully.</p>
                     
                     <div className="bg-gray-50 rounded-lg p-6 mb-8">
                         <div className="space-y-3">
@@ -73,7 +73,7 @@ const CheckoutSuccess = () => {
                         <Link
                             to={`/orders/${orderId}`}
                             className="inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold transition-colors"
-                            style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                            style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
                         >
                             Track Order
                             <ArrowRight className="w-5 h-5 ml-2" />

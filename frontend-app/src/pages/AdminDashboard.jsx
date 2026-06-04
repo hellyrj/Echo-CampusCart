@@ -329,7 +329,7 @@ const AdminDashboard = () => {
                 <button
                     onClick={() => viewVendorDetails(application)}
                     className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
-                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                    style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
@@ -387,7 +387,7 @@ const AdminDashboard = () => {
                 <button
                     onClick={() => viewVendorDetails(vendor)}
                     className="flex items-center gap-1 px-4 py-2 rounded hover:opacity-90 transition-colors"
-                    style={{ backgroundColor: '#606C38', color: '#FEFAE0' }}
+                    style={{ backgroundColor: '#52B788', color: '#FEFAE0' }}
                 >
                     <Eye className="w-4 h-4" />
                     View Details
