@@ -2,7 +2,8 @@
 import axios from 'axios';
 
 // Get the API URL from environment variables
-const API_URL = process.env.REACT_APP_API_URL || '';
+//const API_URL = process.env.REACT_APP_API_URL || '';
+const API_URL = 'https://echo-campuscart.onrender.com';
 
 const axiosInstance = axios.create({
     baseURL: `${API_URL}/api`,   // Now points to your deployed backend
