@@ -20,6 +20,7 @@ import wishlistRoutes from './routes/wishlist.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import serviceRoutes from './routes/service.routes.js';
+import bookingRoutes from './routes/booking.routes.js';
 
 const app = express();
 
@@ -28,7 +29,9 @@ app.use('uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Global middlewares
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
+    origin: process.env.NODE_ENV === 'production' 
+        ? [process.env.FRONTEND_URL].filter(Boolean) 
+        : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -57,6 +60,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
