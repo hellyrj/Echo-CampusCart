@@ -1,8 +1,11 @@
 // axios.js
 import axios from 'axios';
 
+// Get the API URL from environment variables
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 const axiosInstance = axios.create({
-    baseURL: '/api',
+    baseURL: `${API_URL}/api`,   // Now points to your deployed backend
     headers: {
         'Content-Type': 'application/json'
     },
