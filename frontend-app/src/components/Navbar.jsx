@@ -55,7 +55,10 @@ const Navbar = () => {
                             
                             {/* Student-only items */}
                             {isStudent && (
-                                <NavIcon to="/orders" icon={<Package size={22} />} title="My Orders" isActive={location.pathname === '/orders'} />
+                                <>
+                                    <NavIcon to="/orders" icon={<Package size={22} />} title="My Orders" isActive={location.pathname === '/orders'} />
+                                    <NavIcon to="/my-bookings" icon={<User size={22} />} title="My Bookings" isActive={location.pathname === '/my-bookings'} />
+                                </>
                             )}
                             
                             {/* Vendor-only items */}

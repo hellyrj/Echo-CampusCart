@@ -1309,7 +1309,12 @@ const Products = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    alert('Service booking feature coming soon!');
+                                                    if (!isAuthenticated) {
+                                                        alert('Please login to book services');
+                                                        navigate('/login');
+                                                        return;
+                                                    }
+                                                    navigate(`/book-service/${service._id}`);
                                                 }}
                                                 className="text-white px-2 py-1 rounded-md flex items-center text-xs transition-colors"
                                                 style={{ backgroundColor: theme.secondary, color: theme.text.inverse }}
