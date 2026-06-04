@@ -236,7 +236,7 @@ const Checkout = () => {
                                                 onChange={handleInputChange}
                                                 placeholder="+251 91 234 5678"
                                                 className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                             />
                                         </div>
                                         {errors.phone && <p className="text-sm mt-1" style={{ color: theme.error }}>{errors.phone}</p>}
@@ -253,7 +253,7 @@ const Checkout = () => {
                                             rows="2"
                                             placeholder="Dormitory Block A, Room 123, AAU Main Campus"
                                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         {errors.deliveryAddress && <p className="text-sm mt-1" style={{ color: theme.error }}>{errors.deliveryAddress}</p>}
                                     </div>
@@ -269,7 +269,7 @@ const Checkout = () => {
                                             onChange={handleInputChange}
                                             placeholder="Near the main cafeteria"
                                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                     </div>
 
@@ -283,7 +283,7 @@ const Checkout = () => {
                                                 value={formData.city}
                                                 onChange={handleInputChange}
                                                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                             >
                                                 <option value="">Select City</option>
                                                 <option value="Addis Ababa">Addis Ababa</option>
@@ -311,7 +311,7 @@ const Checkout = () => {
                                                         onChange={handleInputChange}
                                                         placeholder="Enter your city name"
                                                         className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                                     />
                                                     {errors.otherCity && <p className="text-sm mt-1" style={{ color: theme.error }}>{errors.otherCity}</p>}
                                                 </div>
@@ -327,7 +327,7 @@ const Checkout = () => {
                                                 value={formData.state}
                                                 onChange={handleInputChange}
                                                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                                style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                             />
                                         </div>
                                     </div>
@@ -343,7 +343,7 @@ const Checkout = () => {
                                             rows="2"
                                             placeholder="Call when you arrive, 2nd floor, leave at reception..."
                                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                     </div>
                                 </div>
@@ -404,7 +404,7 @@ const Checkout = () => {
                                     rows="2"
                                     placeholder="Any special instructions for your order..."
                                     className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                    style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                 />
                             </div>
                         </div>

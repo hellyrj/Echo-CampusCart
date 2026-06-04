@@ -320,7 +320,7 @@ const Cart = () => {
                                             }}
                                             placeholder="Enter coupon code"
                                             className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 text-sm"
-                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         <button
                                             type="submit"

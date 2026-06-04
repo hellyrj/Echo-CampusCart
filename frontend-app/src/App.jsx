@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { CartProvider } from './context/CartContext'; // Add this import
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -31,6 +32,8 @@ import VendorOrders from './pages/vendorOrders';
 import VendorOrderDetail from './pages/vendorOrderDetail';
 import VendorSearch from './pages/VendorSearch';
 import TestLocationPicker from './components/TestLocationPicker';
+import BookService from './pages/BookService';
+import MyBookings from './pages/MyBookings';
 
 const ConditionalNavbar = () => {
     const location = useLocation();
@@ -65,9 +68,11 @@ function App() {
         <ThemeProvider>
             <AuthProvider>
                 <WishlistProvider>
-                    <Router>
-                        <AppContent />
-                    </Router>
+                    <CartProvider> {/* Add CartProvider here */}
+                        <Router>
+                            <AppContent />
+                        </Router>
+                    </CartProvider> {/* Add closing CartProvider tag */}
                 </WishlistProvider>
             </AuthProvider>
         </ThemeProvider>
@@ -81,76 +86,82 @@ const AppContent = () => {
         <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
             <ConditionalNavbar />
             <div className="min-h-screen" style={{ backgroundColor: theme.background }}>
-            <Routes>
-                            {/* Public Routes */}
-                            <Route path="/" element={<Home />} />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/products" element={
-                                <ErrorBoundary>
-                                    <Products />
-                                </ErrorBoundary>
-                            } />
-                            <Route path="/products/:productId" element={
-                                <ErrorBoundary>
-                                    <ProductDetails />
-                                </ErrorBoundary>
-                            } />
-                            <Route path="/services/:serviceId" element={
-                                <ErrorBoundary>
-                                    <ServiceDetails />
-                                </ErrorBoundary>
-                            } />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/vendor/apply" element={
-                                <ErrorBoundary>
-                                    <VendorApplication />
-                                </ErrorBoundary>
-                            } />
-                            <Route path="/vendor/:vendorId" element={
-                                <ErrorBoundary>
-                                    <VendorPublicPage />
-                                </ErrorBoundary>
-                            } />
-                            
-                            {/* Public Routes */}
-                            <Route path="/search-vendors" element={<VendorSearch />} />
-                            <Route path="/test-location" element={<TestLocationPicker />} />
-                            
-                            {/* Protected Routes */}
-                            <Route element={<PrivateRoute />}>
-                                <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-                                 <Route path="/my-products" element={<MyProducts />} />
-                                <Route path="/my-services" element={<MyServices />} />
-                                <Route path="/profile" element={<Profile />} />
-                                <Route path="/wishlist" element={<Wishlist />} />
-                                <Route path="/cart" element={<Cart />} />
-                                <Route path="/checkout" element={<Checkout />} />
-                                <Route path="/orders" element={<Orders />} />
-                                <Route path="/orders/:orderId" element={<OrderDetail />} />
-                                <Route path="/checkout/success" element={<CheckoutSuccess />} />
-                                <Route path="/vendor/orders" element={
-    <ErrorBoundary>
-        <VendorOrders />
-    </ErrorBoundary>
-} />
-<Route path="/vendor/orders/:orderId" element={
-    <ErrorBoundary>
-        <VendorOrderDetail />
-    </ErrorBoundary>
-} />
-                                <Route path="/admin/dashboard" element={
-                                    <ErrorBoundary>
-                                        <AdminDashboard />
-                                    </ErrorBoundary>
-                                } />
-                            </Route>
-                            
-                            {/* Fallback */}
-                            <Route path="*" element={<FallbackRoute />} />
-                        </Routes>
-                        </div>
-                    <ConditionalFloatingButton />
-                </div>
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/products" element={
+                        <ErrorBoundary>
+                            <Products />
+                        </ErrorBoundary>
+                    } />
+                    <Route path="/products/:productId" element={
+                        <ErrorBoundary>
+                            <ProductDetails />
+                        </ErrorBoundary>
+                    } />
+                    <Route path="/services/:serviceId" element={
+                        <ErrorBoundary>
+                            <ServiceDetails />
+                        </ErrorBoundary>
+                    } />
+                    <Route path="/book-service/:serviceId" element={
+                        <ErrorBoundary>
+                            <BookService />
+                        </ErrorBoundary>
+                    } />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/vendor/apply" element={
+                        <ErrorBoundary>
+                            <VendorApplication />
+                        </ErrorBoundary>
+                    } />
+                    <Route path="/vendor/:vendorId" element={
+                        <ErrorBoundary>
+                            <VendorPublicPage />
+                        </ErrorBoundary>
+                    } />
+                    
+                    {/* Public Routes */}
+                    <Route path="/search-vendors" element={<VendorSearch />} />
+                    <Route path="/test-location" element={<TestLocationPicker />} />
+                    
+                    {/* Protected Routes */}
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                        <Route path="/my-products" element={<MyProducts />} />
+                        <Route path="/my-services" element={<MyServices />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/orders" element={<Orders />} />
+                        <Route path="/orders/:orderId" element={<OrderDetail />} />
+                        <Route path="/my-bookings" element={<MyBookings />} />
+                        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+                        <Route path="/vendor/orders" element={
+                            <ErrorBoundary>
+                                <VendorOrders />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/vendor/orders/:orderId" element={
+                            <ErrorBoundary>
+                                <VendorOrderDetail />
+                            </ErrorBoundary>
+                        } />
+                        <Route path="/admin/dashboard" element={
+                            <ErrorBoundary>
+                                <AdminDashboard />
+                            </ErrorBoundary>
+                        } />
+                    </Route>
+                    
+                    {/* Fallback */}
+                    <Route path="*" element={<FallbackRoute />} />
+                </Routes>
+            </div>
+            <ConditionalFloatingButton />
+        </div>
     );
 };
 
