@@ -674,7 +674,7 @@ const Products = () => {
                                         value={searchTerm}
                                         onChange={(e) => debouncedSearch(e.target.value)}
                                         className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.border, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     />
                                     <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -778,7 +778,7 @@ const Products = () => {
                                             value={locationSearchQuery}
                                             onChange={handleLocationSearchChange}
                                             className="w-full pl-9 pr-4 py-2 border rounded-md focus:ring-2 focus:border-transparent text-sm"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                                         {locationSearchQuery && (
@@ -860,7 +860,7 @@ const Products = () => {
                                         value={selectedCategory}
                                         onChange={(e) => setSelectedCategory(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     >
                                         <option value="">All Categories</option>
                                         {categories.map((category, idx) => {
@@ -883,7 +883,7 @@ const Products = () => {
                                         value={selectedUniversity}
                                         onChange={(e) => setSelectedUniversity(e.target.value)}
                                         className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                        style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                     >
                                         <option value="">All Universities</option>
                                         {universities.map((university) => (
@@ -903,7 +903,7 @@ const Products = () => {
                                             value={priceRange.min}
                                             onChange={(e) => handlePriceRangeChange('min', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                         <input
                                             type="number"
@@ -911,7 +911,7 @@ const Products = () => {
                                             value={priceRange.max}
                                             onChange={(e) => handlePriceRangeChange('max', e.target.value)}
                                             className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent min-w-0"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         />
                                     </div>
                                 </div>
@@ -923,7 +923,7 @@ const Products = () => {
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         >
                                             <option value="averageRating">Rating (High to Low)</option>
                                             <option value="basePrice">Price</option>
@@ -934,7 +934,7 @@ const Products = () => {
                                             value={sortOrder}
                                             onChange={(e) => setSortOrder(e.target.value)}
                                             className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:border-transparent"
-                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary }}
+                                            style={{ borderColor: theme.accent, focusRingColor: theme.secondary, backgroundColor: theme.background, color: theme.text.primary }}
                                         >
                                             <option value="desc">Descending</option>
                                             <option value="asc">Ascending</option>
