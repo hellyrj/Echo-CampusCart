@@ -197,7 +197,7 @@ productSchema.pre('save', async function(next) {
     
     this.slug = slug;
   }
-  next();
+//  next();
 });
 
 // Method to update average rating
